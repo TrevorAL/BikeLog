@@ -61,24 +61,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const mileageInput = body.mileageAtService;
-    const mileageAtService =
-      mileageInput === "" || mileageInput === undefined || mileageInput === null
-        ? undefined
-        : Number(mileageInput);
-
-    if (
-      mileageAtService !== undefined &&
-      (!Number.isFinite(mileageAtService) || mileageAtService < 0)
-    ) {
-      return NextResponse.json(
-        { error: "Mileage at service must be a positive number." },
-        { status: 400 },
-      );
-    }
+    const mileageSourceInput = optionalString(body.mileageSource);
+    const mileageSource = mileageSourceInput === "component" ? "component" : "manual";
 
     const componentIdInput = optionalString(body.componentId);
     let componentId: string | undefined;
+    let componentCurrentMileage: number | undefined;
 
     if (componentIdInput) {
       const component = await prisma.component.findFirst({
@@ -88,11 +76,39 @@ export async function POST(request: Request) {
         },
         select: {
           id: true,
+          currentMileage: true,
         },
       });
 
       componentId = component?.id;
+      componentCurrentMileage = component?.currentMileage;
     }
+
+    const mileageInput = body.mileageAtService;
+    const mileageAtServiceManual =
+      mileageInput === "" || mileageInput === undefined || mileageInput === null
+        ? undefined
+        : Number(mileageInput);
+
+    if (
+      mileageAtServiceManual !== undefined &&
+      (!Number.isFinite(mileageAtServiceManual) || mileageAtServiceManual < 0)
+    ) {
+      return NextResponse.json(
+        { error: "Mileage at service must be a positive number." },
+        { status: 400 },
+      );
+    }
+
+    if (mileageSource === "component" && componentCurrentMileage === undefined) {
+      return NextResponse.json(
+        { error: "Select a valid component to use component mileage." },
+        { status: 400 },
+      );
+    }
+
+    const mileageAtService =
+      mileageSource === "component" ? componentCurrentMileage : mileageAtServiceManual;
 
     const maintenanceEvent = await prisma.maintenanceEvent.create({
       data: {

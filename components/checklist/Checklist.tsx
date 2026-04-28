@@ -140,44 +140,42 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
               className="h-4 w-4 rounded border-orange-300 text-orange-600"
             />
             {item.label}
-            {!item.isDefault ? (
-              <button
-                type="button"
-                disabled={disabled || isSubmitting}
-                className="ml-auto rounded-full border border-red-300 px-2 py-0.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={async () => {
-                  setIsSubmitting(true);
-                  setStatus({ type: "idle" });
+            <button
+              type="button"
+              disabled={disabled || isSubmitting}
+              className="ml-auto rounded-full border border-red-300 px-2 py-0.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={async () => {
+                setIsSubmitting(true);
+                setStatus({ type: "idle" });
 
-                  try {
-                    const response = await fetch(`/api/checklist-items/${item.id}`, {
-                      method: "DELETE",
-                    });
+                try {
+                  const response = await fetch(`/api/checklist-items/${item.id}`, {
+                    method: "DELETE",
+                  });
 
-                    const payload = (await response.json()) as { error?: string };
+                  const payload = (await response.json()) as { error?: string };
 
-                    if (!response.ok) {
-                      throw new Error(payload.error ?? "Could not delete checklist item.");
-                    }
-
-                    setItems((previous) =>
-                      previous.filter((existing) => existing.id !== item.id),
-                    );
-                    setStatus({ type: "success", message: "Checklist item deleted." });
-                  } catch (error) {
-                    const message =
-                      error instanceof Error
-                        ? error.message
-                        : "Could not delete checklist item right now.";
-                    setStatus({ type: "error", message });
-                  } finally {
-                    setIsSubmitting(false);
+                  if (!response.ok) {
+                    throw new Error(payload.error ?? "Could not delete checklist item.");
                   }
-                }}
-              >
-                Delete
-              </button>
-            ) : null}
+
+                  setItems((previous) =>
+                    previous.filter((existing) => existing.id !== item.id),
+                  );
+                  setStatus({ type: "success", message: "Checklist item deleted." });
+                } catch (error) {
+                  const message =
+                    error instanceof Error
+                      ? error.message
+                      : "Could not delete checklist item right now.";
+                  setStatus({ type: "error", message });
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+            >
+              Delete
+            </button>
           </label>
         ))}
       </div>

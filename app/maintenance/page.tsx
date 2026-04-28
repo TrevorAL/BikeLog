@@ -133,6 +133,7 @@ export default async function MaintenancePage() {
           components={bike?.components.map((component) => ({
             id: component.id,
             name: component.name,
+            currentMileage: component.currentMileage,
           })) ?? []}
           disabled={!data.dbConnected || !bike}
         />

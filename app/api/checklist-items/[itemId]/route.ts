@@ -63,13 +63,6 @@ export async function DELETE(_request: Request, context: RouteContext) {
       if (result.reason === "NOT_FOUND") {
         return NextResponse.json({ error: "Checklist item not found." }, { status: 404 });
       }
-
-      if (result.reason === "DEFAULT_ITEM") {
-        return NextResponse.json(
-          { error: "Default checklist items cannot be deleted." },
-          { status: 400 },
-        );
-      }
     }
 
     return NextResponse.json({ deleted: true });

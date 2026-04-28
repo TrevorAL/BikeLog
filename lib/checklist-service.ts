@@ -78,10 +78,6 @@ export async function deleteChecklistItem(input: {
     return { deleted: false, reason: "NOT_FOUND" };
   }
 
-  if (existing.isDefault) {
-    return { deleted: false, reason: "DEFAULT_ITEM" };
-  }
-
   await prisma.checklistItem.delete({
     where: {
       id: input.itemId,
