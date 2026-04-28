@@ -36,6 +36,7 @@ export function getDayStatus(
 
 type BuildMaintenanceInput = {
   bikeMileage: number;
+  chainMileage?: number;
   lastChainLubeMileage?: number;
   lastChainWearMileage?: number;
   lastTireInspectMileage?: number;
@@ -49,10 +50,37 @@ type BuildMaintenanceInput = {
   hasRecentRoughRide?: boolean;
 };
 
+function formatMileageDetail(intervalMiles: number, milesSinceService: number) {
+  const milesRemaining = intervalMiles - milesSinceService;
+  if (milesRemaining < 0) {
+    return `${Math.abs(Math.round(milesRemaining))} miles overdue`;
+  }
+
+  if (milesRemaining === 0) {
+    return "Due now";
+  }
+
+  return `${Math.round(milesRemaining)} miles remaining`;
+}
+
+function formatDayDetail(intervalDays: number, daysSinceService: number) {
+  const daysRemaining = intervalDays - daysSinceService;
+  if (daysRemaining < 0) {
+    return `${Math.abs(Math.round(daysRemaining))} days overdue`;
+  }
+
+  if (daysRemaining === 0) {
+    return "Due now";
+  }
+
+  return `${Math.round(daysRemaining)} days remaining`;
+}
+
 export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
   const dueItems: DueItem[] = [];
+  const chainMileage = input.chainMileage ?? input.bikeMileage;
 
-  const chainLubeMiles = input.bikeMileage - (input.lastChainLubeMileage ?? 0);
+  const chainLubeMiles = chainMileage - (input.lastChainLubeMileage ?? 0);
   const chainLubeStatus = getMileageStatus(
     chainLubeMiles,
     MAINTENANCE_INTERVALS.chainLube.intervalMiles,
@@ -63,10 +91,10 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
     key: "chain-lube",
     label: "Chain lube",
     status: chainLubeStatus,
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.chainLube.intervalMiles - chainLubeMiles)} miles remaining`,
+    detail: formatMileageDetail(MAINTENANCE_INTERVALS.chainLube.intervalMiles, chainLubeMiles),
   });
 
-  const chainWearMiles = input.bikeMileage - (input.lastChainWearMileage ?? 0);
+  const chainWearMiles = chainMileage - (input.lastChainWearMileage ?? 0);
   dueItems.push({
     key: "chain-wear",
     label: "Chain wear check",
@@ -75,7 +103,7 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.chainWear.intervalMiles,
       MAINTENANCE_INTERVALS.chainWear.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.chainWear.intervalMiles - chainWearMiles)} miles remaining`,
+    detail: formatMileageDetail(MAINTENANCE_INTERVALS.chainWear.intervalMiles, chainWearMiles),
   });
 
   const tireInspectMiles = input.bikeMileage - (input.lastTireInspectMileage ?? 0);
@@ -87,7 +115,7 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.tireInspection.intervalMiles,
       MAINTENANCE_INTERVALS.tireInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.tireInspection.intervalMiles - tireInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(MAINTENANCE_INTERVALS.tireInspection.intervalMiles, tireInspectMiles),
   });
 
   const brakeInspectMiles = input.bikeMileage - (input.lastBrakeInspectMileage ?? 0);
@@ -99,7 +127,10 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles,
       MAINTENANCE_INTERVALS.brakePadInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles - brakeInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(
+      MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles,
+      brakeInspectMiles,
+    ),
   });
 
   const cleatInspectMiles = input.bikeMileage - (input.lastCleatInspectMileage ?? 0);
@@ -111,7 +142,7 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.cleatInspection.intervalMiles,
       MAINTENANCE_INTERVALS.cleatInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.cleatInspection.intervalMiles - cleatInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(MAINTENANCE_INTERVALS.cleatInspection.intervalMiles, cleatInspectMiles),
   });
 
   const barTapeInspectMiles = input.bikeMileage - (input.lastBarTapeInspectMileage ?? 0);
@@ -123,7 +154,10 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.barTapeInspection.intervalMiles,
       MAINTENANCE_INTERVALS.barTapeInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.barTapeInspection.intervalMiles - barTapeInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(
+      MAINTENANCE_INTERVALS.barTapeInspection.intervalMiles,
+      barTapeInspectMiles,
+    ),
   });
 
   const cassetteInspectMiles = input.bikeMileage - (input.lastCassetteInspectMileage ?? 0);
@@ -135,7 +169,10 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.cassetteInspection.intervalMiles,
       MAINTENANCE_INTERVALS.cassetteInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.cassetteInspection.intervalMiles - cassetteInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(
+      MAINTENANCE_INTERVALS.cassetteInspection.intervalMiles,
+      cassetteInspectMiles,
+    ),
   });
 
   const rotorInspectMiles = input.bikeMileage - (input.lastRotorInspectMileage ?? 0);
@@ -147,7 +184,7 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
       MAINTENANCE_INTERVALS.rotorInspection.intervalMiles,
       MAINTENANCE_INTERVALS.rotorInspection.warningMilesBefore,
     ),
-    detail: `${Math.max(0, MAINTENANCE_INTERVALS.rotorInspection.intervalMiles - rotorInspectMiles)} miles remaining`,
+    detail: formatMileageDetail(MAINTENANCE_INTERVALS.rotorInspection.intervalMiles, rotorInspectMiles),
   });
 
   if (input.lastDi2ChargeDate) {
@@ -162,7 +199,14 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
         MAINTENANCE_INTERVALS.di2Check.intervalDays,
         MAINTENANCE_INTERVALS.di2Check.warningDaysBefore,
       ),
-      detail: `${Math.max(0, MAINTENANCE_INTERVALS.di2Check.intervalDays - daysSinceCharge)} days remaining`,
+      detail: formatDayDetail(MAINTENANCE_INTERVALS.di2Check.intervalDays, daysSinceCharge),
+    });
+  } else {
+    dueItems.push({
+      key: "di2-charge",
+      label: "Di2 battery",
+      status: "DUE_SOON",
+      detail: "Charge status unknown",
     });
   }
 

@@ -7,7 +7,7 @@ type ComponentCardProps = {
   name: string;
   brandModel: string;
   currentMileage: number;
-  installDate: Date;
+  installDate?: Date | null;
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
 };
@@ -37,7 +37,9 @@ export function ComponentCard({
         </div>
         <div className="rounded-2xl bg-orange-50 p-3">
           <p className="text-xs text-orange-700">Install date</p>
-          <p className="font-semibold text-orange-950">{installDate.toLocaleDateString()}</p>
+          <p className="font-semibold text-orange-950">
+            {installDate ? installDate.toLocaleDateString() : "Not set"}
+          </p>
         </div>
       </div>
 
