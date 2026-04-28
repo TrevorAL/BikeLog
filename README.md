@@ -2,15 +2,17 @@
 
 BikeLog is a full-stack bike maintenance tracker built with Next.js, TypeScript, Tailwind, Framer Motion, Prisma, and PostgreSQL.
 
-It includes:
+## What This App Includes
+
 - Interactive garage-style homepage
-- Bike profile page with live summary metrics
-- Component tracking with add/edit/replace flow
-- Ride logging with edit/delete and component mileage updates
-- Maintenance due-status logic and maintenance event history
-- Tire pressure calculator + saved preset CRUD
-- Bike fit measurement CRUD + mark current
-- Before-ride checklist persistence (toggle/add/delete/reset)
+- Bike profile and readiness summaries
+- Component mileage tracking (add/edit/replace/recalculate)
+- Ride logging (create/edit/delete with mileage updates)
+- Maintenance tracking and due-status logic
+- Tire pressure calculator with saved presets
+- Bike fit measurement history
+- Before-ride checklist
+- Simple auth + user ownership scoping
 
 ## Tech Stack
 
@@ -19,305 +21,221 @@ It includes:
 - Tailwind CSS
 - Framer Motion
 - Prisma ORM
-- PostgreSQL
-- Lucide React
+- PostgreSQL (Neon by default)
 
 ## Prerequisites
 
 - Node.js 18+
 - npm 9+
-- Docker Desktop (for local Postgres via Compose)
+- Docker Desktop (optional, only if you want local Postgres instead of Neon)
+
+## Database Strategy
+
+- Default: Neon managed Postgres (recommended)
+- Optional: local Postgres via Docker Compose
+
+You do not need Docker for normal development if `.env` points to Neon.
 
 ## Environment Variables
 
-Copy the example env file:
+Copy example env:
 
 ```bash
 cp .env.example .env
 ```
 
-Default value in `.env.example`:
+Set these in `.env`:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/bikelog"
-AUTH_SECRET="change-this-in-production"
+DATABASE_URL="postgresql://...-pooler.../neondb?sslmode=require&channel_binding=require"
+DIRECT_URL="postgresql://...without-pooler.../neondb?sslmode=require&channel_binding=require"
+AUTH_SECRET="your-random-secret"
 ```
 
-`AUTH_SECRET` is used to sign the BikeLog session cookie.
+- `DATABASE_URL`: pooled Neon URL (for app runtime)
+- `DIRECT_URL`: non-pooled Neon URL (for Prisma migrations/CLI)
+- `AUTH_SECRET`: signs the BikeLog session cookie
 
-## Local Database (Docker Compose)
-
-A Postgres service is provided in `docker-compose.yml`.
-
-### Start DB
+Generate a secret:
 
 ```bash
-docker compose up -d db
+openssl rand -base64 32
 ```
 
-### Check status
-
-```bash
-docker compose ps
-```
-
-### View logs
-
-```bash
-docker compose logs -f db
-```
-
-### Stop DB (keep data)
-
-```bash
-docker compose stop db
-```
-
-### Stop and remove containers/network (keep data)
-
-```bash
-docker compose down
-```
-
-### Full reset (remove DB data volume)
-
-```bash
-docker compose down -v
-```
-
-## Install Dependencies
-
-```bash
-npm install
-```
-
-## Prisma Setup
-
-Generate Prisma client:
-
-```bash
-npm run db:generate
-```
-
-Push schema to DB:
-
-```bash
-npm run db:push
-```
-
-Seed DB with default BikeLog data:
-
-```bash
-npm run db:seed
-```
-
-## Run the App
-
-Start development server:
-
-```bash
-npm run dev
-```
-
-Open:
-- http://localhost:3000
-- http://localhost:3000/login
-
-Sign in with any email. BikeLog will create the user if needed, then attach the seeded bike to that user (or create a seeded bike if none are available).
-
-## Available npm Commands
-
-- `npm run dev` - Start Next.js dev server
-- `npm run build` - Build production app
-- `npm run start` - Start production server after build
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Run TypeScript checks
-- `npm run test:integration` - Run DB-backed integration tests for rides and maintenance logging
-- `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push Prisma schema to database
-- `npm run db:migrate:status` - Show Prisma Migrate status
-- `npm run db:migrate:deploy` - Apply committed migrations
-- `npm run db:backfill:initial-mileage` - One-time backfill for component `initialMileage`
-- `npm run db:seed` - Seed database using `prisma/seed.ts`
-
-Integration tests require Postgres running locally on `localhost:5432` (see Docker Compose commands above).
-
-## Prisma Migrate Workflow
-
-This project is now baselined with Prisma Migrate using:
-
-- `prisma/migrations/0_init/migration.sql`
-
-For future schema changes:
-
-1. Update `prisma/schema.prisma`
-2. Create a migration with Prisma Migrate (example):
-
-```bash
-npx prisma migrate dev --name your_change_name
-```
-
-3. Commit the new migration folder
-4. Apply in other environments with:
-
-```bash
-npm run db:migrate:deploy
-```
-
-One-time data backfill already added for existing local data:
-
-```bash
-npm run db:backfill:initial-mileage
-```
-
-## Recommended First-Time Setup
+## First-Time Setup (Neon Default)
 
 From project root:
 
 ```bash
 npm install
-cp .env.example .env
-docker compose up -d db
 npm run db:generate
-npm run db:push
+npm run db:migrate:deploy
 npm run db:seed
 npm run dev
 ```
 
+Open:
+
+- http://localhost:3000
+- http://localhost:3000/login
+
+Sign in with any email. BikeLog creates or reuses your user and scopes data to that user.
+
 ## Daily Development Workflow
 
-Start DB and app:
+For normal local work (Neon-backed):
 
 ```bash
-docker compose up -d db
 npm run dev
 ```
 
-When done:
+No Docker command is required.
+
+## Docker (Optional Local Postgres)
+
+Use this only if you want to run Postgres locally instead of Neon.
+
+### Start local DB
+
+```bash
+docker compose up -d db
+```
+
+### Stop local DB (keep container + data)
 
 ```bash
 docker compose stop db
 ```
 
-## Production Build Commands
+### Shut down compose stack (remove containers/network, keep data volume)
 
 ```bash
-npm run build
-npm run start
+docker compose down
 ```
+
+### Full reset (remove containers/network + DB volume data)
+
+```bash
+docker compose down -v
+```
+
+### Check status and logs
+
+```bash
+docker compose ps
+docker compose logs -f db
+```
+
+## Prisma Workflow
+
+This repo is baselined with:
+
+- `prisma/migrations/0_init/migration.sql`
+
+### Apply committed migrations
+
+```bash
+npm run db:migrate:deploy
+```
+
+### Check migration status
+
+```bash
+npm run db:migrate:status
+```
+
+### Create a new migration during development
+
+```bash
+npx prisma migrate dev --name your_change_name
+```
+
+Then commit the new folder under `prisma/migrations`.
+
+### One-time data backfill helper
+
+```bash
+npm run db:backfill:initial-mileage
+```
+
+## Commands
+
+- `npm run dev` - Start Next.js dev server
+- `npm run build` - Build production app
+- `npm run start` - Run production build
+- `npm run lint` - Run ESLint
+- `npm run typecheck` - Run TypeScript checks
+- `npm run test:integration` - Run DB-backed integration tests
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push Prisma schema (prototype use)
+- `npm run db:migrate:status` - Show migration status
+- `npm run db:migrate:deploy` - Apply committed migrations
+- `npm run db:backfill:initial-mileage` - Backfill `initialMileage`
+- `npm run db:seed` - Seed default BikeLog data
 
 ## Current API-Backed Features
 
 ### Rides
 
-- All ride API routes require auth and enforce ownership by user
-- `POST /api/rides` creates ride and increments active mileage-based components
-- `PATCH /api/rides/[rideId]` edits ride and adjusts component mileage delta
-- `DELETE /api/rides/[rideId]` deletes ride and decrements component mileage
+- `POST /api/rides`
+- `PATCH /api/rides/[rideId]`
+- `DELETE /api/rides/[rideId]`
 
 ### Maintenance
 
-- `POST /api/maintenance-events` creates maintenance events
-- `/maintenance` uses real due/due soon/overdue status computation from rides/components/events
+- `POST /api/maintenance-events`
+- `PATCH /api/maintenance-events/[eventId]`
+- `DELETE /api/maintenance-events/[eventId]`
 
 ### Components
 
-- Component API routes require auth and enforce ownership by user
-- `POST /api/components` add component
-- `PATCH /api/components/[componentId]` edit component
-- `POST /api/components/[componentId]/replace` replace component (old -> replaced, new active at 0 mi)
-- `POST /api/components/recalculate-mileage` preview/apply mileage recalculation from rides (drift fix)
+- `POST /api/components`
+- `PATCH /api/components/[componentId]`
+- `POST /api/components/[componentId]/replace`
+- `POST /api/components/recalculate-mileage`
 
 ### Pressure Presets
 
-- `POST /api/pressure-presets` create preset
-- `PATCH /api/pressure-presets/[presetId]` edit preset
-- `DELETE /api/pressure-presets/[presetId]` delete preset
+- `POST /api/pressure-presets`
+- `PATCH /api/pressure-presets/[presetId]`
+- `DELETE /api/pressure-presets/[presetId]`
 
 ### Fit
 
-- `POST /api/fit-measurements` create measurement
-- `PATCH /api/fit-measurements/[measurementId]` edit measurement
-- `POST /api/fit-measurements/[measurementId]/mark-current` set current fit snapshot
+- `POST /api/fit-measurements`
+- `PATCH /api/fit-measurements/[measurementId]`
+- `POST /api/fit-measurements/[measurementId]/mark-current`
 
 ### Checklist
 
-- `POST /api/checklist-items` add custom item
-- `PATCH /api/checklist-items/[itemId]` toggle/update item
-- `DELETE /api/checklist-items/[itemId]` delete custom item
-- `POST /api/checklist-items/reset` reset all checklist completion states
+- `POST /api/checklist-items`
+- `PATCH /api/checklist-items/[itemId]`
+- `DELETE /api/checklist-items/[itemId]`
+- `POST /api/checklist-items/reset`
 
-## Project Structure (High Level)
-
-```text
-app/
-  page.tsx
-  dashboard/page.tsx
-  bike/page.tsx
-  components/page.tsx
-  rides/page.tsx
-  maintenance/page.tsx
-  pressure/page.tsx
-  fit/page.tsx
-  checklist/page.tsx
-  api/
-    rides/
-    maintenance-events/
-    components/
-    pressure-presets/
-    fit-measurements/
-    checklist-items/
-
-components/
-  garage/
-  layout/
-  ui/
-  bike/
-  components/
-  rides/
-  maintenance/
-  pressure/
-  fit/
-  checklist/
-
-lib/
-  db.ts
-  constants.ts
-  maintenance.ts
-  bike-maintenance.ts
-  readiness.ts
-  rides.ts
-  pressure.ts
-
-prisma/
-  schema.prisma
-  seed.ts
-```
+All write APIs require auth and enforce user ownership.
 
 ## Troubleshooting
 
-### Database connection errors
+### Can’t connect to DB
 
-1. Verify DB is running:
+1. Verify `.env` URLs are correct for Neon.
+2. Run:
 
 ```bash
-docker compose ps
+npm run db:migrate:status
 ```
 
-2. Verify `DATABASE_URL` in `.env`.
-
-3. Re-apply schema and seed:
+3. Re-seed if needed:
 
 ```bash
-npm run db:push
 npm run db:seed
 ```
 
-### Need clean DB state
+### Port 3000 in use
+
+Stop the existing Next.js dev process, then rerun:
 
 ```bash
-docker compose down -v
-docker compose up -d db
-npm run db:push
-npm run db:seed
+npm run dev
 ```
