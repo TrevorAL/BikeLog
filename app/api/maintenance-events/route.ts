@@ -1,7 +1,9 @@
 import { MaintenanceEventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getOwnedBikeId } from "@/lib/ownership";
 
 const validMaintenanceTypes = new Set(Object.values(MaintenanceEventType));
 
@@ -16,6 +18,11 @@ function optionalString(value: unknown) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const dateInput = optionalString(body.date);
@@ -37,27 +44,19 @@ export async function POST(request: Request) {
         : MaintenanceEventType.OTHER;
 
     const bikeIdInput = optionalString(body.bikeId);
-    let bikeId = bikeIdInput;
-
-    if (!bikeId) {
-      const bike = await prisma.bike.findFirst({
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      bikeId = bike?.id;
-    }
+    const bikeId = await getOwnedBikeId({
+      userId: auth.user.id,
+      bikeId: bikeIdInput,
+    });
 
     if (!bikeId) {
       return NextResponse.json(
         {
-          error: "No bike found. Seed the database first with `npm run db:seed`.",
+          error: bikeIdInput
+            ? "Bike not found for current user."
+            : "No bike found for current user.",
         },
-        { status: 404 },
+        { status: bikeIdInput ? 403 : 404 },
       );
     }
 

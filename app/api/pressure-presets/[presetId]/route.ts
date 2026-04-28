@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
 import type { PressurePreference, PressureSurface } from "@/lib/constants";
+import { prisma } from "@/lib/db";
 import {
   deletePressurePreset,
   updatePressurePreset,
@@ -36,7 +38,28 @@ function parseNumberField(value: unknown, fieldName: string) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { presetId } = await context.params;
+    const existing = await prisma.tirePressureSetup.findFirst({
+      where: {
+        id: presetId,
+        bike: {
+          userId: auth.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Preset not found." }, { status: 404 });
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const name = optionalString(body.name);
@@ -118,7 +141,28 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(_request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { presetId } = await context.params;
+    const existing = await prisma.tirePressureSetup.findFirst({
+      where: {
+        id: presetId,
+        bike: {
+          userId: auth.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Preset not found." }, { status: 404 });
+    }
+
     const deleted = await deletePressurePreset(presetId);
 
     if (!deleted) {

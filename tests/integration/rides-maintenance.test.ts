@@ -6,18 +6,40 @@ import { ComponentStatus, ComponentType, RideType } from "@prisma/client";
 import { POST as recalculateMileage } from "../../app/api/components/recalculate-mileage/route";
 import { POST as createMaintenanceEvent } from "../../app/api/maintenance-events/route";
 import { POST as createRide } from "../../app/api/rides/route";
+import { SESSION_COOKIE_NAME, createSessionToken } from "../../lib/auth";
 import { prisma } from "../../lib/db";
 import { getDueActionConfig } from "../../lib/maintenance-actions";
 
 type TestBike = {
+  userId: string;
+  authCookie: string;
   bikeId: string;
   chainId: string;
   di2BatteryId: string;
 };
 
 async function createTestBike(scope: string): Promise<TestBike> {
+  const userEmail = `integration-${scope}@bikelog.test`;
+  const user = await prisma.user.create({
+    data: {
+      email: userEmail,
+      name: "Integration Test User",
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  const sessionToken = createSessionToken({
+    userId: user.id,
+    email: user.email,
+  });
+  const authCookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(sessionToken)}`;
+
   const bike = await prisma.bike.create({
     data: {
+      userId: user.id,
       name: `Integration Bike ${scope}`,
       brand: "Test",
       model: "Harness",
@@ -65,13 +87,15 @@ async function createTestBike(scope: string): Promise<TestBike> {
   });
 
   return {
+    userId: user.id,
+    authCookie,
     bikeId: bike.id,
     chainId: chain.id,
     di2BatteryId: di2Battery.id,
   };
 }
 
-async function cleanupBike(bikeId: string) {
+async function cleanupBike(bikeId: string, userId: string) {
   await prisma.$transaction([
     prisma.maintenanceEvent.deleteMany({
       where: {
@@ -108,6 +132,11 @@ async function cleanupBike(bikeId: string) {
         id: bikeId,
       },
     }),
+    prisma.user.deleteMany({
+      where: {
+        id: userId,
+      },
+    }),
   ]);
 }
 
@@ -116,7 +145,7 @@ test("POST /api/rides increments mileage-based components only", async (t) => {
   const bike = await createTestBike(scope);
 
   t.after(async () => {
-    await cleanupBike(bike.bikeId);
+    await cleanupBike(bike.bikeId, bike.userId);
   });
 
   const response = await createRide(
@@ -124,6 +153,7 @@ test("POST /api/rides increments mileage-based components only", async (t) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        cookie: bike.authCookie,
       },
       body: JSON.stringify({
         bikeId: bike.bikeId,
@@ -138,6 +168,7 @@ test("POST /api/rides increments mileage-based components only", async (t) => {
     }),
   );
 
+  assert.ok(response);
   assert.equal(response.status, 200);
 
   const payload = (await response.json()) as {
@@ -175,7 +206,7 @@ test("Mark-complete payload logs maintenance event with component mileage", asyn
   const bike = await createTestBike(scope);
 
   t.after(async () => {
-    await cleanupBike(bike.bikeId);
+    await cleanupBike(bike.bikeId, bike.userId);
   });
 
   const dueAction = getDueActionConfig("chain-lube");
@@ -186,6 +217,7 @@ test("Mark-complete payload logs maintenance event with component mileage", asyn
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        cookie: bike.authCookie,
       },
       body: JSON.stringify({
         bikeId: bike.bikeId,
@@ -198,6 +230,7 @@ test("Mark-complete payload logs maintenance event with component mileage", asyn
     }),
   );
 
+  assert.ok(response);
   assert.equal(response.status, 200);
 
   const payload = (await response.json()) as {
@@ -225,7 +258,7 @@ test("Mileage recalculation dry-run previews drift, apply updates component and 
   const bike = await createTestBike(scope);
 
   t.after(async () => {
-    await cleanupBike(bike.bikeId);
+    await cleanupBike(bike.bikeId, bike.userId);
   });
 
   await prisma.ride.createMany({
@@ -252,6 +285,7 @@ test("Mileage recalculation dry-run previews drift, apply updates component and 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        cookie: bike.authCookie,
       },
       body: JSON.stringify({
         bikeId: bike.bikeId,
@@ -260,6 +294,7 @@ test("Mileage recalculation dry-run previews drift, apply updates component and 
     }),
   );
 
+  assert.ok(dryRunResponse);
   assert.equal(dryRunResponse.status, 200);
   const dryRunPayload = (await dryRunResponse.json()) as {
     result?: {
@@ -309,6 +344,7 @@ test("Mileage recalculation dry-run previews drift, apply updates component and 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        cookie: bike.authCookie,
       },
       body: JSON.stringify({
         bikeId: bike.bikeId,
@@ -317,6 +353,7 @@ test("Mileage recalculation dry-run previews drift, apply updates component and 
     }),
   );
 
+  assert.ok(applyResponse);
   assert.equal(applyResponse.status, 200);
   const applyPayload = (await applyResponse.json()) as {
     result?: {

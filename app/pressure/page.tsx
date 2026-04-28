@@ -1,13 +1,17 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { PressureCalculator } from "@/components/pressure/PressureCalculator";
 import { PressurePresetManager } from "@/components/pressure/PressurePresetManager";
+import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getPressurePageData() {
+async function getPressurePageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -45,7 +49,8 @@ async function getPressurePageData() {
 }
 
 export default async function PressurePage() {
-  const data = await getPressurePageData();
+  const user = await requireServerUser();
+  const data = await getPressurePageData(user.id);
   const bike = data.bike;
 
   return (

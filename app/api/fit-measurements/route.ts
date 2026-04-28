@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/lib/db";
+import { requireApiUser } from "@/lib/auth";
 import { createFitMeasurement } from "@/lib/fit-service";
+import { getOwnedBikeId } from "@/lib/ownership";
 
 function optionalString(value: unknown) {
   if (typeof value !== "string") {
@@ -27,24 +28,27 @@ function optionalNumber(value: unknown, fieldName: string) {
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const bikeIdInput = optionalString(body.bikeId);
-    let bikeId = bikeIdInput;
-
-    if (!bikeId) {
-      const bike = await prisma.bike.findFirst({
-        orderBy: { createdAt: "asc" },
-        select: { id: true },
-      });
-
-      bikeId = bike?.id;
-    }
+    const bikeId = await getOwnedBikeId({
+      userId: auth.user.id,
+      bikeId: bikeIdInput,
+    });
 
     if (!bikeId) {
       return NextResponse.json(
-        { error: "No bike found. Seed the database first with `npm run db:seed`." },
-        { status: 404 },
+        {
+          error: bikeIdInput
+            ? "Bike not found for current user."
+            : "No bike found for current user.",
+        },
+        { status: bikeIdInput ? 403 : 404 },
       );
     }
 

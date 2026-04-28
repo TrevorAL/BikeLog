@@ -1,6 +1,7 @@
 import { MaintenanceEventType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 type RouteContext = {
@@ -22,12 +23,20 @@ function optionalString(value: unknown) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { eventId } = await context.params;
     const body = (await request.json()) as Record<string, unknown>;
 
-    const existingEvent = await prisma.maintenanceEvent.findUnique({
+    const existingEvent = await prisma.maintenanceEvent.findFirst({
       where: {
         id: eventId,
+        bike: {
+          userId: auth.user.id,
+        },
       },
       select: {
         id: true,
@@ -140,11 +149,19 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(_request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { eventId } = await context.params;
 
-    const existingEvent = await prisma.maintenanceEvent.findUnique({
+    const existingEvent = await prisma.maintenanceEvent.findFirst({
       where: {
         id: eventId,
+        bike: {
+          userId: auth.user.id,
+        },
       },
       select: {
         id: true,
@@ -173,4 +190,3 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   }
 }
-

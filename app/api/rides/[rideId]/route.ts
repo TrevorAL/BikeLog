@@ -1,6 +1,8 @@
 import { RideType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
+import { isRideOwnedByUser } from "@/lib/ownership";
 import {
   deleteRideAndAdjustMileage,
   getRideConditionSuggestions,
@@ -26,7 +28,21 @@ function optionalString(value: unknown) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { rideId } = await context.params;
+    const isOwned = await isRideOwnedByUser({
+      rideId,
+      userId: auth.user.id,
+    });
+
+    if (!isOwned) {
+      return NextResponse.json({ error: "Ride not found." }, { status: 404 });
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const dateInput = optionalString(body.date);
@@ -109,7 +125,21 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(_request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { rideId } = await context.params;
+    const isOwned = await isRideOwnedByUser({
+      rideId,
+      userId: auth.user.id,
+    });
+
+    if (!isOwned) {
+      return NextResponse.json({ error: "Ride not found." }, { status: 404 });
+    }
+
     const deletedRide = await deleteRideAndAdjustMileage(rideId);
 
     if (!deletedRide) {

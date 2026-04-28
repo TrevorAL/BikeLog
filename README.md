@@ -40,7 +40,10 @@ Default value in `.env.example`:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/bikelog"
+AUTH_SECRET="change-this-in-production"
 ```
+
+`AUTH_SECRET` is used to sign the BikeLog session cookie.
 
 ## Local Database (Docker Compose)
 
@@ -118,6 +121,9 @@ npm run dev
 
 Open:
 - http://localhost:3000
+- http://localhost:3000/login
+
+Sign in with any email. BikeLog will create the user if needed, then attach the seeded bike to that user (or create a seeded bike if none are available).
 
 ## Available npm Commands
 
@@ -204,6 +210,7 @@ npm run start
 
 ### Rides
 
+- All ride API routes require auth and enforce ownership by user
 - `POST /api/rides` creates ride and increments active mileage-based components
 - `PATCH /api/rides/[rideId]` edits ride and adjusts component mileage delta
 - `DELETE /api/rides/[rideId]` deletes ride and decrements component mileage
@@ -215,6 +222,7 @@ npm run start
 
 ### Components
 
+- Component API routes require auth and enforce ownership by user
 - `POST /api/components` add component
 - `PATCH /api/components/[componentId]` edit component
 - `POST /api/components/[componentId]/replace` replace component (old -> replaced, new active at 0 mi)

@@ -1,13 +1,17 @@
 import { Checklist } from "@/components/checklist/Checklist";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getChecklistPageData() {
+async function getChecklistPageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -39,7 +43,8 @@ async function getChecklistPageData() {
 }
 
 export default async function ChecklistPage() {
-  const data = await getChecklistPageData();
+  const user = await requireServerUser();
+  const data = await getChecklistPageData(user.id);
   const bike = data.bike;
 
   return (

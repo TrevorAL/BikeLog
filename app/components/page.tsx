@@ -3,6 +3,7 @@ import type { ComponentType } from "@prisma/client";
 import { ComponentManager } from "@/components/components/ComponentManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import type { MaintenanceStatus } from "@/lib/constants";
 import { prisma } from "@/lib/db";
@@ -24,9 +25,12 @@ const maintenanceKeyByComponentType: Partial<Record<ComponentType, string>> = {
   DI2_BATTERY: "di2-charge",
 };
 
-async function getComponentsPageData() {
+async function getComponentsPageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: "asc",
       },
@@ -91,7 +95,8 @@ async function getComponentsPageData() {
 }
 
 export default async function ComponentsPage() {
-  const data = await getComponentsPageData();
+  const user = await requireServerUser();
+  const data = await getComponentsPageData(user.id);
   const bike = data.bike;
 
   const dueItemMap = new Map(

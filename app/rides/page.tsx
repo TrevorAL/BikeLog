@@ -3,13 +3,17 @@ import { RideForm } from "@/components/rides/RideForm";
 import { RideList } from "@/components/rides/RideList";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getRidesPageData() {
+async function getRidesPageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: "asc",
       },
@@ -39,7 +43,8 @@ async function getRidesPageData() {
 }
 
 export default async function RidesPage() {
-  const { bike, rides, dbConnected } = await getRidesPageData();
+  const user = await requireServerUser();
+  const { bike, rides, dbConnected } = await getRidesPageData(user.id);
   const totalMiles = rides.reduce((sum, ride) => sum + ride.distanceMiles, 0);
   const now = new Date();
   const monthlyMiles = rides

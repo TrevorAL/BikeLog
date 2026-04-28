@@ -4,15 +4,19 @@ import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { DueSoonList } from "@/components/maintenance/DueSoonList";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 import { calculatePressure } from "@/lib/pressure";
 
 export const dynamic = "force-dynamic";
 
-async function getDashboardData() {
+async function getDashboardData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: "asc",
       },
@@ -109,7 +113,8 @@ async function getDashboardData() {
 }
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const user = await requireServerUser();
+  const data = await getDashboardData(user.id);
   const bike = data.bike;
 
   const bikeMileage = bike ? data.maintenance.bikeMileage : 0;

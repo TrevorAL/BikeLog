@@ -3,13 +3,17 @@ import { FitMeasurementForm } from "@/components/fit/FitMeasurementForm";
 import { FitSnapshot } from "@/components/fit/FitSnapshot";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getFitPageData() {
+async function getFitPageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -34,7 +38,8 @@ async function getFitPageData() {
 }
 
 export default async function FitPage() {
-  const data = await getFitPageData();
+  const user = await requireServerUser();
+  const data = await getFitPageData(user.id);
   const bike = data.bike;
 
   const currentMeasurement =

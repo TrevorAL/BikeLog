@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
+import { isComponentOwnedByUser } from "@/lib/ownership";
 import { updateComponent } from "@/lib/component-service";
 
 type RouteContext = {
@@ -19,7 +21,21 @@ function optionalString(value: unknown) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { componentId } = await context.params;
+    const isOwned = await isComponentOwnedByUser({
+      componentId,
+      userId: auth.user.id,
+    });
+
+    if (!isOwned) {
+      return NextResponse.json({ error: "Component not found." }, { status: 404 });
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const name = optionalString(body.name);

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { requireApiUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { updateFitMeasurement } from "@/lib/fit-service";
 
 type RouteContext = {
@@ -32,7 +34,28 @@ function optionalNumber(value: unknown, fieldName: string) {
 
 export async function PATCH(request: Request, context: RouteContext) {
   try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
     const { measurementId } = await context.params;
+    const existing = await prisma.fitMeasurement.findFirst({
+      where: {
+        id: measurementId,
+        bike: {
+          userId: auth.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Measurement not found." }, { status: 404 });
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
 
     const dateInput = optionalString(body.date);

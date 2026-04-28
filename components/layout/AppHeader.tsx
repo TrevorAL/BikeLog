@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -11,9 +12,10 @@ type AppHeaderProps = {
   title: string;
   description?: string;
   actions?: ReactNode;
+  userEmail?: string;
 };
 
-export function AppHeader({ title, description, actions }: AppHeaderProps) {
+export function AppHeader({ title, description, actions, userEmail }: AppHeaderProps) {
   const pathname = usePathname();
 
   return (
@@ -29,7 +31,13 @@ export function AppHeader({ title, description, actions }: AppHeaderProps) {
               <p className="text-sm text-orange-900/70">{description}</p>
             ) : null}
           </div>
-          {actions ? <div className="hidden items-center gap-2 md:flex">{actions}</div> : null}
+          <div className="hidden items-center gap-2 md:flex">
+            {userEmail ? (
+              <p className="max-w-56 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
+            ) : null}
+            {actions}
+            {userEmail ? <SignOutButton /> : null}
+          </div>
         </div>
 
         <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
@@ -52,6 +60,13 @@ export function AppHeader({ title, description, actions }: AppHeaderProps) {
             );
           })}
         </nav>
+
+        {userEmail ? (
+          <div className="mt-3 flex items-center justify-between gap-2 md:hidden">
+            <p className="max-w-56 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
+            <SignOutButton />
+          </div>
+        ) : null}
       </div>
     </header>
   );

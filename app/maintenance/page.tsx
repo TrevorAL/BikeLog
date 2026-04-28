@@ -1,14 +1,18 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { MaintenanceWorkspace } from "@/components/maintenance/MaintenanceWorkspace";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getMaintenancePageData() {
+async function getMaintenancePageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: "asc",
       },
@@ -83,7 +87,8 @@ async function getMaintenancePageData() {
 }
 
 export default async function MaintenancePage() {
-  const data = await getMaintenancePageData();
+  const user = await requireServerUser();
+  const data = await getMaintenancePageData(user.id);
   const bike = data.bike;
   const maintenance = bike ? data.maintenance : undefined;
 

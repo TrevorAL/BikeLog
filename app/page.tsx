@@ -2,16 +2,21 @@ import Link from "next/link";
 import { ArrowRight, LayoutDashboard } from "lucide-react";
 
 import { GarageScene } from "@/components/garage/GarageScene";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 import { calculatePressure } from "@/lib/pressure";
 
 export const dynamic = "force-dynamic";
 
-async function getHomePageMetrics() {
+async function getHomePageMetrics(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: { createdAt: "asc" },
       select: {
         rides: {
@@ -108,7 +113,8 @@ async function getHomePageMetrics() {
 }
 
 export default async function HomePage() {
-  const metrics = await getHomePageMetrics();
+  const user = await requireServerUser();
+  const metrics = await getHomePageMetrics(user.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-100 via-amber-50 to-orange-100">
@@ -125,14 +131,17 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Open Dashboard
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Open Dashboard
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <SignOutButton />
+            </div>
           </div>
 
           {!metrics.dbConnected ? (

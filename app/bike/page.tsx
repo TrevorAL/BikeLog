@@ -4,14 +4,18 @@ import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-async function getBikePageData() {
+async function getBikePageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
+      where: {
+        userId,
+      },
       orderBy: {
         createdAt: "asc",
       },
@@ -91,7 +95,8 @@ async function getBikePageData() {
 }
 
 export default async function BikePage() {
-  const data = await getBikePageData();
+  const user = await requireServerUser();
+  const data = await getBikePageData(user.id);
   const bike = data.bike;
 
   const lastRide = bike?.rides[0];
