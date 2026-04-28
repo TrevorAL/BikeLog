@@ -11,10 +11,20 @@ type MaintenanceFormComponent = {
   currentMileage: number;
 };
 
+export type MaintenanceFormPrefill = {
+  token: number;
+  type: (typeof MAINTENANCE_EVENT_TYPES)[number];
+  componentId?: string;
+  mileageSource: "manual" | "component";
+  mileageAtService?: number;
+  notes?: string;
+};
+
 type MaintenanceFormProps = {
   bikeId?: string;
   components: MaintenanceFormComponent[];
   disabled?: boolean;
+  prefill?: MaintenanceFormPrefill;
 };
 
 type FormStatus = {
@@ -31,12 +41,39 @@ function parseOptionalText(value: FormDataEntryValue | null) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-export function MaintenanceForm({ bikeId, components, disabled = false }: MaintenanceFormProps) {
+function getTodayDateInputValue() {
+  const now = new Date();
+  const timezoneOffsetMs = now.getTimezoneOffset() * 60 * 1000;
+  return new Date(now.getTime() - timezoneOffsetMs).toISOString().slice(0, 10);
+}
+
+export function MaintenanceForm({
+  bikeId,
+  components,
+  disabled = false,
+  prefill,
+}: MaintenanceFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<FormStatus>({ type: "idle" });
-  const [mileageSource, setMileageSource] = useState<"manual" | "component">("manual");
-  const [selectedComponentId, setSelectedComponentId] = useState("");
+  const [status, setStatus] = useState<FormStatus>(
+    prefill
+      ? {
+          type: "success",
+          message: "Maintenance form prefilled from reminder.",
+        }
+      : { type: "idle" },
+  );
+  const [date, setDate] = useState(getTodayDateInputValue);
+  const [eventType, setEventType] =
+    useState<(typeof MAINTENANCE_EVENT_TYPES)[number]>(prefill?.type ?? "LUBED_CHAIN");
+  const [mileageSource, setMileageSource] = useState<"manual" | "component">(
+    prefill?.mileageSource ?? "manual",
+  );
+  const [selectedComponentId, setSelectedComponentId] = useState(prefill?.componentId ?? "");
+  const [mileageAtServiceInput, setMileageAtServiceInput] = useState(
+    prefill?.mileageAtService === undefined ? "" : String(prefill.mileageAtService),
+  );
+  const [notes, setNotes] = useState(prefill?.notes ?? "");
   const selectedComponent = components.find((component) => component.id === selectedComponentId);
 
   return (
@@ -53,13 +90,9 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
           return;
         }
 
-        const form = event.currentTarget;
-        const formData = new FormData(form);
-        const mileageSourceInput =
-          formData.get("mileageSource") === "component" ? "component" : "manual";
-        const componentId = parseOptionalText(formData.get("componentId"));
+        const componentId = selectedComponentId || undefined;
 
-        if (mileageSourceInput === "component" && !componentId) {
+        if (mileageSource === "component" && !componentId) {
           setStatus({
             type: "error",
             message: "Select a component to use component mileage.",
@@ -67,10 +100,9 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
           return;
         }
 
-        const mileageValue = formData.get("mileageAtService");
         const mileageAtServiceManual =
-          typeof mileageValue === "string" && mileageValue.length > 0
-            ? Number(mileageValue)
+          mileageAtServiceInput.length > 0
+            ? Number(mileageAtServiceInput)
             : undefined;
 
         setIsSubmitting(true);
@@ -84,12 +116,12 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
             },
             body: JSON.stringify({
               bikeId,
-              date: formData.get("date"),
-              type: formData.get("type"),
+              date,
+              type: eventType,
               componentId,
-              mileageSource: mileageSourceInput,
+              mileageSource,
               mileageAtService: mileageAtServiceManual,
-              notes: parseOptionalText(formData.get("notes")),
+              notes: parseOptionalText(notes),
             }),
           });
 
@@ -101,9 +133,12 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
             throw new Error(result.error ?? "Could not save maintenance event.");
           }
 
-          form.reset();
+          setDate(getTodayDateInputValue());
+          setEventType("LUBED_CHAIN");
           setMileageSource("manual");
           setSelectedComponentId("");
+          setMileageAtServiceInput("");
+          setNotes("");
           setStatus({
             type: "success",
             message: "Maintenance event saved.",
@@ -135,6 +170,8 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
           <input
             name="date"
             type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             required
           />
@@ -144,7 +181,10 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
           <select
             name="type"
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-            defaultValue="LUBED_CHAIN"
+            value={eventType}
+            onChange={(event) =>
+              setEventType(event.target.value as (typeof MAINTENANCE_EVENT_TYPES)[number])
+            }
           >
             {MAINTENANCE_EVENT_TYPES.map((maintenanceType) => (
               <option key={maintenanceType} value={maintenanceType}>
@@ -201,6 +241,8 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
             type="number"
             min="0"
             step="0.1"
+            value={mileageAtServiceInput}
+            onChange={(event) => setMileageAtServiceInput(event.target.value)}
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             disabled={mileageSource === "component"}
           />
@@ -222,6 +264,8 @@ export function MaintenanceForm({ bikeId, components, disabled = false }: Mainte
         Notes
         <textarea
           name="notes"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
           className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
         />
       </label>
