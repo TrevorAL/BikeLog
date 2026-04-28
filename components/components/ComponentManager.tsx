@@ -14,6 +14,7 @@ type ComponentListItem = {
   brand: string | null;
   model: string | null;
   installDate: string | null;
+  initialMileage: number;
   currentMileage: number;
   notes: string | null;
   conditionStatus: MaintenanceStatus;
@@ -29,6 +30,30 @@ type ComponentManagerProps = {
 type FormStatus = {
   type: "idle" | "success" | "error";
   message?: string;
+};
+
+type MileageRecalculationItem = {
+  componentId: string;
+  componentName: string;
+  componentType: string;
+  installDate: string | null;
+  currentMileage: number;
+  expectedMileage: number;
+  deltaMileage: number;
+  ridesUsed: number;
+  willChange: boolean;
+};
+
+type MileageRecalculationResult = {
+  bikeId: string;
+  bikeName: string;
+  apply: boolean;
+  rideCount: number;
+  totalRideMiles: number;
+  checkedComponentCount: number;
+  changedComponentCount: number;
+  items: MileageRecalculationItem[];
+  auditEventId?: string;
 };
 
 function parseOptionalText(value: FormDataEntryValue | null) {
@@ -85,6 +110,11 @@ function AddComponentForm({
           typeof currentMileageInput === "string" && currentMileageInput.length > 0
             ? Number(currentMileageInput)
             : undefined;
+        const initialMileageInput = formData.get("initialMileage");
+        const initialMileage =
+          typeof initialMileageInput === "string" && initialMileageInput.length > 0
+            ? Number(initialMileageInput)
+            : undefined;
 
         setIsSubmitting(true);
         setStatus({ type: "idle" });
@@ -102,6 +132,7 @@ function AddComponentForm({
               brand: parseOptionalText(formData.get("brand")),
               model: parseOptionalText(formData.get("model")),
               installDate: parseOptionalText(formData.get("installDate")),
+              initialMileage,
               currentMileage,
               notes: parseOptionalText(formData.get("notes")),
             }),
@@ -176,6 +207,17 @@ function AddComponentForm({
         </label>
 
         <label className="text-sm text-orange-900">
+          Mileage at install
+          <input
+            name="initialMileage"
+            type="number"
+            min="0"
+            step="0.1"
+            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+          />
+        </label>
+
+        <label className="text-sm text-orange-900">
           Current mileage
           <input
             name="currentMileage"
@@ -233,6 +275,11 @@ function EditableComponentCard({
             typeof currentMileageInput === "string" && currentMileageInput.length > 0
               ? Number(currentMileageInput)
               : undefined;
+          const initialMileageInput = formData.get("initialMileage");
+          const initialMileage =
+            typeof initialMileageInput === "string" && initialMileageInput.length > 0
+              ? Number(initialMileageInput)
+              : undefined;
 
           setIsSubmitting(true);
           setStatus({ type: "idle" });
@@ -248,6 +295,7 @@ function EditableComponentCard({
                 brand: parseOptionalText(formData.get("brand")),
                 model: parseOptionalText(formData.get("model")),
                 installDate: parseOptionalText(formData.get("installDate")),
+                initialMileage,
                 currentMileage,
                 notes: parseOptionalText(formData.get("notes")),
               }),
@@ -334,6 +382,18 @@ function EditableComponentCard({
               name="installDate"
               type="date"
               defaultValue={toDateInputValue(component.installDate)}
+              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            />
+          </label>
+
+          <label className="text-sm text-orange-900">
+            Mileage at install
+            <input
+              name="initialMileage"
+              type="number"
+              min="0"
+              step="0.1"
+              defaultValue={component.initialMileage}
               className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             />
           </label>
@@ -545,25 +605,227 @@ function EditableComponentCard({
 }
 
 export function ComponentManager({ bikeId, components, disabled = false }: ComponentManagerProps) {
+  const router = useRouter();
   const [showAddForm, setShowAddForm] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
+  const [recalcStatus, setRecalcStatus] = useState<FormStatus>({ type: "idle" });
+  const [recalcResult, setRecalcResult] = useState<MileageRecalculationResult | undefined>(
+    undefined,
+  );
+  const [isRecalcBusy, setIsRecalcBusy] = useState(false);
+  const [showRecalcInfo, setShowRecalcInfo] = useState(false);
+
+  const driftItems = recalcResult?.items.filter((item) => item.willChange) ?? [];
+
+  async function runRecalculation(apply: boolean) {
+    if (disabled) {
+      setRecalcStatus({
+        type: "error",
+        message: "Seed a bike first to run mileage recalculation.",
+      });
+      return;
+    }
+
+    if (!bikeId) {
+      setRecalcStatus({
+        type: "error",
+        message: "No bike found to recalculate.",
+      });
+      return;
+    }
+
+    setIsRecalcBusy(true);
+    setRecalcStatus({ type: "idle" });
+
+    try {
+      const response = await fetch("/api/components/recalculate-mileage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bikeId,
+          apply,
+        }),
+      });
+
+      const payload = (await response.json()) as {
+        error?: string;
+        result?: MileageRecalculationResult;
+      };
+
+      if (!response.ok || !payload.result) {
+        throw new Error(payload.error ?? "Could not recalculate mileage right now.");
+      }
+
+      setRecalcResult(payload.result);
+      setShowRecalcInfo(false);
+
+      if (apply) {
+        setStatus({
+          type: "success",
+          message: `Mileage recalculation applied. Updated ${payload.result.changedComponentCount} component(s).`,
+        });
+        setRecalcStatus({
+          type: "success",
+          message: "Mileage recalculation applied and logged to maintenance history.",
+        });
+        setRecalcResult(undefined);
+        setShowRecalcInfo(false);
+        router.refresh();
+      } else {
+        setRecalcStatus({
+          type: "success",
+          message: `Preview ready. ${payload.result.changedComponentCount} component(s) have drift.`,
+        });
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not recalculate mileage right now.";
+      setRecalcStatus({ type: "error", message });
+    } finally {
+      setIsRecalcBusy(false);
+    }
+  }
 
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-display text-xl font-semibold text-orange-950">Active components</h2>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => {
-            setShowAddForm((previous) => !previous);
-            setStatus({ type: "idle" });
-          }}
-          className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {showAddForm ? "Close" : "Add component"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={disabled || isRecalcBusy}
+            onClick={() => {
+              runRecalculation(false);
+            }}
+            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isRecalcBusy ? "Working..." : "Preview recalc"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled || isRecalcBusy || !recalcResult || driftItems.length === 0}
+            onClick={() => {
+              const shouldApply = window.confirm(
+                "Apply mileage recalculation from rides? This will overwrite current mileage on drifted components.",
+              );
+              if (!shouldApply) {
+                return;
+              }
+
+              runRecalculation(true);
+            }}
+            className="rounded-full border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isRecalcBusy ? "Working..." : "Apply recalc"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              const nextShowAddForm = !showAddForm;
+              setShowAddForm(nextShowAddForm);
+              if (nextShowAddForm) {
+                setRecalcResult(undefined);
+                setRecalcStatus({ type: "idle" });
+                setShowRecalcInfo(false);
+              }
+              setStatus({ type: "idle" });
+            }}
+            className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {showAddForm ? "Close" : "Add component"}
+          </button>
+        </div>
       </div>
+
+      {recalcStatus.type === "success" && recalcStatus.message ? (
+        <p className="mb-4 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {recalcStatus.message}
+        </p>
+      ) : null}
+
+      {recalcStatus.type === "error" && recalcStatus.message ? (
+        <p className="mb-4 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">
+          {recalcStatus.message}
+        </p>
+      ) : null}
+
+      {recalcResult ? (
+        <div className="mb-4 rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-display text-lg font-semibold text-orange-950">
+              Mileage recalculation preview
+            </h3>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowRecalcInfo((previous) => !previous)}
+                className="h-7 w-7 rounded-full border border-orange-300 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                aria-label="What does mileage recalculation do?"
+                title="What does mileage recalculation do?"
+              >
+                i
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRecalcResult(undefined);
+                  setShowRecalcInfo(false);
+                  setRecalcStatus({ type: "idle" });
+                }}
+                className="h-7 w-7 rounded-full border border-orange-300 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                aria-label="Close preview"
+                title="Close preview"
+              >
+                X
+              </button>
+            </div>
+          </div>
+
+          {showRecalcInfo ? (
+            <p className="mt-2 rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-xs text-orange-900/80">
+              Recalc compares each active mileage-based component against expected mileage from your
+              rides. Expected mileage is calculated as mileage at install + rides since install date
+              (or all rides if install date is missing). Preview shows drift only; apply writes updates
+              and logs an audit maintenance event.
+            </p>
+          ) : null}
+
+          <p className="mt-1 text-sm text-orange-900/75">
+            Rides: {recalcResult.rideCount} · Total miles: {recalcResult.totalRideMiles.toFixed(1)} ·
+            Drifted components: {recalcResult.changedComponentCount}/{recalcResult.checkedComponentCount}
+          </p>
+
+          {driftItems.length === 0 ? (
+            <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              No mileage drift detected.
+            </p>
+          ) : (
+            <div className="mt-3 grid gap-2 lg:grid-cols-2">
+              {driftItems.map((item) => (
+                <article
+                  key={item.componentId}
+                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900"
+                >
+                  <p className="font-semibold">{item.componentName}</p>
+                  <p className="text-xs text-orange-900/70">{formatComponentType(item.componentType)}</p>
+                  <p className="mt-1">
+                    {item.currentMileage.toFixed(1)} mi → {item.expectedMileage.toFixed(1)} mi
+                  </p>
+                  <p className="text-xs text-orange-900/70">
+                    Drift: {item.deltaMileage > 0 ? "+" : ""}
+                    {item.deltaMileage.toFixed(1)} mi · Rides used: {item.ridesUsed}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       {showAddForm ? (
         <AddComponentForm

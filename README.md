@@ -187,6 +187,7 @@ npm run start
 - `POST /api/components` add component
 - `PATCH /api/components/[componentId]` edit component
 - `POST /api/components/[componentId]/replace` replace component (old -> replaced, new active at 0 mi)
+- `POST /api/components/recalculate-mileage` preview/apply mileage recalculation from rides (drift fix)
 
 ### Pressure Presets
 

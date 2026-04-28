@@ -52,6 +52,7 @@ model Component {
   brand          String?
   model          String?
   installDate    DateTime?
+  initialMileage Float           @default(0)
   currentMileage Float           @default(0)
   status         ComponentStatus @default(ACTIVE)
   notes          String?

@@ -131,6 +131,7 @@ export default async function ComponentsPage() {
               brand: component.brand,
               model: component.model,
               installDate: component.installDate?.toISOString() ?? null,
+              initialMileage: component.initialMileage,
               currentMileage: component.currentMileage,
               notes: component.notes,
               conditionStatus,

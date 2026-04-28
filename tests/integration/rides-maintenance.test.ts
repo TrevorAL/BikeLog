@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { ComponentStatus, ComponentType, RideType } from "@prisma/client";
 
+import { POST as recalculateMileage } from "../../app/api/components/recalculate-mileage/route";
 import { POST as createMaintenanceEvent } from "../../app/api/maintenance-events/route";
 import { POST as createRide } from "../../app/api/rides/route";
 import { prisma } from "../../lib/db";
@@ -38,6 +39,7 @@ async function createTestBike(scope: string): Promise<TestBike> {
       bikeId: bike.id,
       type: ComponentType.CHAIN,
       name: "Test Chain",
+      initialMileage: 100,
       currentMileage: 100,
       status: ComponentStatus.ACTIVE,
       isActive: true,
@@ -52,6 +54,7 @@ async function createTestBike(scope: string): Promise<TestBike> {
       bikeId: bike.id,
       type: ComponentType.DI2_BATTERY,
       name: "Test Di2 Battery",
+      initialMileage: 50,
       currentMileage: 50,
       status: ComponentStatus.ACTIVE,
       isActive: true,
@@ -217,3 +220,140 @@ test("Mark-complete payload logs maintenance event with component mileage", asyn
   assert.equal(payload.maintenanceEvent.notes, "Marked complete from due reminder: Chain lube.");
 });
 
+test("Mileage recalculation dry-run previews drift, apply updates component and logs audit", async (t) => {
+  const scope = `${Date.now()}-recalc`;
+  const bike = await createTestBike(scope);
+
+  t.after(async () => {
+    await cleanupBike(bike.bikeId);
+  });
+
+  await prisma.ride.createMany({
+    data: [
+      {
+        bikeId: bike.bikeId,
+        date: new Date("2026-04-20"),
+        distanceMiles: 12.4,
+        rideType: RideType.OUTDOOR,
+        wasWet: false,
+      },
+      {
+        bikeId: bike.bikeId,
+        date: new Date("2026-04-22"),
+        distanceMiles: 8.1,
+        rideType: RideType.TRAINING,
+        wasWet: false,
+      },
+    ],
+  });
+
+  const dryRunResponse = await recalculateMileage(
+    new Request("http://localhost/api/components/recalculate-mileage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        bikeId: bike.bikeId,
+        apply: false,
+      }),
+    }),
+  );
+
+  assert.equal(dryRunResponse.status, 200);
+  const dryRunPayload = (await dryRunResponse.json()) as {
+    result?: {
+      apply: boolean;
+      changedComponentCount: number;
+      items: Array<{
+        componentId: string;
+        componentType: string;
+        currentMileage: number;
+        expectedMileage: number;
+        deltaMileage: number;
+        willChange: boolean;
+      }>;
+      auditEventId?: string;
+    };
+    error?: string;
+  };
+
+  assert.ok(dryRunPayload.result, dryRunPayload.error ?? "Dry-run result missing.");
+  assert.equal(dryRunPayload.result.apply, false);
+  assert.equal(dryRunPayload.result.auditEventId, undefined);
+  assert.equal(dryRunPayload.result.changedComponentCount, 1);
+
+  const chainDriftItem = dryRunPayload.result.items.find(
+    (item) => item.componentId === bike.chainId,
+  );
+  assert.ok(chainDriftItem);
+  assert.equal(chainDriftItem.componentType, "CHAIN");
+  assert.equal(chainDriftItem.currentMileage, 100);
+  assert.equal(chainDriftItem.expectedMileage, 120.5);
+  assert.equal(chainDriftItem.deltaMileage, 20.5);
+  assert.equal(chainDriftItem.willChange, true);
+
+  const chainAfterDryRun = await prisma.component.findUnique({
+    where: {
+      id: bike.chainId,
+    },
+    select: {
+      currentMileage: true,
+    },
+  });
+  assert.ok(chainAfterDryRun);
+  assert.equal(chainAfterDryRun.currentMileage, 100);
+
+  const applyResponse = await recalculateMileage(
+    new Request("http://localhost/api/components/recalculate-mileage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        bikeId: bike.bikeId,
+        apply: true,
+      }),
+    }),
+  );
+
+  assert.equal(applyResponse.status, 200);
+  const applyPayload = (await applyResponse.json()) as {
+    result?: {
+      apply: boolean;
+      changedComponentCount: number;
+      auditEventId?: string;
+    };
+    error?: string;
+  };
+  assert.ok(applyPayload.result, applyPayload.error ?? "Apply result missing.");
+  assert.equal(applyPayload.result.apply, true);
+  assert.equal(applyPayload.result.changedComponentCount, 1);
+  assert.ok(applyPayload.result.auditEventId);
+
+  const chainAfterApply = await prisma.component.findUnique({
+    where: {
+      id: bike.chainId,
+    },
+    select: {
+      currentMileage: true,
+    },
+  });
+  assert.ok(chainAfterApply);
+  assert.equal(chainAfterApply.currentMileage, 120.5);
+
+  const auditEvent = await prisma.maintenanceEvent.findUnique({
+    where: {
+      id: applyPayload.result.auditEventId!,
+    },
+    select: {
+      type: true,
+      notes: true,
+      bikeId: true,
+    },
+  });
+  assert.ok(auditEvent);
+  assert.equal(auditEvent.type, "OTHER");
+  assert.equal(auditEvent.bikeId, bike.bikeId);
+  assert.ok(auditEvent.notes?.includes("Mileage recalculation applied from rides."));
+});

@@ -50,12 +50,28 @@ export async function POST(request: Request) {
         ? undefined
         : Number(currentMileageInput);
 
+    const initialMileageInput = body.initialMileage;
+    const initialMileage =
+      initialMileageInput === "" || initialMileageInput === undefined || initialMileageInput === null
+        ? undefined
+        : Number(initialMileageInput);
+
     if (
       currentMileage !== undefined &&
       (!Number.isFinite(currentMileage) || currentMileage < 0)
     ) {
       return NextResponse.json(
         { error: "Current mileage must be a positive number." },
+        { status: 400 },
+      );
+    }
+
+    if (
+      initialMileage !== undefined &&
+      (!Number.isFinite(initialMileage) || initialMileage < 0)
+    ) {
+      return NextResponse.json(
+        { error: "Initial mileage must be a positive number." },
         { status: 400 },
       );
     }
@@ -72,6 +88,7 @@ export async function POST(request: Request) {
       installDate: optionalString(body.installDate)
         ? new Date(optionalString(body.installDate) as string)
         : undefined,
+      initialMileage,
       currentMileage,
       notes: optionalString(body.notes),
     });

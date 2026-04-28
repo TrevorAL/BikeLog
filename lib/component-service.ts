@@ -7,6 +7,7 @@ type BaseComponentInput = {
   brand?: string;
   model?: string;
   installDate?: Date;
+  initialMileage?: number;
   notes?: string;
 };
 
@@ -25,6 +26,9 @@ export type ReplaceComponentInput = Partial<BaseComponentInput> & {
 };
 
 export async function createComponent(input: CreateComponentInput): Promise<Component> {
+  const initialMileage = input.initialMileage ?? input.currentMileage ?? 0;
+  const currentMileage = input.currentMileage ?? initialMileage;
+
   return prisma.component.create({
     data: {
       bikeId: input.bikeId,
@@ -33,7 +37,8 @@ export async function createComponent(input: CreateComponentInput): Promise<Comp
       brand: input.brand,
       model: input.model,
       installDate: input.installDate,
-      currentMileage: input.currentMileage ?? 0,
+      initialMileage,
+      currentMileage,
       notes: input.notes,
       status: ComponentStatus.ACTIVE,
       isActive: true,
@@ -60,6 +65,7 @@ export async function updateComponent(
       brand: input.brand,
       model: input.model,
       installDate: input.installDate,
+      initialMileage: input.initialMileage,
       currentMileage: input.currentMileage,
       notes: input.notes,
     },
@@ -95,6 +101,7 @@ export async function replaceComponent(
         brand: input.brand ?? existing.brand ?? undefined,
         model: input.model ?? existing.model ?? undefined,
         installDate: input.installDate ?? new Date(),
+        initialMileage: input.initialMileage ?? 0,
         currentMileage: 0,
         status: ComponentStatus.ACTIVE,
         isActive: true,
