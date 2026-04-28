@@ -126,9 +126,12 @@ Open:
 - `npm run start` - Start production server after build
 - `npm run lint` - Run ESLint
 - `npm run typecheck` - Run TypeScript checks
+- `npm run test:integration` - Run DB-backed integration tests for rides and maintenance logging
 - `npm run db:generate` - Generate Prisma client
 - `npm run db:push` - Push Prisma schema to database
 - `npm run db:seed` - Seed database using `prisma/seed.ts`
+
+Integration tests require Postgres running locally on `localhost:5432` (see Docker Compose commands above).
 
 ## Recommended First-Time Setup
 
