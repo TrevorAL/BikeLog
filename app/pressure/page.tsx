@@ -1,29 +1,93 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { PressureCalculator } from "@/components/pressure/PressureCalculator";
-import { PressurePresetCard } from "@/components/pressure/PressurePresetCard";
-import { mockPressurePresets } from "@/lib/mock-data";
+import { PressurePresetManager } from "@/components/pressure/PressurePresetManager";
+import { prisma } from "@/lib/db";
 
-export default function PressurePage() {
+export const dynamic = "force-dynamic";
+
+async function getPressurePageData() {
+  try {
+    const bike = await prisma.bike.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        pressureSetups: {
+          orderBy: { updatedAt: "desc" },
+          select: {
+            id: true,
+            name: true,
+            riderWeightLbs: true,
+            bikeWeightLbs: true,
+            gearWeightLbs: true,
+            frontTireWidthMm: true,
+            rearTireWidthMm: true,
+            tubeless: true,
+            surface: true,
+            preference: true,
+            frontPsi: true,
+            rearPsi: true,
+            notes: true,
+          },
+        },
+      },
+    });
+
+    return {
+      bike,
+      dbConnected: true,
+    };
+  } catch {
+    return {
+      bike: undefined,
+      dbConnected: false,
+    };
+  }
+}
+
+export default async function PressurePage() {
+  const data = await getPressurePageData();
+  const bike = data.bike;
+
   return (
     <AppShell
       title="Tire Pressure"
       description="Find and save pressure setups by surface and ride preference."
     >
-      <PressureCalculator />
+      {!data.dbConnected ? (
+        <section className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-warm">
+          <h2 className="font-display text-xl font-semibold">Database not connected</h2>
+          <p className="mt-2 text-sm">
+            Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
+            <code>npm run db:seed</code>.
+          </p>
+        </section>
+      ) : null}
+
+      <PressureCalculator bikeId={bike?.id} disabled={!bike || !data.dbConnected} />
 
       <section className="mt-6">
         <h2 className="font-display text-xl font-semibold text-orange-950">Saved presets</h2>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {mockPressurePresets.map((preset) => (
-            <PressurePresetCard
-              key={preset.id}
-              name={preset.name}
-              frontPsi={preset.frontPsi}
-              rearPsi={preset.rearPsi}
-              surface={preset.surface}
-              preference={preset.preference}
-            />
-          ))}
+        <div className="mt-3">
+          <PressurePresetManager
+            presets={
+              bike?.pressureSetups.map((preset) => ({
+                id: preset.id,
+                name: preset.name,
+                riderWeightLbs: preset.riderWeightLbs,
+                bikeWeightLbs: preset.bikeWeightLbs,
+                gearWeightLbs: preset.gearWeightLbs,
+                frontTireWidthMm: preset.frontTireWidthMm,
+                rearTireWidthMm: preset.rearTireWidthMm,
+                tubeless: preset.tubeless,
+                surface: preset.surface,
+                preference: preset.preference,
+                frontPsi: preset.frontPsi,
+                rearPsi: preset.rearPsi,
+                notes: preset.notes,
+              })) ?? []
+            }
+            disabled={!bike || !data.dbConnected}
+          />
         </div>
       </section>
     </AppShell>

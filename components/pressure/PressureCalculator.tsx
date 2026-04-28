@@ -1,27 +1,33 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { PressurePreference, PressureSurface } from "@/lib/constants";
 import { calculatePressure } from "@/lib/pressure";
+import { PRESSURE_PREFERENCES, PRESSURE_SURFACES } from "@/lib/pressure-options";
 
-const surfaces: Array<{ label: string; value: PressureSurface }> = [
-  { label: "Smooth pavement", value: "smooth" },
-  { label: "Normal pavement", value: "normal" },
-  { label: "Rough pavement", value: "rough" },
-  { label: "Wet roads", value: "wet" },
-  { label: "Light gravel", value: "light_gravel" },
-  { label: "Indoor trainer", value: "trainer" },
-];
+type PressureCalculatorProps = {
+  bikeId?: string;
+  disabled?: boolean;
+};
 
-const preferences: Array<{ label: string; value: PressurePreference }> = [
-  { label: "Comfort", value: "comfort" },
-  { label: "Balanced", value: "balanced" },
-  { label: "Speed", value: "speed" },
-  { label: "Grip", value: "grip" },
-];
+type FormStatus = {
+  type: "idle" | "success" | "error";
+  message?: string;
+};
 
-export function PressureCalculator() {
+function parseOptionalText(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function PressureCalculator({ bikeId, disabled = false }: PressureCalculatorProps) {
+  const router = useRouter();
   const [riderWeightLbs, setRiderWeightLbs] = useState(165);
   const [bikeWeightLbs, setBikeWeightLbs] = useState(18);
   const [gearWeightLbs, setGearWeightLbs] = useState(4);
@@ -30,6 +36,10 @@ export function PressureCalculator() {
   const [tubeless, setTubeless] = useState(false);
   const [surface, setSurface] = useState<PressureSurface>("normal");
   const [preference, setPreference] = useState<PressurePreference>("balanced");
+  const [presetName, setPresetName] = useState("Normal Road");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<FormStatus>({ type: "idle" });
 
   const result = useMemo(
     () =>
@@ -56,7 +66,58 @@ export function PressureCalculator() {
   );
 
   return (
-    <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+    <form
+      className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm"
+      onSubmit={async (event) => {
+        event.preventDefault();
+
+        if (disabled) {
+          setStatus({ type: "error", message: "Seed a bike first to save pressure presets." });
+          return;
+        }
+
+        setIsSubmitting(true);
+        setStatus({ type: "idle" });
+
+        try {
+          const response = await fetch("/api/pressure-presets", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              bikeId,
+              name: presetName,
+              riderWeightLbs,
+              bikeWeightLbs,
+              gearWeightLbs,
+              frontTireWidthMm,
+              rearTireWidthMm,
+              tubeless,
+              surface,
+              preference,
+              frontPsi: result.frontPsi,
+              rearPsi: result.rearPsi,
+              notes: parseOptionalText(notes),
+            }),
+          });
+
+          const payload = (await response.json()) as { error?: string };
+
+          if (!response.ok) {
+            throw new Error(payload.error ?? "Could not save preset.");
+          }
+
+          setStatus({ type: "success", message: "Pressure preset saved." });
+          router.refresh();
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Could not save preset right now.";
+          setStatus({ type: "error", message });
+        } finally {
+          setIsSubmitting(false);
+        }
+      }}
+    >
       <h3 className="font-display text-xl font-semibold text-orange-950">Tire pressure calculator</h3>
       <p className="mt-1 text-sm text-orange-900/70">
         Estimate only. Tune pressure by comfort, grip, and local road conditions.
@@ -120,7 +181,7 @@ export function PressureCalculator() {
             onChange={(event) => setSurface(event.target.value as PressureSurface)}
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
           >
-            {surfaces.map((option) => (
+            {PRESSURE_SURFACES.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -134,7 +195,7 @@ export function PressureCalculator() {
             onChange={(event) => setPreference(event.target.value as PressurePreference)}
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
           >
-            {preferences.map((option) => (
+            {PRESSURE_PREFERENCES.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>
@@ -163,12 +224,46 @@ export function PressureCalculator() {
         </div>
       </div>
 
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="text-sm text-orange-900">
+          Preset name
+          <input
+            type="text"
+            value={presetName}
+            onChange={(event) => setPresetName(event.target.value)}
+            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            required
+          />
+        </label>
+        <label className="text-sm text-orange-900">
+          Notes
+          <input
+            type="text"
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            placeholder="Optional"
+          />
+        </label>
+      </div>
+
       <button
-        type="button"
-        className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+        type="submit"
+        disabled={isSubmitting || disabled}
+        className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Save preset (next step)
+        {isSubmitting ? "Saving..." : "Save preset"}
       </button>
-    </section>
+
+      {status.type === "success" && status.message ? (
+        <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {status.message}
+        </p>
+      ) : null}
+
+      {status.type === "error" && status.message ? (
+        <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+      ) : null}
+    </form>
   );
 }
