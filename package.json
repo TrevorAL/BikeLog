@@ -11,6 +11,9 @@
     "test:integration": "node --env-file=.env --import tsx --test tests/integration/**/*.test.ts",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate:status": "prisma migrate status",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:backfill:initial-mileage": "tsx prisma/backfill-initial-mileage.ts",
     "db:seed": "prisma db seed"
   },
   "repository": {

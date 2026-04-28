@@ -129,9 +129,40 @@ Open:
 - `npm run test:integration` - Run DB-backed integration tests for rides and maintenance logging
 - `npm run db:generate` - Generate Prisma client
 - `npm run db:push` - Push Prisma schema to database
+- `npm run db:migrate:status` - Show Prisma Migrate status
+- `npm run db:migrate:deploy` - Apply committed migrations
+- `npm run db:backfill:initial-mileage` - One-time backfill for component `initialMileage`
 - `npm run db:seed` - Seed database using `prisma/seed.ts`
 
 Integration tests require Postgres running locally on `localhost:5432` (see Docker Compose commands above).
+
+## Prisma Migrate Workflow
+
+This project is now baselined with Prisma Migrate using:
+
+- `prisma/migrations/0_init/migration.sql`
+
+For future schema changes:
+
+1. Update `prisma/schema.prisma`
+2. Create a migration with Prisma Migrate (example):
+
+```bash
+npx prisma migrate dev --name your_change_name
+```
+
+3. Commit the new migration folder
+4. Apply in other environments with:
+
+```bash
+npm run db:migrate:deploy
+```
+
+One-time data backfill already added for existing local data:
+
+```bash
+npm run db:backfill:initial-mileage
+```
 
 ## Recommended First-Time Setup
 
