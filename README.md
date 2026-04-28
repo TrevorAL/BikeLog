@@ -4,7 +4,7 @@ BikeLog is a full-stack bike maintenance tracker built with Next.js, TypeScript,
 
 ## What This App Includes
 
-- Interactive garage-style homepage
+- Dashboard-first homepage
 - Bike profile and readiness summaries
 - Component mileage tracking (add/edit/replace/recalculate)
 - Ride logging (create/edit/delete with mileage updates)

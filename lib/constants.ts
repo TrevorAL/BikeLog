@@ -11,7 +11,6 @@ export type PressureSurface =
 export type PressurePreference = "comfort" | "balanced" | "speed" | "grip";
 
 export const NAV_LINKS = [
-  { href: "/", label: "Garage" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/bike", label: "Bike" },
   { href: "/components", label: "Components" },

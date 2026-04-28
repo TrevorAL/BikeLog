@@ -5,7 +5,7 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "BikeLog",
-  description: "A playful bike maintenance tracker with an interactive garage.",
+  description: "A bike maintenance tracker with dashboard-first navigation.",
 };
 
 export default function RootLayout({

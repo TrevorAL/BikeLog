@@ -6,7 +6,6 @@ import {
   Bike,
   ClipboardList,
   Gauge,
-  Home,
   LayoutDashboard,
   ListChecks,
   Map,
@@ -18,7 +17,6 @@ import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const iconMap = {
-  Garage: Home,
   Dashboard: LayoutDashboard,
   Bike,
   Components: Wrench,
@@ -41,7 +39,7 @@ export function SideNav() {
         <ul className="space-y-1">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href;
-            const Icon = iconMap[link.label as keyof typeof iconMap] ?? Home;
+            const Icon = iconMap[link.label as keyof typeof iconMap] ?? LayoutDashboard;
 
             return (
               <li key={link.href}>
