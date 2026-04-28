@@ -38,7 +38,12 @@ async function ensureBikeForAuthUser(input: {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  providers: [Google],
+  providers: [
+    Google({
+      // Needed for migration from pre-OAuth users that already exist by email.
+      allowDangerousEmailAccountLinking: true,
+    }),
+  ],
   pages: {
     signIn: "/login",
   },
