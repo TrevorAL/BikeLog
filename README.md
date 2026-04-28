@@ -3,14 +3,14 @@
 BikeLog is a full-stack bike maintenance tracker built with Next.js, TypeScript, Tailwind, Framer Motion, Prisma, and PostgreSQL.
 
 It includes:
-- Interactive garage-style home page
-- Bike profile page
-- Components tracking
-- Ride logging (Prisma-backed)
-- Maintenance overview
-- Tire pressure calculator
-- Fit measurements
-- Before-ride checklist
+- Interactive garage-style homepage
+- Bike profile page with live summary metrics
+- Component tracking with add/edit/replace flow
+- Ride logging with edit/delete and component mileage updates
+- Maintenance due-status logic and maintenance event history
+- Tire pressure calculator + saved preset CRUD
+- Bike fit measurement CRUD + mark current
+- Before-ride checklist persistence (toggle/add/delete/reset)
 
 ## Tech Stack
 
@@ -76,7 +76,7 @@ docker compose stop db
 docker compose down
 ```
 
-### Full reset (remove data volume too)
+### Full reset (remove DB data volume)
 
 ```bash
 docker compose down -v
@@ -166,10 +166,43 @@ npm run build
 npm run start
 ```
 
-## Current Prisma-Backed Flow
+## Current API-Backed Features
 
-- Rides page reads from PostgreSQL
-- `POST /api/rides` creates rides and increments mileage on active mileage-based components
+### Rides
+
+- `POST /api/rides` creates ride and increments active mileage-based components
+- `PATCH /api/rides/[rideId]` edits ride and adjusts component mileage delta
+- `DELETE /api/rides/[rideId]` deletes ride and decrements component mileage
+
+### Maintenance
+
+- `POST /api/maintenance-events` creates maintenance events
+- `/maintenance` uses real due/due soon/overdue status computation from rides/components/events
+
+### Components
+
+- `POST /api/components` add component
+- `PATCH /api/components/[componentId]` edit component
+- `POST /api/components/[componentId]/replace` replace component (old -> replaced, new active at 0 mi)
+
+### Pressure Presets
+
+- `POST /api/pressure-presets` create preset
+- `PATCH /api/pressure-presets/[presetId]` edit preset
+- `DELETE /api/pressure-presets/[presetId]` delete preset
+
+### Fit
+
+- `POST /api/fit-measurements` create measurement
+- `PATCH /api/fit-measurements/[measurementId]` edit measurement
+- `POST /api/fit-measurements/[measurementId]/mark-current` set current fit snapshot
+
+### Checklist
+
+- `POST /api/checklist-items` add custom item
+- `PATCH /api/checklist-items/[itemId]` toggle/update item
+- `DELETE /api/checklist-items/[itemId]` delete custom item
+- `POST /api/checklist-items/reset` reset all checklist completion states
 
 ## Project Structure (High Level)
 
@@ -184,7 +217,13 @@ app/
   pressure/page.tsx
   fit/page.tsx
   checklist/page.tsx
-  api/rides/route.ts
+  api/
+    rides/
+    maintenance-events/
+    components/
+    pressure-presets/
+    fit-measurements/
+    checklist-items/
 
 components/
   garage/
@@ -201,10 +240,11 @@ components/
 lib/
   db.ts
   constants.ts
-  pressure.ts
   maintenance.ts
+  bike-maintenance.ts
   readiness.ts
   rides.ts
+  pressure.ts
 
 prisma/
   schema.prisma

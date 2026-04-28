@@ -3,14 +3,113 @@ import { ArrowRight, LayoutDashboard } from "lucide-react";
 
 import { GarageScene } from "@/components/garage/GarageScene";
 import { MetricCard } from "@/components/ui/MetricCard";
-import {
-  bikeMileageTotal,
-  maintenanceSummary,
-  mockPressureRecommendation,
-  mockReadiness,
-} from "@/lib/mock-data";
+import { computeBikeMaintenance } from "@/lib/bike-maintenance";
+import { prisma } from "@/lib/db";
+import { calculatePressure } from "@/lib/pressure";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+async function getHomePageMetrics() {
+  try {
+    const bike = await prisma.bike.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: {
+        rides: {
+          select: {
+            distanceMiles: true,
+            date: true,
+            wasWet: true,
+            roadCondition: true,
+          },
+          orderBy: { date: "desc" },
+        },
+        components: {
+          where: { isActive: true },
+          select: {
+            type: true,
+            currentMileage: true,
+          },
+        },
+        maintenanceEvents: {
+          select: {
+            type: true,
+            date: true,
+            mileageAtService: true,
+          },
+          orderBy: { date: "desc" },
+        },
+        pressureSetups: {
+          orderBy: { updatedAt: "desc" },
+          take: 1,
+          select: {
+            frontPsi: true,
+            rearPsi: true,
+          },
+        },
+      },
+    });
+
+    if (!bike) {
+      return {
+        dbConnected: true,
+        readinessScore: 0,
+        readinessLabel: "No bike found",
+        totalMiles: 0,
+        pressureFront: 0,
+        pressureRear: 0,
+        maintenanceAlertCount: 0,
+      };
+    }
+
+    const maintenance = computeBikeMaintenance({
+      rides: bike.rides,
+      components: bike.components,
+      maintenanceEvents: bike.maintenanceEvents,
+    });
+
+    const fallbackPressure = calculatePressure({
+      riderWeightLbs: 165,
+      bikeWeightLbs: 18,
+      gearWeightLbs: 4,
+      frontTireWidthMm: 25,
+      rearTireWidthMm: 25,
+      tubeless: false,
+      surface: "normal",
+      preference: "balanced",
+    });
+
+    const frontPsi = bike.pressureSetups[0]
+      ? Math.round(bike.pressureSetups[0].frontPsi)
+      : fallbackPressure.frontPsi;
+    const rearPsi = bike.pressureSetups[0]
+      ? Math.round(bike.pressureSetups[0].rearPsi)
+      : fallbackPressure.rearPsi;
+
+    return {
+      dbConnected: true,
+      readinessScore: maintenance.readiness.score,
+      readinessLabel: maintenance.readiness.label,
+      totalMiles: maintenance.bikeMileage,
+      pressureFront: frontPsi,
+      pressureRear: rearPsi,
+      maintenanceAlertCount: maintenance.maintenanceSummary.dueNow.length,
+    };
+  } catch {
+    return {
+      dbConnected: false,
+      readinessScore: 0,
+      readinessLabel: "Database offline",
+      totalMiles: 0,
+      pressureFront: 0,
+      pressureRear: 0,
+      maintenanceAlertCount: 0,
+    };
+  }
+}
+
+export default async function HomePage() {
+  const metrics = await getHomePageMetrics();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-100 via-amber-50 to-orange-100">
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -36,17 +135,31 @@ export default function HomePage() {
             </Link>
           </div>
 
+          {!metrics.dbConnected ? (
+            <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              Database not connected. Live metrics are unavailable.
+            </p>
+          ) : null}
+
           <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard title="Ready to Ride" value={`${mockReadiness.score}%`} subtitle={mockReadiness.label} />
-            <MetricCard title="Total Logged Miles" value={`${bikeMileageTotal.toFixed(1)} mi`} subtitle="Across recent rides" />
+            <MetricCard
+              title="Ready to Ride"
+              value={`${metrics.readinessScore}%`}
+              subtitle={metrics.readinessLabel}
+            />
+            <MetricCard
+              title="Total Logged Miles"
+              value={`${metrics.totalMiles.toFixed(1)} mi`}
+              subtitle="Across all logged rides"
+            />
             <MetricCard
               title="Pressure Today"
-              value={`${mockPressureRecommendation.frontPsi}/${mockPressureRecommendation.rearPsi} PSI`}
+              value={`${metrics.pressureFront}/${metrics.pressureRear} PSI`}
               subtitle="Front / Rear"
             />
             <MetricCard
               title="Maintenance Alerts"
-              value={`${maintenanceSummary.dueNow.length}`}
+              value={`${metrics.maintenanceAlertCount}`}
               subtitle="Due now or overdue"
             />
           </div>
