@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  bikes     Bike[]
+  createdAt DateTime @default(now())
+}
+
+model Bike {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  name          String
+  brand         String?
+  model         String?
+  year          Int?
+  type          String?
+  frameSize     String?
+  frameMaterial String?
+  drivetrain    String?
+  brakeType     String?
+  wheelset      String?
+  tireSetup     String?
+  notes         String?
+
+  components        Component[]
+  rides             Ride[]
+  maintenanceEvents MaintenanceEvent[]
+  pressureSetups    TirePressureSetup[]
+  fitMeasurements   FitMeasurement[]
+  checklistItems    ChecklistItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Component {
+  id             String          @id @default(cuid())
+  bikeId         String
+  bike           Bike            @relation(fields: [bikeId], references: [id])
+  type           ComponentType
+  name           String
+  brand          String?
+  model          String?
+  installDate    DateTime?
+  currentMileage Float           @default(0)
+  status         ComponentStatus @default(ACTIVE)
+  notes          String?
+  isActive       Boolean         @default(true)
+
+  maintenanceEvents MaintenanceEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ride {
+  id              String   @id @default(cuid())
+  bikeId          String
+  bike            Bike     @relation(fields: [bikeId], references: [id])
+  date            DateTime
+  distanceMiles   Float
+  durationMinutes Int?
+  rideType        RideType @default(OUTDOOR)
+  weather         String?
+  roadCondition   String?
+  wasWet          Boolean  @default(false)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MaintenanceEvent {
+  id               String               @id @default(cuid())
+  bikeId           String
+  bike             Bike                 @relation(fields: [bikeId], references: [id])
+  componentId      String?
+  component        Component?           @relation(fields: [componentId], references: [id])
+  type             MaintenanceEventType
+  date             DateTime
+  mileageAtService Float?
+  notes            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TirePressureSetup {
+  id               String   @id @default(cuid())
+  bikeId           String
+  bike             Bike     @relation(fields: [bikeId], references: [id])
+  name             String
+  riderWeightLbs   Float
+  bikeWeightLbs    Float
+  gearWeightLbs    Float?
+  frontTireWidthMm Int
+  rearTireWidthMm  Int
+  tubeless         Boolean
+  surface          String
+  preference       String
+  frontPsi         Float
+  rearPsi          Float
+  notes            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FitMeasurement {
+  id               String   @id @default(cuid())
+  bikeId           String
+  bike             Bike     @relation(fields: [bikeId], references: [id])
+  date             DateTime
+  saddleHeightMm   Float?
+  saddleSetbackMm  Float?
+  saddleTiltDeg    Float?
+  stemLengthMm     Float?
+  handlebarWidthMm Float?
+  crankLengthMm    Float?
+  spacerStackMm    Float?
+  reachToHoodsMm   Float?
+  cleatNotes       String?
+  notes            String?
+  isCurrent        Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  bikeId    String
+  bike      Bike     @relation(fields: [bikeId], references: [id])
+  label     String
+  completed Boolean  @default(false)
+  sortOrder Int      @default(0)
+  isDefault Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ComponentType {
+  CHAIN
+  CASSETTE
+  FRONT_TIRE
+  REAR_TIRE
+  FRONT_BRAKE_PAD
+  REAR_BRAKE_PAD
+  FRONT_ROTOR
+  REAR_ROTOR
+  CHAINRINGS
+  CLEATS
+  BAR_TAPE
+  DI2_BATTERY
+  PEDALS
+  WHEELSET
+  CRANKSET
+  HANDLEBAR
+  STEM
+  SADDLE
+  OTHER
+}
+
+enum ComponentStatus {
+  ACTIVE
+  REPLACED
+  RETIRED
+}
+
+enum RideType {
+  OUTDOOR
+  INDOOR
+  RACE
+  GROUP_RIDE
+  TRAINING
+  RECOVERY
+  LONG_RIDE
+}
+
+enum MaintenanceEventType {
+  LUBED_CHAIN
+  CLEANED_CHAIN
+  CHECKED_CHAIN_WEAR
+  REPLACED_CHAIN
+  CHECKED_TIRE_PRESSURE
+  INSPECTED_TIRE
+  REPLACED_TIRE
+  INSPECTED_BRAKE_PADS
+  REPLACED_BRAKE_PADS
+  CHARGED_DI2
+  CHECKED_BOLTS
+  FIT_ADJUSTMENT
+  REPLACED_COMPONENT
+  OTHER
+}
