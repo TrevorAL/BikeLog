@@ -3,12 +3,12 @@ import { CloudDrizzle, Route, Timer } from "lucide-react";
 type RideCardProps = {
   date: Date;
   distanceMiles: number;
-  durationMinutes?: number;
+  durationMinutes?: number | null;
   rideType: string;
-  weather?: string;
-  roadCondition?: string;
+  weather?: string | null;
+  roadCondition?: string | null;
   wasWet?: boolean;
-  notes?: string;
+  notes?: string | null;
 };
 
 export function RideCard({
