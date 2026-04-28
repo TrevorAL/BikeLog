@@ -20,7 +20,7 @@ export async function AppShell({ title, description, actions, children }: AppShe
         title={title}
         description={description}
         actions={actions}
-        userEmail={user?.email}
+        userEmail={user?.email ?? undefined}
       />
       <div className="mx-auto flex w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <SideNav />

@@ -16,6 +16,9 @@ import {
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.verificationToken.deleteMany();
   await prisma.maintenanceEvent.deleteMany();
   await prisma.ride.deleteMany();
   await prisma.fitMeasurement.deleteMany();
@@ -23,6 +26,7 @@ async function main() {
   await prisma.checklistItem.deleteMany();
   await prisma.component.deleteMany();
   await prisma.bike.deleteMany();
+  await prisma.user.deleteMany();
 
   const bike = await prisma.bike.create({
     data: {

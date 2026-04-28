@@ -50,16 +50,33 @@ Set these in `.env`:
 DATABASE_URL="postgresql://...-pooler.../neondb?sslmode=require&channel_binding=require"
 DIRECT_URL="postgresql://...without-pooler.../neondb?sslmode=require&channel_binding=require"
 AUTH_SECRET="your-random-secret"
+AUTH_GOOGLE_ID="your-google-oauth-client-id"
+AUTH_GOOGLE_SECRET="your-google-oauth-client-secret"
 ```
 
 - `DATABASE_URL`: pooled Neon URL (for app runtime)
 - `DIRECT_URL`: non-pooled Neon URL (for Prisma migrations/CLI)
-- `AUTH_SECRET`: signs the BikeLog session cookie
+- `AUTH_SECRET`: signs Auth.js session state
+- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: Google OAuth credentials for Auth.js
 
 Generate a secret:
 
 ```bash
 openssl rand -base64 32
+```
+
+## Google OAuth Setup
+
+In Google Cloud Console, create OAuth credentials and add this redirect URI:
+
+```text
+http://localhost:3000/api/auth/callback/google
+```
+
+For deployed environments, add your production domain callback too:
+
+```text
+https://your-domain.com/api/auth/callback/google
 ```
 
 ## First-Time Setup (Neon Default)
@@ -79,7 +96,12 @@ Open:
 - http://localhost:3000
 - http://localhost:3000/login
 
-Sign in with any email. BikeLog creates or reuses your user and scopes data to that user.
+Use the login page to either:
+
+- Sign up with Google
+- Log in with Google
+
+BikeLog creates/reuses your user and scopes all data to that user.
 
 ## Daily Development Workflow
 

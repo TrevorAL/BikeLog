@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export function SignOutButton() {
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleClick() {
@@ -15,12 +14,10 @@ export function SignOutButton() {
     setSubmitting(true);
 
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
+      await signOut({
+        redirectTo: "/login",
       });
     } finally {
-      router.push("/login");
-      router.refresh();
       setSubmitting(false);
     }
   }

@@ -33,7 +33,7 @@ async function createTestBike(scope: string): Promise<TestBike> {
 
   const sessionToken = createSessionToken({
     userId: user.id,
-    email: user.email,
+    email: userEmail,
   });
   const authCookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(sessionToken)}`;
 

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
+import { auth } from "@/auth";
 import { prisma as db } from "@/lib/db";
 
 export const SESSION_COOKIE_NAME = "bikelog_session";
@@ -19,9 +20,13 @@ type SessionPayload = {
 
 export type AuthenticatedUser = {
   id: string;
-  email: string;
+  email: string | null;
   name: string | null;
 };
+
+function allowLegacyTokenAuth() {
+  return process.env.NODE_ENV === "test";
+}
 
 function getAuthSecret() {
   const fromEnv = process.env.AUTH_SECRET?.trim();
@@ -165,7 +170,41 @@ async function loadUserFromSession(
   return user;
 }
 
+async function getUserFromAuthJsSession() {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return null;
+    }
+
+    return db.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function getCurrentUser() {
+  const authJsUser = await getUserFromAuthJsSession();
+
+  if (authJsUser) {
+    return authJsUser;
+  }
+
+  if (!allowLegacyTokenAuth()) {
+    return null;
+  }
+
   return loadUserFromSession(await getSessionFromCookies());
 }
 
@@ -180,8 +219,24 @@ export async function requireServerUser() {
 }
 
 export async function requireApiUser(request: Request) {
-  const session = getSessionFromRequest(request);
-  const user = await loadUserFromSession(session);
+  const authJsUser = await getUserFromAuthJsSession();
+  if (authJsUser) {
+    return {
+      user: authJsUser,
+    } as const;
+  }
+
+  if (!allowLegacyTokenAuth()) {
+    return {
+      response: NextResponse.json(
+        { error: "Unauthorized. Sign in to continue." },
+        { status: 401 },
+      ),
+    } as const;
+  }
+
+  const fallbackSession = getSessionFromRequest(request);
+  const user = await loadUserFromSession(fallbackSession);
 
   if (!user) {
     return {
@@ -195,52 +250,4 @@ export async function requireApiUser(request: Request) {
   return {
     user,
   } as const;
-}
-
-export async function setSessionCookie(input: { userId: string; email: string }) {
-  const cookieStore = await cookies();
-  const token = createSessionToken(input);
-
-  cookieStore.set({
-    name: SESSION_COOKIE_NAME,
-    value: token,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS,
-  });
-}
-
-export async function clearSessionCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: SESSION_COOKIE_NAME,
-    value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
-}
-
-export async function upsertUserByEmail(input: { email: string; name?: string }) {
-  return db.user.upsert({
-    where: {
-      email: input.email,
-    },
-    update: {
-      ...(input.name ? { name: input.name } : {}),
-    },
-    create: {
-      email: input.email,
-      name: input.name,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-    },
-  });
 }
