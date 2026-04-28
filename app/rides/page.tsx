@@ -1,6 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { RideCard } from "@/components/rides/RideCard";
 import { RideForm } from "@/components/rides/RideForm";
+import { RideList } from "@/components/rides/RideList";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { prisma } from "@/lib/db";
@@ -49,6 +49,17 @@ export default async function RidesPage() {
         ride.date.getFullYear() === now.getFullYear(),
     )
     .reduce((sum, ride) => sum + ride.distanceMiles, 0);
+  const rideListItems = rides.map((ride) => ({
+    id: ride.id,
+    date: ride.date.toISOString(),
+    distanceMiles: ride.distanceMiles,
+    durationMinutes: ride.durationMinutes,
+    rideType: ride.rideType,
+    weather: ride.weather,
+    roadCondition: ride.roadCondition,
+    wasWet: ride.wasWet,
+    notes: ride.notes,
+  }));
 
   return (
     <AppShell
@@ -81,11 +92,7 @@ export default async function RidesPage() {
 
       <section className="mt-6">
         {rides.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {rides.map((ride) => (
-              <RideCard key={ride.id} {...ride} />
-            ))}
-          </div>
+          <RideList rides={rideListItems} />
         ) : (
           <EmptyState
             title="No rides logged yet"

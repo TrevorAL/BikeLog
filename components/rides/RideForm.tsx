@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const rideTypes = [
-  "OUTDOOR",
-  "INDOOR",
-  "RACE",
-  "GROUP_RIDE",
-  "TRAINING",
-  "RECOVERY",
-  "LONG_RIDE",
-] as const;
-
-const roadConditions = ["Smooth", "Normal", "Rough", "Very Rough", "Wet", "Mixed"] as const;
+import { ROAD_CONDITIONS, RIDE_TYPES } from "@/lib/ride-options";
 
 type RideFormProps = {
   bikeId?: string;
@@ -163,7 +153,7 @@ export function RideForm({ bikeId, disabled = false }: RideFormProps) {
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             defaultValue="OUTDOOR"
           >
-            {rideTypes.map((rideType) => (
+            {RIDE_TYPES.map((rideType) => (
               <option key={rideType} value={rideType}>
                 {rideType.replaceAll("_", " ")}
               </option>
@@ -186,7 +176,7 @@ export function RideForm({ bikeId, disabled = false }: RideFormProps) {
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             defaultValue="Normal"
           >
-            {roadConditions.map((condition) => (
+            {ROAD_CONDITIONS.map((condition) => (
               <option key={condition} value={condition}>
                 {condition}
               </option>

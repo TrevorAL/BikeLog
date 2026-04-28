@@ -1,7 +1,8 @@
+import type { ReactNode } from "react";
 import { CloudDrizzle, Route, Timer } from "lucide-react";
 
 type RideCardProps = {
-  date: Date;
+  date: Date | string;
   distanceMiles: number;
   durationMinutes?: number | null;
   rideType: string;
@@ -9,6 +10,7 @@ type RideCardProps = {
   roadCondition?: string | null;
   wasWet?: boolean;
   notes?: string | null;
+  actions?: ReactNode;
 };
 
 export function RideCard({
@@ -20,13 +22,18 @@ export function RideCard({
   roadCondition,
   wasWet,
   notes,
+  actions,
 }: RideCardProps) {
+  const normalizedDate = date instanceof Date ? date : new Date(date);
+
   return (
     <article className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-orange-700">{rideType.replaceAll("_", " ")}</p>
-          <h3 className="font-display text-lg font-semibold text-orange-950">{date.toLocaleDateString()}</h3>
+          <h3 className="font-display text-lg font-semibold text-orange-950">
+            {normalizedDate.toLocaleDateString()}
+          </h3>
         </div>
         {wasWet ? (
           <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
@@ -72,6 +79,8 @@ export function RideCard({
           </p>
         ) : null}
       </div>
+
+      {actions ? <div className="mt-4">{actions}</div> : null}
     </article>
   );
 }
