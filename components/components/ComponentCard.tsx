@@ -1,4 +1,5 @@
-import { ArrowRight, Gauge, Wrench } from "lucide-react";
+import type { ReactNode } from "react";
+import { Gauge } from "lucide-react";
 
 import type { MaintenanceStatus } from "@/lib/constants";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -10,6 +11,7 @@ type ComponentCardProps = {
   installDate?: Date | null;
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
+  actions?: ReactNode;
 };
 
 export function ComponentCard({
@@ -19,6 +21,7 @@ export function ComponentCard({
   installDate,
   conditionStatus,
   nextMaintenance,
+  actions,
 }: ComponentCardProps) {
   return (
     <article className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
@@ -48,22 +51,7 @@ export function ComponentCard({
         {nextMaintenance}
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 rounded-full border border-orange-300 bg-white px-3 py-1.5 text-orange-800 hover:bg-orange-100"
-        >
-          <Wrench className="h-3.5 w-3.5" />
-          Log service
-        </button>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 rounded-full border border-orange-300 bg-white px-3 py-1.5 text-orange-800 hover:bg-orange-100"
-        >
-          Replace
-          <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      {actions ? <div className="mt-4">{actions}</div> : null}
     </article>
   );
 }

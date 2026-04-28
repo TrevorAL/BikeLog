@@ -1,6 +1,6 @@
 import type { ComponentType } from "@prisma/client";
 
-import { ComponentCard } from "@/components/components/ComponentCard";
+import { ComponentManager } from "@/components/components/ComponentManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
@@ -112,9 +112,11 @@ export default async function ComponentsPage() {
         </section>
       ) : null}
 
-      {bike && bike.components.length > 0 ? (
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {bike.components.map((component) => {
+      {bike ? (
+        <ComponentManager
+          bikeId={bike.id}
+          disabled={!data.dbConnected}
+          components={bike.components.map((component) => {
             const maintenanceKey = maintenanceKeyByComponentType[component.type];
             const dueItem = maintenanceKey ? dueItemMap.get(maintenanceKey) : undefined;
             const conditionStatus = (dueItem?.status ?? "GOOD") as MaintenanceStatus;
@@ -122,24 +124,24 @@ export default async function ComponentsPage() {
               ? `${dueItem.label}: ${dueItem.detail}`
               : "No immediate action";
 
-            return (
-              <ComponentCard
-                key={component.id}
-                name={component.name}
-                brandModel={`${component.brand ?? ""} ${component.model ?? ""}`.trim() ||
-                  "No model set"}
-                currentMileage={component.currentMileage}
-                installDate={component.installDate}
-                conditionStatus={conditionStatus}
-                nextMaintenance={nextMaintenance}
-              />
-            );
+            return {
+              id: component.id,
+              type: component.type,
+              name: component.name,
+              brand: component.brand,
+              model: component.model,
+              installDate: component.installDate?.toISOString() ?? null,
+              currentMileage: component.currentMileage,
+              notes: component.notes,
+              conditionStatus,
+              nextMaintenance,
+            };
           })}
-        </section>
+        />
       ) : (
         <EmptyState
-          title="No components yet"
-          description="Add your first component to start mileage and wear tracking."
+          title="No bike data yet"
+          description="Seed the default bike first, then add and manage components here."
         />
       )}
     </AppShell>
