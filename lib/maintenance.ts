@@ -1,11 +1,18 @@
 import type { MaintenanceStatus } from "@/lib/constants";
 import { MAINTENANCE_INTERVALS } from "@/lib/constants";
+import type { SupportedDueActionKey } from "@/lib/maintenance-actions";
 
 export type DueItem = {
   key: string;
   label: string;
   status: MaintenanceStatus;
   detail: string;
+};
+
+export type ConditionSuggestion = {
+  key: "recent-wet-ride" | "recent-rough-ride";
+  label: string;
+  dueActionKey: SupportedDueActionKey;
 };
 
 export function getMileageStatus(
@@ -34,6 +41,19 @@ export function getDayStatus(
   return "GOOD";
 }
 
+export function getRideMinutesStatus(
+  minutesSinceService: number,
+  intervalMinutes: number,
+  warningMinutesBefore: number,
+): MaintenanceStatus {
+  const minutesRemaining = intervalMinutes - minutesSinceService;
+
+  if (minutesRemaining < 0) return "OVERDUE";
+  if (minutesRemaining === 0) return "DUE_NOW";
+  if (minutesRemaining <= warningMinutesBefore) return "DUE_SOON";
+  return "GOOD";
+}
+
 type BuildMaintenanceInput = {
   bikeMileage: number;
   chainMileage?: number;
@@ -45,9 +65,15 @@ type BuildMaintenanceInput = {
   lastBarTapeInspectMileage?: number;
   lastCassetteInspectMileage?: number;
   lastRotorInspectMileage?: number;
+  lastPressureCheckDate?: Date;
   lastDi2ChargeDate?: Date;
+  mostRecentRideDate?: Date;
+  rideMinutesSinceDi2Charge?: number;
+  rideMinutesSinceLightsCharge?: number;
   hasRecentWetRide?: boolean;
   hasRecentRoughRide?: boolean;
+  chainServicedAfterWetRide?: boolean;
+  roughRideInspectedAfterRide?: boolean;
 };
 
 function formatMileageDetail(intervalMiles: number, milesSinceService: number) {
@@ -74,6 +100,34 @@ function formatDayDetail(intervalDays: number, daysSinceService: number) {
   }
 
   return `${Math.round(daysRemaining)} days remaining`;
+}
+
+function formatRideMinutes(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const mins = Math.round(minutes % 60);
+
+  if (hours <= 0) {
+    return `${mins}m`;
+  }
+
+  if (mins === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${mins}m`;
+}
+
+function formatRideTimeDetail(intervalMinutes: number, minutesSinceService: number) {
+  const minutesRemaining = intervalMinutes - minutesSinceService;
+  if (minutesRemaining < 0) {
+    return `${formatRideMinutes(Math.abs(minutesRemaining))} overdue`;
+  }
+
+  if (minutesRemaining === 0) {
+    return "Due now";
+  }
+
+  return `${formatRideMinutes(minutesRemaining)} remaining`;
 }
 
 export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
@@ -187,19 +241,53 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
     detail: formatMileageDetail(MAINTENANCE_INTERVALS.rotorInspection.intervalMiles, rotorInspectMiles),
   });
 
-  if (input.lastDi2ChargeDate) {
-    const daysSinceCharge = Math.floor(
-      (Date.now() - input.lastDi2ChargeDate.getTime()) / (1000 * 60 * 60 * 24),
+  if (input.lastPressureCheckDate) {
+    const daysSincePressureCheck = Math.floor(
+      (Date.now() - input.lastPressureCheckDate.getTime()) / (1000 * 60 * 60 * 24),
     );
+    const pressureStatusFromDays = getDayStatus(
+      daysSincePressureCheck,
+      MAINTENANCE_INTERVALS.tirePressureRefill.intervalDays,
+      MAINTENANCE_INTERVALS.tirePressureRefill.warningDaysBefore,
+    );
+    const needsPressureRefillBeforeNextRide = Boolean(
+      input.mostRecentRideDate &&
+        input.lastPressureCheckDate.getTime() < input.mostRecentRideDate.getTime(),
+    );
+
+    dueItems.push({
+      key: "tire-pressure-check",
+      label: "Tire pressure refill",
+      status: needsPressureRefillBeforeNextRide ? "DUE_NOW" : pressureStatusFromDays,
+      detail: needsPressureRefillBeforeNextRide
+        ? "No pressure check logged after your latest ride"
+        : formatDayDetail(
+            MAINTENANCE_INTERVALS.tirePressureRefill.intervalDays,
+            daysSincePressureCheck,
+          ),
+    });
+  } else {
+    dueItems.push({
+      key: "tire-pressure-check",
+      label: "Tire pressure refill",
+      status: "DUE_SOON",
+      detail: "Pressure check status unknown",
+    });
+  }
+
+  if (input.rideMinutesSinceDi2Charge !== undefined) {
     dueItems.push({
       key: "di2-charge",
       label: "Di2 battery",
-      status: getDayStatus(
-        daysSinceCharge,
-        MAINTENANCE_INTERVALS.di2Check.intervalDays,
-        MAINTENANCE_INTERVALS.di2Check.warningDaysBefore,
+      status: getRideMinutesStatus(
+        input.rideMinutesSinceDi2Charge,
+        MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
+        MAINTENANCE_INTERVALS.di2ChargeRideTime.warningMinutesBefore,
       ),
-      detail: formatDayDetail(MAINTENANCE_INTERVALS.di2Check.intervalDays, daysSinceCharge),
+      detail: formatRideTimeDetail(
+        MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
+        input.rideMinutesSinceDi2Charge,
+      ),
     });
   } else {
     dueItems.push({
@@ -210,14 +298,45 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
     });
   }
 
-  const suggestions: string[] = [];
-
-  if (input.hasRecentWetRide) {
-    suggestions.push("Recent wet ride: clean and lube chain.");
+  if (input.rideMinutesSinceLightsCharge !== undefined) {
+    dueItems.push({
+      key: "lights-charge",
+      label: "Bike lights battery",
+      status: getRideMinutesStatus(
+        input.rideMinutesSinceLightsCharge,
+        MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
+        MAINTENANCE_INTERVALS.lightsChargeRideTime.warningMinutesBefore,
+      ),
+      detail: formatRideTimeDetail(
+        MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
+        input.rideMinutesSinceLightsCharge,
+      ),
+    });
+  } else {
+    dueItems.push({
+      key: "lights-charge",
+      label: "Bike lights battery",
+      status: "DUE_SOON",
+      detail: "Charge status unknown",
+    });
   }
 
-  if (input.hasRecentRoughRide) {
-    suggestions.push("Recent rough ride: inspect tires and wheels.");
+  const suggestions: ConditionSuggestion[] = [];
+
+  if (input.hasRecentWetRide && !input.chainServicedAfterWetRide) {
+    suggestions.push({
+      key: "recent-wet-ride",
+      label: "Recent wet ride: clean and lube chain.",
+      dueActionKey: "chain-lube",
+    });
+  }
+
+  if (input.hasRecentRoughRide && !input.roughRideInspectedAfterRide) {
+    suggestions.push({
+      key: "recent-rough-ride",
+      label: "Recent rough ride: inspect tires and wheels.",
+      dueActionKey: "tire-inspect",
+    });
   }
 
   return {

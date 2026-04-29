@@ -111,11 +111,14 @@ export const DEFAULT_PRESSURE_PRESETS = [
 
 export const MAINTENANCE_INTERVALS = {
   tirePressure: { intervalMiles: 1, warningMilesBefore: 0 },
+  tirePressureRefill: { intervalDays: 7, warningDaysBefore: 2 },
   chainLube: { intervalMiles: 120, warningMilesBefore: 20 },
   chainWear: { intervalMiles: 500, warningMilesBefore: 80 },
   tireInspection: { intervalMiles: 400, warningMilesBefore: 75 },
   brakePadInspection: { intervalMiles: 600, warningMilesBefore: 100 },
   di2Check: { intervalDays: 30, warningDaysBefore: 7 },
+  di2ChargeRideTime: { intervalMinutes: 1500, warningMinutesBefore: 300 },
+  lightsChargeRideTime: { intervalMinutes: 480, warningMinutesBefore: 120 },
   cleatInspection: { intervalMiles: 900, warningMilesBefore: 120 },
   barTapeInspection: { intervalMiles: 1800, warningMilesBefore: 200 },
   cassetteInspection: { intervalMiles: 2000, warningMilesBefore: 250 },

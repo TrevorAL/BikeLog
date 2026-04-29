@@ -195,6 +195,10 @@ npm run db:backfill:initial-mileage
 - `npm run db:backfill:initial-mileage` - Backfill `initialMileage`
 - `npm run db:seed` - Seed default BikeLog data
 
+## Project Backlog
+
+- See [`TODO.md`](./TODO.md) for prioritized roadmap items and implementation tasks.
+
 ## Current API-Backed Features
 
 ### Rides

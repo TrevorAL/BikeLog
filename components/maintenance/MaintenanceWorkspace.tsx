@@ -8,7 +8,7 @@ import { MaintenanceForm, type MaintenanceFormPrefill } from "@/components/maint
 import { MaintenanceHistoryManager } from "@/components/maintenance/MaintenanceHistoryManager";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getDueActionConfig } from "@/lib/maintenance-actions";
-import type { DueItem } from "@/lib/maintenance";
+import type { ConditionSuggestion, DueItem } from "@/lib/maintenance";
 
 type MaintenanceWorkspaceComponent = {
   id: string;
@@ -31,7 +31,8 @@ type MaintenanceWorkspaceProps = {
   bikeId?: string;
   dueNowItems: DueItem[];
   dueSoonItems: DueItem[];
-  suggestions: string[];
+  suggestions: ConditionSuggestion[];
+  initialDueKey?: string;
   components: MaintenanceWorkspaceComponent[];
   events: MaintenanceWorkspaceEvent[];
   disabled?: boolean;
@@ -41,6 +42,8 @@ type ActionStatus = {
   type: "idle" | "success" | "error";
   message?: string;
 };
+
+type PrefillInput = Omit<MaintenanceFormPrefill, "token">;
 
 function todayDateInputValue() {
   const now = new Date();
@@ -53,6 +56,7 @@ export function MaintenanceWorkspace({
   dueNowItems,
   dueSoonItems,
   suggestions,
+  initialDueKey,
   components,
   events,
   disabled = false,
@@ -61,6 +65,16 @@ export function MaintenanceWorkspace({
   const [isCompleting, setIsCompleting] = useState(false);
   const [actionStatus, setActionStatus] = useState<ActionStatus>({ type: "idle" });
   const [prefill, setPrefill] = useState<MaintenanceFormPrefill | undefined>(undefined);
+  const selectedDueItem = initialDueKey
+    ? [...dueNowItems, ...dueSoonItems].find((item) => item.key === initialDueKey)
+    : undefined;
+
+  function applyPrefill(input: PrefillInput) {
+    setPrefill((previous) => ({
+      token: (previous?.token ?? 0) + 1,
+      ...input,
+    }));
+  }
 
   function findComponentForDueKey(dueKey: string) {
     const actionConfig = getDueActionConfig(dueKey);
@@ -110,6 +124,7 @@ export function MaintenanceWorkspace({
     setActionStatus({ type: "idle" });
 
     try {
+      const actionNotePrefix = actionConfig.noteTag ? `${actionConfig.noteTag} ` : "";
       const response = await fetch("/api/maintenance-events", {
         method: "POST",
         headers: {
@@ -121,7 +136,7 @@ export function MaintenanceWorkspace({
           type: actionConfig.eventType,
           componentId: component?.id,
           mileageSource: component ? "component" : "manual",
-          notes: `Marked complete from due reminder: ${item.label}.`,
+          notes: `${actionNotePrefix}Marked complete from due reminder: ${item.label}.`,
         }),
       });
 
@@ -153,13 +168,13 @@ export function MaintenanceWorkspace({
     }
 
     const component = findComponentForDueKey(item.key);
+    const notePrefix = actionConfig.noteTag ? `${actionConfig.noteTag} ` : "";
 
-    setPrefill({
-      token: Date.now(),
+    applyPrefill({
       type: actionConfig.eventType,
       componentId: component?.id,
       mileageSource: component ? "component" : "manual",
-      notes: `From reminder: ${item.label}`,
+      notes: `${notePrefix}From reminder: ${item.label}`,
     });
 
     const formElement = document.getElementById("maintenance-log-form");
@@ -170,12 +185,38 @@ export function MaintenanceWorkspace({
     return Boolean(getDueActionConfig(item.key));
   }
 
+  function prefillFromConditionSuggestion(suggestion: ConditionSuggestion) {
+    const actionConfig = getDueActionConfig(suggestion.dueActionKey);
+    if (!actionConfig) {
+      return;
+    }
+
+    const component = findComponentForDueKey(suggestion.dueActionKey);
+    const notePrefix = actionConfig.noteTag ? `${actionConfig.noteTag} ` : "";
+
+    applyPrefill({
+      type: actionConfig.eventType,
+      componentId: component?.id,
+      mileageSource: component ? "component" : "manual",
+      notes: `${notePrefix}From condition suggestion: ${suggestion.label}`,
+    });
+
+    setActionStatus({
+      type: "success",
+      message: `Prefilled maintenance form for: ${suggestion.label}`,
+    });
+
+    const formElement = document.getElementById("maintenance-log-form");
+    formElement?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <>
       <section className="grid gap-4 lg:grid-cols-2">
         <DueSoonActionList
           title="Due now / overdue"
           items={dueNowItems}
+          activeDueKey={initialDueKey}
           isBusy={isCompleting}
           onPrefill={prefillFromDueItem}
           onMarkComplete={markComplete}
@@ -184,6 +225,7 @@ export function MaintenanceWorkspace({
         <DueSoonActionList
           title="Due soon"
           items={dueSoonItems}
+          activeDueKey={initialDueKey}
           isBusy={isCompleting}
           onPrefill={prefillFromDueItem}
           onMarkComplete={markComplete}
@@ -203,16 +245,29 @@ export function MaintenanceWorkspace({
         </p>
       ) : null}
 
+      {selectedDueItem ? (
+        <p className="mt-4 rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-900/85">
+          Selected reminder from dashboard: <strong>{selectedDueItem.label}</strong>. Use
+          &quot;Prefill form&quot; or &quot;Mark complete&quot; below.
+        </p>
+      ) : null}
+
       <section className="mt-6 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
         <h2 className="font-display text-xl font-semibold text-orange-950">Condition-based suggestions</h2>
         {suggestions.length ? (
           <ul className="mt-3 space-y-2">
             {suggestions.map((suggestion) => (
               <li
-                key={suggestion}
+                key={suggestion.key}
                 className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900/80"
               >
-                {suggestion}
+                <button
+                  type="button"
+                  onClick={() => prefillFromConditionSuggestion(suggestion)}
+                  className="w-full cursor-pointer text-left hover:text-orange-950"
+                >
+                  {suggestion.label}
+                </button>
               </li>
             ))}
           </ul>

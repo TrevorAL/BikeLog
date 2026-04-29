@@ -7,6 +7,12 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+type MaintenancePageProps = {
+  searchParams?: Promise<{
+    due?: string;
+  }>;
+};
+
 async function getMaintenancePageData(userId: string) {
   try {
     const bike = await prisma.bike.findFirst({
@@ -36,6 +42,7 @@ async function getMaintenancePageData(userId: string) {
         rides: {
           select: {
             distanceMiles: true,
+            durationMinutes: true,
             date: true,
             wasWet: true,
             roadCondition: true,
@@ -86,8 +93,9 @@ async function getMaintenancePageData(userId: string) {
   }
 }
 
-export default async function MaintenancePage() {
+export default async function MaintenancePage({ searchParams }: MaintenancePageProps) {
   const user = await requireServerUser();
+  const dueFromQuery = (await searchParams)?.due;
   const data = await getMaintenancePageData(user.id);
   const bike = data.bike;
   const maintenance = bike ? data.maintenance : undefined;
@@ -113,6 +121,7 @@ export default async function MaintenancePage() {
           dueNowItems={maintenance?.maintenanceSummary.dueNow ?? []}
           dueSoonItems={maintenance?.maintenanceSummary.dueSoon ?? []}
           suggestions={maintenance?.maintenanceSummary.suggestions ?? []}
+          initialDueKey={typeof dueFromQuery === "string" ? dueFromQuery : undefined}
           components={bike.components.map((component) => ({
             id: component.id,
             name: component.name,

@@ -47,6 +47,7 @@ async function getComponentsPageData(userId: string) {
         rides: {
           select: {
             distanceMiles: true,
+            durationMinutes: true,
             date: true,
             wasWet: true,
             roadCondition: true,
@@ -60,6 +61,7 @@ async function getComponentsPageData(userId: string) {
             type: true,
             date: true,
             mileageAtService: true,
+            notes: true,
           },
           orderBy: {
             date: "desc",

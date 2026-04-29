@@ -3,14 +3,18 @@ export type SupportedDueActionKey =
   | "chain-wear"
   | "tire-inspect"
   | "brake-inspect"
-  | "di2-charge";
+  | "di2-charge"
+  | "tire-pressure-check"
+  | "lights-charge";
 
 export type MaintenanceEventTypeValue =
   | "LUBED_CHAIN"
   | "CHECKED_CHAIN_WEAR"
   | "INSPECTED_TIRE"
   | "INSPECTED_BRAKE_PADS"
-  | "CHARGED_DI2";
+  | "CHARGED_DI2"
+  | "CHECKED_TIRE_PRESSURE"
+  | "OTHER";
 
 export type ComponentTypeValue =
   | "CHAIN"
@@ -23,7 +27,10 @@ export type ComponentTypeValue =
 type MaintenanceDueAction = {
   eventType: MaintenanceEventTypeValue;
   componentTypePriority: ComponentTypeValue[];
+  noteTag?: string;
 };
+
+export const LIGHTS_CHARGE_NOTE_TAG = "[BIKE_LIGHTS_CHARGED]";
 
 export const MAINTENANCE_DUE_ACTIONS: Record<SupportedDueActionKey, MaintenanceDueAction> = {
   "chain-lube": {
@@ -46,6 +53,15 @@ export const MAINTENANCE_DUE_ACTIONS: Record<SupportedDueActionKey, MaintenanceD
     eventType: "CHARGED_DI2",
     componentTypePriority: ["DI2_BATTERY"],
   },
+  "tire-pressure-check": {
+    eventType: "CHECKED_TIRE_PRESSURE",
+    componentTypePriority: [],
+  },
+  "lights-charge": {
+    eventType: "OTHER",
+    componentTypePriority: [],
+    noteTag: LIGHTS_CHARGE_NOTE_TAG,
+  },
 };
 
 export function isSupportedDueActionKey(value: string): value is SupportedDueActionKey {
@@ -59,4 +75,3 @@ export function getDueActionConfig(value: string) {
 
   return MAINTENANCE_DUE_ACTIONS[value];
 }
-

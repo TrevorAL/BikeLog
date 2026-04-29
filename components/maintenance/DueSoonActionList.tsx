@@ -6,6 +6,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 type DueSoonActionListProps = {
   title: string;
   items: DueItem[];
+  activeDueKey?: string;
   isBusy?: boolean;
   onPrefill: (item: DueItem) => void;
   onMarkComplete: (item: DueItem) => void;
@@ -15,6 +16,7 @@ type DueSoonActionListProps = {
 export function DueSoonActionList({
   title,
   items,
+  activeDueKey,
   isBusy = false,
   onPrefill,
   onMarkComplete,
@@ -32,8 +34,13 @@ export function DueSoonActionList({
 
             return (
               <article
+                id={`due-item-${item.key}`}
                 key={item.key}
-                className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2"
+                className={`rounded-2xl border bg-orange-50/70 px-3 py-2 ${
+                  activeDueKey === item.key
+                    ? "border-orange-400 ring-2 ring-orange-200"
+                    : "border-orange-100"
+                }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -71,4 +78,3 @@ export function DueSoonActionList({
     </section>
   );
 }
-

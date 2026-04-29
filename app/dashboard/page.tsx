@@ -27,6 +27,7 @@ async function getDashboardData(userId: string) {
           select: {
             id: true,
             distanceMiles: true,
+            durationMinutes: true,
             date: true,
             wasWet: true,
             roadCondition: true,
@@ -49,6 +50,7 @@ async function getDashboardData(userId: string) {
             type: true,
             date: true,
             mileageAtService: true,
+            notes: true,
           },
           orderBy: {
             date: "desc",
@@ -152,12 +154,15 @@ export default async function DashboardPage() {
       ) : null}
 
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Ready to Ride"
-          value={`${bike ? data.maintenance.readiness.score : 0}%`}
-          subtitle={bike ? data.maintenance.readiness.label : "No bike found"}
-          icon={<ShieldCheck className="h-5 w-5" />}
-        />
+        <Link href="/maintenance" className="block">
+          <MetricCard
+            title="Ready to Ride"
+            value={`${bike ? data.maintenance.readiness.score : 0}%`}
+            subtitle={bike ? `${data.maintenance.readiness.label} · View maintenance` : "No bike found"}
+            icon={<ShieldCheck className="h-5 w-5" />}
+            className="h-full hover:bg-orange-50/70"
+          />
+        </Link>
         <MetricCard
           title="Pressure Recommendation"
           value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
@@ -170,22 +175,57 @@ export default async function DashboardPage() {
           subtitle="From logged rides"
           icon={<Activity className="h-5 w-5" />}
         />
-        <MetricCard
-          title="Due Now"
-          value={`${dueNowCount}`}
-          subtitle="Maintenance items"
-          icon={<Wrench className="h-5 w-5" />}
-        />
+        <Link href="/maintenance" className="block">
+          <MetricCard
+            title="Due Now"
+            value={`${dueNowCount}`}
+            subtitle="Maintenance items"
+            icon={<Wrench className="h-5 w-5" />}
+            className="h-full hover:bg-orange-50/70"
+          />
+        </Link>
       </section>
+
+      {bike ? (
+        <section className="mt-4 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-xl font-semibold text-orange-950">Readiness reasoning</h2>
+            <Link
+              href="/maintenance"
+              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            >
+              Open maintenance
+            </Link>
+          </div>
+          {data.maintenance.readiness.reasons.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {data.maintenance.readiness.reasons.map((reason) => (
+                <li
+                  key={reason}
+                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900/80"
+                >
+                  {reason}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              No readiness deductions. You are fully ready to ride.
+            </p>
+          )}
+        </section>
+      ) : null}
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
         <DueSoonList
           title="Due now / overdue"
           items={bike ? data.maintenance.maintenanceSummary.dueNow : []}
+          itemHrefBasePath="/maintenance"
         />
         <DueSoonList
           title="Due soon"
           items={bike ? data.maintenance.maintenanceSummary.dueSoon : []}
+          itemHrefBasePath="/maintenance"
         />
       </section>
 
