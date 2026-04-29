@@ -152,14 +152,14 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
   }
 
   return (
-    <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-      <h2 className="font-display text-xl font-semibold text-orange-950">Bike Garage</h2>
-      <p className="mt-1 text-sm text-orange-900/70">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="font-display text-xl font-semibold text-slate-900">Bike Garage</h2>
+      <p className="mt-1 text-sm text-slate-600">
         Create, edit, archive, and restore bikes from one place.
       </p>
 
       <form
-        className="mt-4 rounded-2xl border border-orange-100 bg-orange-50/60 p-4"
+        className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4"
         onSubmit={async (event) => {
           event.preventDefault();
           setCreateStatus({ type: "idle" });
@@ -206,9 +206,9 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
           }
         }}
       >
-        <h3 className="text-sm font-semibold text-orange-950">Add bike</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Add bike</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Name
             <input
               required
@@ -216,30 +216,30 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, name: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Brand
             <input
               value={createForm.brand}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, brand: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Model
             <input
               value={createForm.model}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, model: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Year
             <input
               type="number"
@@ -249,100 +249,100 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, year: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Type
             <input
               value={createForm.type}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, type: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Frame size
             <input
               value={createForm.frameSize}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, frameSize: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Frame material
             <input
               value={createForm.frameMaterial}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, frameMaterial: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Drivetrain
             <input
               value={createForm.drivetrain}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, drivetrain: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Brake type
             <input
               value={createForm.brakeType}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, brakeType: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Wheelset
             <input
               value={createForm.wheelset}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, wheelset: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Tire setup
             <input
               value={createForm.tireSetup}
               onChange={(event) =>
                 setCreateForm((previous) => ({ ...previous, tireSetup: event.target.value }))
               }
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
         </div>
-        <label className="mt-3 block text-sm text-orange-900">
+        <label className="mt-3 block text-sm text-slate-700">
           Notes
           <textarea
             value={createForm.notes}
             onChange={(event) =>
               setCreateForm((previous) => ({ ...previous, notes: event.target.value }))
             }
-            className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
         <button
           type="submit"
           disabled={isCreating}
-          className="mt-3 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isCreating ? "Creating..." : "Create bike"}
         </button>
         {createStatus.type !== "idle" && createStatus.message ? (
           <p
-            className={`mt-3 rounded-2xl px-3 py-2 text-sm ${
+            className={`mt-3 rounded-lg px-3 py-2 text-sm ${
               createStatus.type === "success"
                 ? "bg-emerald-50 text-emerald-800"
                 : "bg-red-50 text-red-800"
@@ -354,19 +354,19 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
       </form>
 
       <div className="mt-6">
-        <h3 className="text-sm font-semibold text-orange-950">Active bikes</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Active bikes</h3>
         <div className="mt-3 space-y-3">
           {activeBikes.length === 0 ? (
-            <p className="rounded-2xl bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
               No active bikes. Create one above or restore an archived bike.
             </p>
           ) : (
             activeBikes.map((bike) => (
-              <article key={bike.id} className="rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+              <article key={bike.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-orange-950">{bikeDisplayName(bike)}</p>
-                    <p className="text-xs text-orange-900/70">
+                    <p className="text-sm font-semibold text-slate-900">{bikeDisplayName(bike)}</p>
+                    <p className="text-xs text-slate-600">
                       {bike.type ?? "Type not set"}
                       {selectedBikeId === bike.id ? " · Selected" : ""}
                     </p>
@@ -379,7 +379,7 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                         setEditForm(bikeToFormState(bike));
                         setEditStatus({ type: "idle" });
                       }}
-                      className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+                      className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                     >
                       Edit
                     </button>
@@ -437,7 +437,7 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                       }
                     }}
                   >
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Name
                       <input
                         required
@@ -445,30 +445,30 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, name: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Brand
                       <input
                         value={editForm.brand}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, brand: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Model
                       <input
                         value={editForm.model}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, model: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Year
                       <input
                         type="number"
@@ -478,30 +478,30 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, year: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Type
                       <input
                         value={editForm.type}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, type: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Frame size
                       <input
                         value={editForm.frameSize}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, frameSize: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Frame material
                       <input
                         value={editForm.frameMaterial}
@@ -511,64 +511,64 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                             frameMaterial: event.target.value,
                           }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Drivetrain
                       <input
                         value={editForm.drivetrain}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, drivetrain: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Brake type
                       <input
                         value={editForm.brakeType}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, brakeType: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Wheelset
                       <input
                         value={editForm.wheelset}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, wheelset: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="text-sm text-orange-900">
+                    <label className="text-sm text-slate-700">
                       Tire setup
                       <input
                         value={editForm.tireSetup}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, tireSetup: event.target.value }))
                         }
-                        className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
-                    <label className="sm:col-span-2 text-sm text-orange-900">
+                    <label className="sm:col-span-2 text-sm text-slate-700">
                       Notes
                       <textarea
                         value={editForm.notes}
                         onChange={(event) =>
                           setEditForm((previous) => ({ ...previous, notes: event.target.value }))
                         }
-                        className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+                        className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
                     <div className="sm:col-span-2 flex flex-wrap gap-2">
                       <button
                         type="submit"
                         disabled={isSavingEdit}
-                        className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {isSavingEdit ? "Saving..." : "Save bike"}
                       </button>
@@ -579,7 +579,7 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
                           setEditingBikeId(undefined);
                           setEditStatus({ type: "idle" });
                         }}
-                        className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                        className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                       >
                         Cancel
                       </button>
@@ -593,19 +593,19 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
       </div>
 
       <div className="mt-6">
-        <h3 className="text-sm font-semibold text-orange-950">Archived bikes</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Archived bikes</h3>
         <div className="mt-3 space-y-3">
           {archivedBikes.length === 0 ? (
-            <p className="rounded-2xl bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
               No archived bikes.
             </p>
           ) : (
             archivedBikes.map((bike) => (
-              <article key={bike.id} className="rounded-2xl border border-orange-100 bg-orange-50/70 p-3">
+              <article key={bike.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-orange-950">{bikeDisplayName(bike)}</p>
-                    <p className="text-xs text-orange-900/70">Archived</p>
+                    <p className="text-sm font-semibold text-slate-900">{bikeDisplayName(bike)}</p>
+                    <p className="text-xs text-slate-600">Archived</p>
                   </div>
                   <button
                     type="button"
@@ -624,7 +624,7 @@ export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
 
       {editStatus.type !== "idle" && editStatus.message ? (
         <p
-          className={`mt-4 rounded-2xl px-3 py-2 text-sm ${
+          className={`mt-4 rounded-lg px-3 py-2 text-sm ${
             editStatus.type === "success"
               ? "bg-emerald-50 text-emerald-800"
               : "bg-red-50 text-red-800"

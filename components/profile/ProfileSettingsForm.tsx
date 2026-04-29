@@ -260,19 +260,19 @@ export function ProfileSettingsForm({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Account summary</h2>
-        <p className="mt-1 text-sm text-orange-900/75">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-xl font-semibold text-slate-900">Account summary</h2>
+        <p className="mt-1 text-sm text-slate-600">
           Profile and session details moved from the top bar.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2">
-            <p className="text-xs uppercase tracking-wide text-orange-700">Email</p>
-            <p className="text-sm font-semibold text-orange-950">{user.email ?? "-"}</p>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+            <p className="text-xs uppercase tracking-wide text-slate-600">Email</p>
+            <p className="text-sm font-semibold text-slate-900">{user.email ?? "-"}</p>
           </div>
-          <div className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2">
-            <p className="text-xs uppercase tracking-wide text-orange-700">Current bike</p>
-            <p className="text-sm font-semibold text-orange-950">{selectedBikeLabel}</p>
+          <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+            <p className="text-xs uppercase tracking-wide text-slate-600">Current bike</p>
+            <p className="text-sm font-semibold text-slate-900">{selectedBikeLabel}</p>
           </div>
         </div>
         <div className="mt-4">
@@ -280,9 +280,9 @@ export function ProfileSettingsForm({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Profile settings</h2>
-        <p className="mt-1 text-sm text-orange-900/75">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-xl font-semibold text-slate-900">Profile settings</h2>
+        <p className="mt-1 text-sm text-slate-600">
           Manage your account details, default bike, and unit preferences.
         </p>
 
@@ -294,53 +294,53 @@ export function ProfileSettingsForm({
           }}
         >
           <div className="grid gap-3">
-            <label className="text-sm text-orange-900">
+            <label className="text-sm text-slate-700">
               Name
               <input
                 value={form.name}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, name: event.target.value }))
                 }
-                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                 placeholder="Your name"
               />
             </label>
-            <label className="text-sm text-orange-900">
+            <label className="text-sm text-slate-700">
               Avatar URL
               <input
                 value={form.image}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, image: event.target.value }))
                 }
-                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                 placeholder="https://example.com/avatar.jpg"
               />
-              <p className="mt-1 text-xs text-orange-900/70">
+              <p className="mt-1 text-xs text-slate-600">
                 Leave blank to remove custom avatar.
               </p>
             </label>
           </div>
 
           {avatarPreview ? (
-            <div className="inline-flex items-center gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2">
+            <div className="inline-flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
               <div
                 aria-hidden
-                className="h-10 w-10 rounded-full border border-orange-200 bg-cover bg-center"
+                className="h-10 w-10 rounded-full border border-slate-200 bg-cover bg-center"
                 style={{ backgroundImage: `url(${avatarPreview})` }}
               />
-              <span className="text-xs text-orange-900/70">Avatar preview</span>
+              <span className="text-xs text-slate-600">Avatar preview</span>
             </div>
           ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="text-sm text-orange-900 sm:col-span-2 lg:col-span-1">
+            <label className="text-sm text-slate-700 sm:col-span-2 lg:col-span-1">
               Timezone
               <input
                 value={form.timezone}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, timezone: event.target.value }))
                 }
-                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                 placeholder="America/New_York"
               />
               <button
@@ -352,13 +352,13 @@ export function ProfileSettingsForm({
 
                   setForm((current) => ({ ...current, timezone: browserTimezone }));
                 }}
-                className="mt-2 rounded-full border border-orange-300 px-3 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+                className="mt-2 rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
               >
                 Use browser timezone
               </button>
             </label>
 
-            <label className="text-sm text-orange-900">
+            <label className="text-sm text-slate-700">
               Distance unit
               <select
                 value={form.distanceUnit}
@@ -368,14 +368,14 @@ export function ProfileSettingsForm({
                     distanceUnit: event.target.value as DistanceUnit,
                   }))
                 }
-                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               >
                 <option value="MI">Miles (mi)</option>
                 <option value="KM">Kilometers (km)</option>
               </select>
             </label>
 
-            <label className="text-sm text-orange-900">
+            <label className="text-sm text-slate-700">
               Pressure unit
               <select
                 value={form.pressureUnit}
@@ -385,7 +385,7 @@ export function ProfileSettingsForm({
                     pressureUnit: event.target.value as PressureUnit,
                   }))
                 }
-                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               >
                 <option value="PSI">PSI</option>
                 <option value="BAR">Bar</option>
@@ -393,7 +393,7 @@ export function ProfileSettingsForm({
             </label>
           </div>
 
-          <label className="block text-sm text-orange-900">
+          <label className="block text-sm text-slate-700">
             Default bike
             <select
               value={form.selectedBikeId}
@@ -401,7 +401,7 @@ export function ProfileSettingsForm({
                 setForm((current) => ({ ...current, selectedBikeId: event.target.value }))
               }
               disabled={!hasBikeOptions}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2 disabled:cursor-not-allowed disabled:bg-orange-50"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-50"
             >
               {hasBikeOptions ? null : <option value="">No bikes available</option>}
               {bikes.map((bike) => (
@@ -415,35 +415,35 @@ export function ProfileSettingsForm({
           <button
             type="submit"
             disabled={isSaving}
-            className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSaving ? "Saving..." : "Save profile"}
           </button>
 
           {saveStatus.type === "success" && saveStatus.message ? (
-            <p className="rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
               {saveStatus.message}
             </p>
           ) : null}
 
           {saveStatus.type === "error" && saveStatus.message ? (
-            <p className="rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
               {saveStatus.message}
             </p>
           ) : null}
         </form>
       </section>
 
-      <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Account connections</h2>
-        <p className="mt-1 text-sm text-orange-900/75">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-xl font-semibold text-slate-900">Account connections</h2>
+        <p className="mt-1 text-sm text-slate-600">
           Manage your connected providers for sign-in and ride imports.
         </p>
 
         {(stravaFlashStatus === "connected" || stravaFlashStatus === "error") &&
         stravaFlashMessage ? (
           <p
-            className={`mt-3 rounded-2xl px-3 py-2 text-sm ${
+            className={`mt-3 rounded-lg px-3 py-2 text-sm ${
               stravaFlashStatus === "connected"
                 ? "bg-emerald-50 text-emerald-800"
                 : "bg-red-50 text-red-800"
@@ -454,11 +454,11 @@ export function ProfileSettingsForm({
         ) : null}
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <article className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
+          <article className="rounded-lg border border-slate-100 bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-orange-950">Google</h3>
-                <p className="mt-1 text-xs text-orange-900/75">
+                <h3 className="text-sm font-semibold text-slate-900">Google</h3>
+                <p className="mt-1 text-xs text-slate-600">
                   {googleConnected
                     ? "Connected for authentication."
                     : "Not connected yet."}
@@ -468,14 +468,14 @@ export function ProfileSettingsForm({
                 className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                   googleConnected
                     ? "bg-emerald-100 text-emerald-800"
-                    : "bg-orange-100 text-orange-800"
+                    : "bg-slate-100 text-slate-700"
                 }`}
               >
                 {googleConnected ? "Connected" : "Not connected"}
               </span>
             </div>
 
-            <p className="mt-3 text-xs text-orange-900/75">
+            <p className="mt-3 text-xs text-slate-600">
               Account ID: <span className="font-semibold">{maskProviderAccountId(connections.google.providerAccountId)}</span>
             </p>
 
@@ -495,7 +495,7 @@ export function ProfileSettingsForm({
                   }
                 }}
                 disabled={isGoogleSubmitting}
-                className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGoogleSubmitting
                   ? "Redirecting..."
@@ -508,18 +508,18 @@ export function ProfileSettingsForm({
                 href="https://myaccount.google.com/security"
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
               >
                 Manage Google account
               </a>
             </div>
           </article>
 
-          <article className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4">
+          <article className="rounded-lg border border-slate-100 bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-orange-950">Strava</h3>
-                <p className="mt-1 text-xs text-orange-900/75">
+                <h3 className="text-sm font-semibold text-slate-900">Strava</h3>
+                <p className="mt-1 text-xs text-slate-600">
                   {stravaConnection
                     ? "Connected for activity imports."
                     : "Connect Strava to import rides."}
@@ -529,7 +529,7 @@ export function ProfileSettingsForm({
                 className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                   stravaConnection
                     ? "bg-emerald-100 text-emerald-800"
-                    : "bg-orange-100 text-orange-800"
+                    : "bg-slate-100 text-slate-700"
                 }`}
               >
                 {stravaConnection ? "Connected" : "Not connected"}
@@ -537,7 +537,7 @@ export function ProfileSettingsForm({
             </div>
 
             {stravaConnection ? (
-              <div className="mt-3 space-y-1 text-xs text-orange-900/80">
+              <div className="mt-3 space-y-1 text-xs text-slate-600">
                 <p>
                   Athlete:{" "}
                   <span className="font-semibold">
@@ -572,7 +572,7 @@ export function ProfileSettingsForm({
             ) : null}
 
             {stravaConnection?.lastSyncStatus === "ERROR" && stravaConnection.lastSyncError ? (
-              <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-800">
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">
                 {stravaConnection.lastSyncError}
               </p>
             ) : null}
@@ -580,7 +580,7 @@ export function ProfileSettingsForm({
             <div className="mt-3 flex flex-wrap gap-2">
               <Link
                 href="/api/strava/connect?redirectTo=/profile"
-                className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
               >
                 {stravaConnection ? "Reconnect Strava" : "Connect Strava"}
               </Link>
@@ -602,13 +602,13 @@ export function ProfileSettingsForm({
         </div>
 
         {stravaStatus.type === "success" && stravaStatus.message ? (
-          <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
             {stravaStatus.message}
           </p>
         ) : null}
 
         {stravaStatus.type === "error" && stravaStatus.message ? (
-          <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
             {stravaStatus.message}
           </p>
         ) : null}

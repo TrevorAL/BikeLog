@@ -35,9 +35,9 @@ export function LoginForm() {
   }
 
   return (
-    <section className="rounded-3xl border border-orange-200 bg-white p-6 shadow-warm">
-      <h1 className="font-display text-3xl font-bold text-orange-950">Welcome to BikeLog</h1>
-      <p className="mt-2 text-sm text-orange-900/70">
+    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h1 className="font-display text-3xl font-bold text-slate-900">Welcome to BikeLog</h1>
+      <p className="mt-2 text-sm text-slate-600">
         Continue with Google to access your bikes, rides, and maintenance history.
       </p>
 
@@ -52,7 +52,7 @@ export function LoginForm() {
           type="button"
           disabled={submitting}
           onClick={() => handleGoogleAuth("signup")}
-          className="inline-flex items-center justify-center rounded-full border border-orange-300 bg-orange-50 px-5 py-2.5 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting && mode === "signup" ? "Starting sign up..." : "Sign up with Google"}
         </button>
@@ -61,16 +61,16 @@ export function LoginForm() {
           type="button"
           disabled={submitting}
           onClick={() => handleGoogleAuth("login")}
-          className="inline-flex items-center justify-center rounded-full bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting && mode === "login" ? "Logging in..." : "Log in with Google"}
         </button>
       </div>
 
-      <p className="mt-4 text-xs text-orange-900/70">
+      <p className="mt-4 text-xs text-slate-600">
         If you already have an account, use Log in. If not, use Sign up. Google handles the account flow.
       </p>
-      <p className="mt-2 text-xs text-orange-900/70">
+      <p className="mt-2 text-xs text-slate-600">
         BikeLog always asks Google to show account selection so you can choose a different account after sign out.
       </p>
     </section>

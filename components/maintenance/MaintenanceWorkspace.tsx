@@ -236,37 +236,37 @@ export function MaintenanceWorkspace({
       </section>
 
       {actionStatus.type === "success" && actionStatus.message ? (
-        <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="mt-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {actionStatus.message}
         </p>
       ) : null}
 
       {actionStatus.type === "error" && actionStatus.message ? (
-        <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-800">
+        <p className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
           {actionStatus.message}
         </p>
       ) : null}
 
       {selectedDueItem ? (
-        <p className="mt-4 rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-900/85">
+        <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-700">
           Selected reminder from dashboard: <strong>{selectedDueItem.label}</strong>. Use
           &quot;Prefill form&quot; or &quot;Mark complete&quot; below.
         </p>
       ) : null}
 
-      <section className="mt-6 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Condition-based suggestions</h2>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-xl font-semibold text-slate-900">Condition-based suggestions</h2>
         {suggestions.length ? (
           <ul className="mt-3 space-y-2">
             {suggestions.map((suggestion) => (
               <li
                 key={suggestion.key}
-                className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900/80"
+                className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
               >
                 <button
                   type="button"
                   onClick={() => prefillFromConditionSuggestion(suggestion)}
-                  className="w-full cursor-pointer text-left hover:text-orange-950"
+                  className="w-full cursor-pointer text-left hover:text-slate-900"
                 >
                   {suggestion.label}
                 </button>
@@ -274,7 +274,7 @@ export function MaintenanceWorkspace({
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-orange-900/70">No suggestions from recent ride conditions.</p>
+          <p className="mt-2 text-sm text-slate-600">No suggestions from recent ride conditions.</p>
         )}
       </section>
 
@@ -290,7 +290,7 @@ export function MaintenanceWorkspace({
       </section>
 
       <section className="mt-6">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Maintenance history</h2>
+        <h2 className="font-display text-xl font-semibold text-slate-900">Maintenance history</h2>
         <div className="mt-3">
           {events.length > 0 ? (
             <MaintenanceHistoryManager

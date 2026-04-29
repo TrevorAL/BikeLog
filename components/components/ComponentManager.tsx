@@ -94,7 +94,7 @@ function AddComponentForm({
 
   return (
     <form
-      className="mb-4 rounded-3xl border border-orange-200 bg-white p-4 shadow-warm"
+      className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -157,9 +157,9 @@ function AddComponentForm({
         }
       }}
     >
-      <h3 className="font-display text-lg font-semibold text-orange-950">Add component</h3>
+      <h3 className="font-display text-lg font-semibold text-slate-900">Add component</h3>
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Type
           <select
             name="type"
@@ -167,7 +167,7 @@ function AddComponentForm({
             onChange={(event) =>
               setSelectedType(event.target.value as (typeof COMPONENT_TYPES)[number])
             }
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           >
             {COMPONENT_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -177,73 +177,73 @@ function AddComponentForm({
           </select>
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Name
           <input
             name="name"
             type="text"
             placeholder={DEFAULT_COMPONENT_NAME_BY_TYPE[selectedType]}
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Brand
-          <input name="brand" type="text" className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2" />
+          <input name="brand" type="text" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Model
-          <input name="model" type="text" className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2" />
+          <input name="model" type="text" className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2" />
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Install date
           <input
             name="installDate"
             type="date"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Mileage at install
           <input
             name="initialMileage"
             type="number"
             min="0"
             step="0.1"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Current mileage
           <input
             name="currentMileage"
             type="number"
             min="0"
             step="0.1"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
       </div>
 
-      <label className="mt-3 block text-sm text-orange-900">
+      <label className="mt-3 block text-sm text-slate-700">
         Notes
-        <textarea name="notes" className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2" />
+        <textarea name="notes" className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2" />
       </label>
 
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Saving..." : "Add component"}
       </button>
 
       {status.type === "error" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
       ) : null}
     </form>
   );
@@ -266,7 +266,7 @@ function EditableComponentCard({
   if (mode === "edit") {
     return (
       <form
-        className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm"
+        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -321,72 +321,72 @@ function EditableComponentCard({
         }}
       >
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-orange-950">Edit component</h3>
+          <h3 className="font-display text-lg font-semibold text-slate-900">Edit component</h3>
           <button
             type="button"
             onClick={() => {
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-orange-300 px-3 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Name
             <input
               name="name"
               type="text"
               required
               defaultValue={component.name}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Type
             <input
               type="text"
               value={formatComponentType(component.type)}
               readOnly
-              className="mt-1 w-full rounded-xl border border-orange-200 bg-orange-50 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Brand
             <input
               name="brand"
               type="text"
               defaultValue={component.brand ?? ""}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Model
             <input
               name="model"
               type="text"
               defaultValue={component.model ?? ""}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Install date
             <input
               name="installDate"
               type="date"
               defaultValue={toDateInputValue(component.installDate)}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Mileage at install
             <input
               name="initialMileage"
@@ -394,11 +394,11 @@ function EditableComponentCard({
               min="0"
               step="0.1"
               defaultValue={component.initialMileage}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
 
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Current mileage
             <input
               name="currentMileage"
@@ -406,30 +406,30 @@ function EditableComponentCard({
               min="0"
               step="0.1"
               defaultValue={component.currentMileage}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
         </div>
 
-        <label className="mt-3 block text-sm text-orange-900">
+        <label className="mt-3 block text-sm text-slate-700">
           Notes
           <textarea
             name="notes"
             defaultValue={component.notes ?? ""}
-            className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
 
         {status.type === "error" && status.message ? (
-          <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
         ) : null}
       </form>
     );
@@ -438,7 +438,7 @@ function EditableComponentCard({
   if (mode === "replace") {
     return (
       <form
-        className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm"
+        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -481,80 +481,80 @@ function EditableComponentCard({
         }}
       >
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-display text-lg font-semibold text-orange-950">Replace component</h3>
+          <h3 className="font-display text-lg font-semibold text-slate-900">Replace component</h3>
           <button
             type="button"
             onClick={() => {
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-orange-300 px-3 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
         </div>
-        <p className="mt-2 text-sm text-orange-900/75">
+        <p className="mt-2 text-sm text-slate-600">
           The current component will be marked replaced, and a new active one will start at 0 miles.
         </p>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             New name
             <input
               name="name"
               type="text"
               defaultValue={component.name}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             New brand
             <input
               name="brand"
               type="text"
               defaultValue={component.brand ?? ""}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             New model
             <input
               name="model"
               type="text"
               defaultValue={component.model ?? ""}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Install date
             <input
               name="installDate"
               type="date"
               defaultValue={new Date().toISOString().slice(0, 10)}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
         </div>
 
-        <label className="mt-3 block text-sm text-orange-900">
+        <label className="mt-3 block text-sm text-slate-700">
           Notes
           <textarea
             name="notes"
             defaultValue={component.notes ?? ""}
-            className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Replacing..." : "Confirm replace"}
         </button>
 
         {status.type === "error" && status.message ? (
-          <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
         ) : null}
       </form>
     );
@@ -578,7 +578,7 @@ function EditableComponentCard({
                 setMode("edit");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-full border border-orange-300 bg-white px-3 py-1.5 text-orange-800 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Edit
             </button>
@@ -589,7 +589,7 @@ function EditableComponentCard({
                 setMode("replace");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-full border border-orange-300 bg-white px-3 py-1.5 text-orange-800 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Replace
             </button>
@@ -598,7 +598,7 @@ function EditableComponentCard({
       />
 
       {status.type === "error" && status.message ? (
-        <p className="mt-2 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
       ) : null}
     </div>
   );
@@ -693,7 +693,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Active components</h2>
+        <h2 className="font-display text-xl font-semibold text-slate-900">Active components</h2>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -701,7 +701,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
             onClick={() => {
               runRecalculation(false);
             }}
-            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRecalcBusy ? "Working..." : "Preview recalc"}
           </button>
@@ -735,7 +735,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
               }
               setStatus({ type: "idle" });
             }}
-            className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {showAddForm ? "Close" : "Add component"}
           </button>
@@ -743,28 +743,28 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
       </div>
 
       {recalcStatus.type === "success" && recalcStatus.message ? (
-        <p className="mb-4 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {recalcStatus.message}
         </p>
       ) : null}
 
       {recalcStatus.type === "error" && recalcStatus.message ? (
-        <p className="mb-4 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
           {recalcStatus.message}
         </p>
       ) : null}
 
       {recalcResult ? (
-        <div className="mb-4 rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
+        <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="font-display text-lg font-semibold text-orange-950">
+            <h3 className="font-display text-lg font-semibold text-slate-900">
               Mileage recalculation preview
             </h3>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowRecalcInfo((previous) => !previous)}
-                className="h-7 w-7 rounded-full border border-orange-300 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                className="h-7 w-7 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 aria-label="What does mileage recalculation do?"
                 title="What does mileage recalculation do?"
               >
@@ -777,7 +777,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
                   setShowRecalcInfo(false);
                   setRecalcStatus({ type: "idle" });
                 }}
-                className="h-7 w-7 rounded-full border border-orange-300 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                className="h-7 w-7 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 aria-label="Close preview"
                 title="Close preview"
               >
@@ -787,7 +787,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
           </div>
 
           {showRecalcInfo ? (
-            <p className="mt-2 rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-xs text-orange-900/80">
+            <p className="mt-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
               Recalc compares each active mileage-based component against expected mileage from your
               rides. Expected mileage is calculated as mileage at install + rides since install date
               (or all rides if install date is missing). Preview shows drift only; apply writes updates
@@ -795,13 +795,13 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
             </p>
           ) : null}
 
-          <p className="mt-1 text-sm text-orange-900/75">
+          <p className="mt-1 text-sm text-slate-600">
             Rides: {recalcResult.rideCount} · Total miles: {recalcResult.totalRideMiles.toFixed(1)} ·
             Drifted components: {recalcResult.changedComponentCount}/{recalcResult.checkedComponentCount}
           </p>
 
           {driftItems.length === 0 ? (
-            <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
               No mileage drift detected.
             </p>
           ) : (
@@ -809,14 +809,14 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
               {driftItems.map((item) => (
                 <article
                   key={item.componentId}
-                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900"
+                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700"
                 >
                   <p className="font-semibold">{item.componentName}</p>
-                  <p className="text-xs text-orange-900/70">{formatComponentType(item.componentType)}</p>
+                  <p className="text-xs text-slate-600">{formatComponentType(item.componentType)}</p>
                   <p className="mt-1">
                     {item.currentMileage.toFixed(1)} mi → {item.expectedMileage.toFixed(1)} mi
                   </p>
-                  <p className="text-xs text-orange-900/70">
+                  <p className="text-xs text-slate-600">
                     Drift: {item.deltaMileage > 0 ? "+" : ""}
                     {item.deltaMileage.toFixed(1)} mi · Rides used: {item.ridesUsed}
                   </p>
@@ -839,7 +839,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
       ) : null}
 
       {status.type === "success" && status.message ? (
-        <p className="mb-4 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{status.message}</p>
+        <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{status.message}</p>
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -34,8 +34,8 @@ export function SideNav() {
 
   return (
     <aside className="hidden w-64 shrink-0 md:block">
-      <div className="sticky top-[6.5rem] rounded-3xl border border-orange-200 bg-white/95 p-3 shadow-warm">
-        <p className="px-3 pb-2 text-xs font-semibold tracking-wide text-orange-700 uppercase">
+      <div className="sticky top-[6.5rem] rounded-xl border border-slate-200 bg-white/95 p-3 shadow-sm">
+        <p className="px-3 pb-2 text-xs font-semibold tracking-wide text-slate-600 uppercase">
           Navigation
         </p>
         <ul className="space-y-1">
@@ -48,10 +48,10 @@ export function SideNav() {
                 <Link
                   href={link.href}
                   className={cn(
-                    "flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-medium transition",
+                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition",
                     active
-                      ? "bg-orange-500 text-white"
-                      : "text-orange-900 hover:bg-orange-100",
+                      ? "bg-slate-500 text-white"
+                      : "text-slate-700 hover:bg-slate-100",
                   )}
                 >
                   <Icon className="h-4 w-4" />

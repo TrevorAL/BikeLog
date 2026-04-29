@@ -32,11 +32,11 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
   );
 
   return (
-    <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-display text-xl font-semibold text-orange-950">Before-ride checklist</h3>
-          <p className="text-sm text-orange-900/70">
+          <h3 className="font-display text-xl font-semibold text-slate-900">Before-ride checklist</h3>
+          <p className="text-sm text-slate-600">
             {completedCount}/{items.length} completed
           </p>
         </div>
@@ -78,7 +78,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
               setIsSubmitting(false);
             }
           }}
-          className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Working..." : "Reset"}
         </button>
@@ -88,7 +88,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
         {items.map((item) => (
           <label
             key={item.id}
-            className="flex items-center gap-2 rounded-2xl border border-orange-100 bg-orange-50/60 px-3 py-2 text-sm"
+            className="flex items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
           >
             <input
               type="checkbox"
@@ -137,7 +137,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
                   setStatus({ type: "error", message });
                 }
               }}
-              className="h-4 w-4 rounded border-orange-300 text-orange-600"
+              className="h-4 w-4 rounded border-slate-300 text-slate-600"
             />
             {item.label}
             <button
@@ -237,26 +237,26 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
           value={newItem}
           onChange={(event) => setNewItem(event.target.value)}
           placeholder="Add custom checklist item"
-          className="flex-1 rounded-xl border border-orange-200 px-3 py-2 text-sm"
+          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm"
           disabled={disabled || isSubmitting}
         />
         <button
           type="submit"
           disabled={disabled || isSubmitting}
-          className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Add"}
         </button>
       </form>
 
       {status.type === "success" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {status.message}
         </p>
       ) : null}
 
       {status.type === "error" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
       ) : null}
     </section>
   );

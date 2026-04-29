@@ -14,11 +14,11 @@ export function MaintenanceEventCard({
   componentName,
 }: MaintenanceEventCardProps) {
   return (
-    <article className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
-      <p className="text-xs uppercase tracking-wide text-orange-700">{date.toLocaleDateString()}</p>
-      <h3 className="font-display mt-1 text-lg font-semibold text-orange-950">{type.replaceAll("_", " ")}</h3>
-      <p className="text-sm text-orange-900/70">{componentName ?? "General bike service"}</p>
-      <div className="mt-3 space-y-1 text-sm text-orange-900/80">
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs uppercase tracking-wide text-slate-600">{date.toLocaleDateString()}</p>
+      <h3 className="font-display mt-1 text-lg font-semibold text-slate-900">{type.replaceAll("_", " ")}</h3>
+      <p className="text-sm text-slate-600">{componentName ?? "General bike service"}</p>
+      <div className="mt-3 space-y-1 text-sm text-slate-600">
         {typeof mileageAtService === "number" ? <p>Mileage: {mileageAtService} mi</p> : null}
         {notes ? <p>Notes: {notes}</p> : null}
       </div>

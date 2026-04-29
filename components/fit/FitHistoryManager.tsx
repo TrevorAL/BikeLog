@@ -72,7 +72,7 @@ function EditableFitMeasurement({
   if (isEditing) {
     return (
       <form
-        className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-3 text-sm"
+        className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 text-sm"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -122,14 +122,14 @@ function EditableFitMeasurement({
         }}
       >
         <div className="flex items-center justify-between gap-2">
-          <p className="font-semibold text-orange-950">Edit fit measurement</p>
+          <p className="font-semibold text-slate-900">Edit fit measurement</p>
           <button
             type="button"
             onClick={() => {
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-orange-300 px-2 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            className="rounded-full border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
@@ -143,7 +143,7 @@ function EditableFitMeasurement({
               type="date"
               defaultValue={toDateInputValue(measurement.date)}
               required
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -152,7 +152,7 @@ function EditableFitMeasurement({
               name="saddleHeightMm"
               type="number"
               defaultValue={measurement.saddleHeightMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -161,7 +161,7 @@ function EditableFitMeasurement({
               name="saddleSetbackMm"
               type="number"
               defaultValue={measurement.saddleSetbackMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -171,7 +171,7 @@ function EditableFitMeasurement({
               type="number"
               step="0.1"
               defaultValue={measurement.saddleTiltDeg ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -180,7 +180,7 @@ function EditableFitMeasurement({
               name="stemLengthMm"
               type="number"
               defaultValue={measurement.stemLengthMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -189,7 +189,7 @@ function EditableFitMeasurement({
               name="handlebarWidthMm"
               type="number"
               defaultValue={measurement.handlebarWidthMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -199,7 +199,7 @@ function EditableFitMeasurement({
               type="number"
               step="0.1"
               defaultValue={measurement.crankLengthMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -208,7 +208,7 @@ function EditableFitMeasurement({
               name="spacerStackMm"
               type="number"
               defaultValue={measurement.spacerStackMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -217,7 +217,7 @@ function EditableFitMeasurement({
               name="reachToHoodsMm"
               type="number"
               defaultValue={measurement.reachToHoodsMm ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
           <label>
@@ -226,7 +226,7 @@ function EditableFitMeasurement({
               name="cleatNotes"
               type="text"
               defaultValue={measurement.cleatNotes ?? ""}
-              className="mt-1 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-1.5"
             />
           </label>
         </div>
@@ -236,14 +236,14 @@ function EditableFitMeasurement({
           <textarea
             name="notes"
             defaultValue={measurement.notes ?? ""}
-            className="mt-1 h-16 w-full rounded-lg border border-orange-200 px-2 py-1.5"
+            className="mt-1 h-16 w-full rounded-lg border border-slate-200 px-2 py-1.5"
           />
         </label>
 
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-3 rounded-full bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
@@ -258,9 +258,9 @@ function EditableFitMeasurement({
   }
 
   return (
-    <article className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm">
+    <article className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="font-semibold text-orange-950">{new Date(measurement.date).toLocaleDateString()}</p>
+        <p className="font-semibold text-slate-900">{new Date(measurement.date).toLocaleDateString()}</p>
         <div className="flex flex-wrap items-center gap-2">
           {measurement.isCurrent ? (
             <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
@@ -311,14 +311,14 @@ function EditableFitMeasurement({
               setIsEditing(true);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-orange-300 px-2 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Edit
           </button>
         </div>
       </div>
 
-      <p className="mt-1 text-orange-900/75">
+      <p className="mt-1 text-slate-600">
         Saddle {measurement.saddleHeightMm ?? "-"} mm · Reach {measurement.reachToHoodsMm ?? "-"} mm
       </p>
 
@@ -334,7 +334,7 @@ export function FitHistoryManager({ measurements, disabled = false }: FitHistory
 
   if (measurements.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-4 py-4 text-sm text-orange-900/75">
+      <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600">
         No fit measurements yet. Add your first measurement above.
       </p>
     );
@@ -343,7 +343,7 @@ export function FitHistoryManager({ measurements, disabled = false }: FitHistory
   return (
     <div>
       {status.type === "success" && status.message ? (
-        <p className="mb-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {status.message}
         </p>
       ) : null}

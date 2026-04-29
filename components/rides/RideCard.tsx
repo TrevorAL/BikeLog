@@ -27,11 +27,11 @@ export function RideCard({
   const normalizedDate = date instanceof Date ? date : new Date(date);
 
   return (
-    <article className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-orange-700">{rideType.replaceAll("_", " ")}</p>
-          <h3 className="font-display text-lg font-semibold text-orange-950">
+          <p className="text-xs uppercase tracking-wide text-slate-600">{rideType.replaceAll("_", " ")}</p>
+          <h3 className="font-display text-lg font-semibold text-slate-900">
             {normalizedDate.toLocaleDateString()}
           </h3>
         </div>
@@ -43,38 +43,38 @@ export function RideCard({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl bg-orange-50 p-3 text-sm">
-          <p className="text-xs text-orange-700">Distance</p>
-          <p className="font-semibold text-orange-950">{distanceMiles.toFixed(1)} mi</p>
+        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+          <p className="text-xs text-slate-600">Distance</p>
+          <p className="font-semibold text-slate-900">{distanceMiles.toFixed(1)} mi</p>
         </div>
-        <div className="rounded-2xl bg-orange-50 p-3 text-sm">
-          <p className="text-xs text-orange-700">Duration</p>
-          <p className="font-semibold text-orange-950">
+        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+          <p className="text-xs text-slate-600">Duration</p>
+          <p className="font-semibold text-slate-900">
             {durationMinutes ? `${durationMinutes} min` : "Not set"}
           </p>
         </div>
-        <div className="rounded-2xl bg-orange-50 p-3 text-sm">
-          <p className="text-xs text-orange-700">Road</p>
-          <p className="font-semibold text-orange-950">{roadCondition ?? "Unknown"}</p>
+        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+          <p className="text-xs text-slate-600">Road</p>
+          <p className="font-semibold text-slate-900">{roadCondition ?? "Unknown"}</p>
         </div>
       </div>
 
-      <div className="mt-4 space-y-1 text-sm text-orange-900/80">
+      <div className="mt-4 space-y-1 text-sm text-slate-600">
         {weather ? (
           <p className="flex items-center gap-2">
-            <CloudDrizzle className="h-4 w-4 text-orange-600" />
+            <CloudDrizzle className="h-4 w-4 text-slate-600" />
             {weather}
           </p>
         ) : null}
         {notes ? (
           <p className="flex items-start gap-2">
-            <Route className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+            <Route className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
             {notes}
           </p>
         ) : null}
         {durationMinutes ? (
           <p className="flex items-center gap-2">
-            <Timer className="h-4 w-4 text-orange-600" />
+            <Timer className="h-4 w-4 text-slate-600" />
             Component mileage auto-updates on save.
           </p>
         ) : null}

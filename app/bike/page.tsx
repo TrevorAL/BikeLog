@@ -143,7 +143,7 @@ export default async function BikePage() {
   return (
     <AppShell title="Bike Profile" description="Main bike details and quick stats.">
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-warm">
+        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
           <h2 className="font-display text-xl font-semibold">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
@@ -158,24 +158,24 @@ export default async function BikePage() {
             name={`${bike.year ? `${bike.year} ` : ""}${bike.brand ?? ""} ${bike.model ?? bike.name}`.trim()}
             subtitle={`${bike.drivetrain ?? "Drivetrain not set"} · ${bike.brakeType ?? "Brake type not set"}`}
           >
-            <div className="rounded-2xl bg-orange-50 p-4">
-              <p className="text-xs text-orange-700">Frame</p>
-              <p className="text-sm font-semibold text-orange-950">
+            <div className="rounded-lg bg-slate-50 p-4">
+              <p className="text-xs text-slate-600">Frame</p>
+              <p className="text-sm font-semibold text-slate-900">
                 {bike.frameMaterial ?? "Not set"}
                 {bike.frameSize ? ` · ${bike.frameSize}` : ""}
               </p>
             </div>
-            <div className="rounded-2xl bg-orange-50 p-4">
-              <p className="text-xs text-orange-700">Wheelset</p>
-              <p className="text-sm font-semibold text-orange-950">{bike.wheelset ?? "Not set"}</p>
+            <div className="rounded-lg bg-slate-50 p-4">
+              <p className="text-xs text-slate-600">Wheelset</p>
+              <p className="text-sm font-semibold text-slate-900">{bike.wheelset ?? "Not set"}</p>
             </div>
-            <div className="rounded-2xl bg-orange-50 p-4">
-              <p className="text-xs text-orange-700">Tires</p>
-              <p className="text-sm font-semibold text-orange-950">{bike.tireSetup ?? "Not set"}</p>
+            <div className="rounded-lg bg-slate-50 p-4">
+              <p className="text-xs text-slate-600">Tires</p>
+              <p className="text-sm font-semibold text-slate-900">{bike.tireSetup ?? "Not set"}</p>
             </div>
-            <div className="rounded-2xl bg-orange-50 p-4">
-              <p className="text-xs text-orange-700">Notes</p>
-              <p className="text-sm font-semibold text-orange-950">{bike.notes ?? "No notes yet"}</p>
+            <div className="rounded-lg bg-slate-50 p-4">
+              <p className="text-xs text-slate-600">Notes</p>
+              <p className="text-sm font-semibold text-slate-900">{bike.notes ?? "No notes yet"}</p>
             </div>
           </BikeSummaryCard>
 
@@ -206,8 +206,8 @@ export default async function BikePage() {
             />
           </section>
 
-          <section className="mt-6 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-            <h2 className="font-display text-xl font-semibold text-orange-950">Quick actions</h2>
+          <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="font-display text-xl font-semibold text-slate-900">Quick actions</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {[
                 { href: "/bike", label: "Edit Bike" },
@@ -218,7 +218,7 @@ export default async function BikePage() {
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+                  className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   {action.label}
                 </Link>

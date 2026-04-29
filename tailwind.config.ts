@@ -9,11 +9,11 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ["Trebuchet MS", "Avenir Next", "Segoe UI", "sans-serif"],
-        body: ["Avenir Next", "Segoe UI", "Helvetica Neue", "sans-serif"],
+        display: ["IBM Plex Sans", "Avenir Next", "Segoe UI", "sans-serif"],
+        body: ["IBM Plex Sans", "Avenir Next", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
-        warm: "0 10px 35px rgba(128, 68, 24, 0.14)",
+        warm: "0 2px 8px rgba(15, 23, 42, 0.06)",
       },
       colors: {
         brand: {

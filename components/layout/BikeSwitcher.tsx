@@ -32,7 +32,7 @@ export function BikeSwitcher({ bikes, selectedBikeId }: BikeSwitcherProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="bike-switcher" className="text-xs font-semibold text-orange-900/80">
+      <label htmlFor="bike-switcher" className="text-xs font-medium text-slate-600">
         Bike
       </label>
       <select
@@ -69,7 +69,7 @@ export function BikeSwitcher({ bikes, selectedBikeId }: BikeSwitcherProps) {
           }
         }}
         disabled={isSaving || bikes.length <= 1}
-        className="rounded-xl border border-orange-300 bg-white px-2 py-1 text-xs font-medium text-orange-950 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {bikes.map((bike) => (
           <option key={bike.id} value={bike.id}>

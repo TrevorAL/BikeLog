@@ -49,10 +49,10 @@ export function GarageHotspot({
         onMouseLeave={() => setActive(false)}
         onFocus={() => setActive(true)}
         onBlur={() => setActive(false)}
-        className="group relative block rounded-2xl border border-orange-200 bg-white/95 p-3 text-orange-900 shadow-lg transition hover:scale-[1.02] hover:border-orange-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+        className="group relative block rounded-lg border border-slate-200 bg-white/95 p-3 text-slate-700 shadow-lg transition hover:scale-[1.02] hover:border-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-600"
       >
         <AnimatePresence>{active ? <GarageObjectLabel title={title} description={description} /> : null}</AnimatePresence>
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-100 text-orange-700">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
           {icon}
         </div>
       </Link>

@@ -67,7 +67,7 @@ export default async function PressurePage() {
       description="Find and save pressure setups by surface and ride preference."
     >
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-warm">
+        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
           <h2 className="font-display text-xl font-semibold">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
@@ -79,7 +79,7 @@ export default async function PressurePage() {
       <PressureCalculator bikeId={bike?.id} disabled={!bike || !data.dbConnected} />
 
       <section className="mt-6">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Saved presets</h2>
+        <h2 className="font-display text-xl font-semibold text-slate-900">Saved presets</h2>
         <div className="mt-3">
           <PressurePresetManager
             presets={

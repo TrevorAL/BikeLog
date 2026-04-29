@@ -116,7 +116,7 @@ export default async function ComponentsPage() {
   return (
     <AppShell title="Components" description="Track wear and mileage for every major part.">
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-warm">
+        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
           <h2 className="font-display text-xl font-semibold">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}

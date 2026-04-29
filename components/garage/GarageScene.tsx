@@ -81,11 +81,11 @@ export function GarageScene() {
   );
 
   return (
-    <section className="rounded-[2rem] border border-orange-300 bg-gradient-to-b from-orange-100 to-amber-100 p-4 shadow-warm sm:p-6">
+    <section className="rounded-[2rem] border border-slate-300 bg-gradient-to-b from-orange-100 to-amber-100 p-4 shadow-sm sm:p-6">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold tracking-[0.25em] text-orange-700 uppercase">BikeLog Garage</p>
-          <h2 className="font-display text-2xl font-bold text-orange-950 sm:text-3xl">
+          <p className="text-xs font-semibold tracking-[0.25em] text-slate-600 uppercase">BikeLog Garage</p>
+          <h2 className="font-display text-2xl font-bold text-slate-900 sm:text-3xl">
             Open the door and pick your next task
           </h2>
         </div>
@@ -93,26 +93,26 @@ export function GarageScene() {
           <button
             type="button"
             onClick={() => setGarageOpen(true)}
-            className="rounded-full bg-orange-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-orange-700"
+            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Open Garage
           </button>
         ) : null}
       </div>
 
-      <div className="relative aspect-[16/10] overflow-hidden rounded-3xl border border-orange-200 bg-orange-200/70 shadow-inner">
+      <div className="relative aspect-[16/10] overflow-hidden rounded-xl border border-slate-200 bg-orange-200/70 shadow-inner">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-100 via-orange-100 to-orange-200" />
 
         <div className="absolute inset-x-0 bottom-0 h-[33%] bg-gradient-to-b from-orange-300 to-orange-400" />
-        <div className="absolute bottom-[25%] left-[10%] h-24 w-40 rounded-full border-4 border-orange-900/50" />
-        <div className="absolute bottom-[25%] left-[30%] h-24 w-40 rounded-full border-4 border-orange-900/50" />
+        <div className="absolute bottom-[25%] left-[10%] h-24 w-40 rounded-full border-4 border-slate-900/50" />
+        <div className="absolute bottom-[25%] left-[30%] h-24 w-40 rounded-full border-4 border-slate-900/50" />
         <div className="absolute bottom-[36%] left-[18%] h-2 w-40 rotate-12 rounded-full bg-orange-900/60" />
         <div className="absolute bottom-[36%] left-[31%] h-2 w-30 -rotate-12 rounded-full bg-orange-900/60" />
         <div className="absolute bottom-[49%] left-[27%] h-8 w-2 rounded-full bg-orange-900/60" />
 
-        <div className="absolute left-[69%] top-[56%] h-20 w-20 rounded-2xl border-4 border-orange-900/40 bg-orange-100/70" />
-        <div className="absolute left-[56%] top-[18%] h-16 w-12 rounded-lg border-2 border-orange-900/30 bg-white/80" />
-        <div className="absolute left-[74%] top-[32%] h-20 w-16 rounded-xl border-2 border-orange-900/35 bg-orange-600/30" />
+        <div className="absolute left-[69%] top-[56%] h-20 w-20 rounded-lg border-4 border-slate-900/40 bg-slate-100" />
+        <div className="absolute left-[56%] top-[18%] h-16 w-12 rounded-lg border-2 border-slate-900/30 bg-white/80" />
+        <div className="absolute left-[74%] top-[32%] h-20 w-16 rounded-xl border-2 border-slate-900/35 bg-slate-900/30" />
 
         {garageObjects.map((object, index) => (
           <GarageHotspot

@@ -75,7 +75,7 @@ function EditableMaintenanceEvent({
   if (isEditing) {
     return (
       <form
-        className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm"
+        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
         onSubmit={async (submitEvent) => {
           submitEvent.preventDefault();
           const formData = new FormData(submitEvent.currentTarget);
@@ -130,7 +130,7 @@ function EditableMaintenanceEvent({
         }}
       >
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-display text-lg font-semibold text-orange-950">Edit maintenance</h3>
+          <h3 className="font-display text-lg font-semibold text-slate-900">Edit maintenance</h3>
           <button
             type="button"
             disabled={isSubmitting}
@@ -138,29 +138,29 @@ function EditableMaintenanceEvent({
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-orange-300 px-3 py-1 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Date
             <input
               name="date"
               type="date"
               defaultValue={toDateInputValue(event.date)}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
               required
             />
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Event type
             <select
               name="type"
               defaultValue={event.type}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             >
               {MAINTENANCE_EVENT_TYPES.map((maintenanceType) => (
                 <option key={maintenanceType} value={maintenanceType}>
@@ -169,13 +169,13 @@ function EditableMaintenanceEvent({
               ))}
             </select>
           </label>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Component
             <select
               name="componentId"
               value={componentId}
               onChange={(changeEvent) => setComponentId(changeEvent.target.value)}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             >
               <option value="">General bike service</option>
               {components.map((component) => (
@@ -185,9 +185,9 @@ function EditableMaintenanceEvent({
               ))}
             </select>
           </label>
-          <fieldset className="text-sm text-orange-900">
+          <fieldset className="text-sm text-slate-700">
             <legend>Mileage source</legend>
-            <div className="mt-1 flex flex-wrap gap-4 rounded-xl border border-orange-200 px-3 py-2">
+            <div className="mt-1 flex flex-wrap gap-4 rounded-xl border border-slate-200 px-3 py-2">
               <label className="inline-flex items-center gap-2">
                 <input
                   type="radio"
@@ -210,7 +210,7 @@ function EditableMaintenanceEvent({
               </label>
             </div>
           </fieldset>
-          <label className="text-sm text-orange-900">
+          <label className="text-sm text-slate-700">
             Mileage at service
             <input
               name="mileageAtService"
@@ -220,10 +220,10 @@ function EditableMaintenanceEvent({
               value={manualMileageInput}
               onChange={(changeEvent) => setManualMileageInput(changeEvent.target.value)}
               disabled={mileageSource === "component"}
-              className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
             {mileageSource === "component" ? (
-              <p className="mt-1 text-xs text-orange-900/70">
+              <p className="mt-1 text-xs text-slate-600">
                 {selectedComponent
                   ? `Will use ${selectedComponent.currentMileage.toFixed(1)} mi from ${selectedComponent.name}.`
                   : "Select a component to use its current mileage."}
@@ -232,40 +232,40 @@ function EditableMaintenanceEvent({
           </label>
         </div>
 
-        <label className="mt-3 block text-sm text-orange-900">
+        <label className="mt-3 block text-sm text-slate-700">
           Notes
           <textarea
             name="notes"
             defaultValue={event.notes ?? ""}
-            className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
 
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
 
         {status.type === "error" && status.message ? (
-          <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
         ) : null}
       </form>
     );
   }
 
   return (
-    <article className="rounded-3xl border border-orange-200 bg-white p-4 shadow-warm">
-      <p className="text-xs uppercase tracking-wide text-orange-700">
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <p className="text-xs uppercase tracking-wide text-slate-600">
         {new Date(event.date).toLocaleDateString()}
       </p>
-      <h3 className="font-display mt-1 text-lg font-semibold text-orange-950">
+      <h3 className="font-display mt-1 text-lg font-semibold text-slate-900">
         {event.type.replaceAll("_", " ")}
       </h3>
-      <p className="text-sm text-orange-900/70">{event.componentName ?? "General bike service"}</p>
-      <div className="mt-3 space-y-1 text-sm text-orange-900/80">
+      <p className="text-sm text-slate-600">{event.componentName ?? "General bike service"}</p>
+      <div className="mt-3 space-y-1 text-sm text-slate-600">
         {typeof event.mileageAtService === "number" ? (
           <p>Mileage: {event.mileageAtService.toFixed(1)} mi</p>
         ) : null}
@@ -279,7 +279,7 @@ function EditableMaintenanceEvent({
             setIsEditing(true);
             setStatus({ type: "idle" });
           }}
-          className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Edit
         </button>
@@ -326,13 +326,13 @@ function EditableMaintenanceEvent({
       </div>
 
       {status.type === "success" && status.message ? (
-        <p className="mt-2 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {status.message}
         </p>
       ) : null}
 
       {status.type === "error" && status.message ? (
-        <p className="mt-2 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
       ) : null}
     </article>
   );
@@ -378,12 +378,12 @@ export function MaintenanceHistoryManager({
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-end gap-3">
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Filter by component
           <select
             value={componentFilter}
             onChange={(event) => setComponentFilter(event.target.value)}
-            className="mt-1 block min-w-56 rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 block min-w-56 rounded-xl border border-slate-200 px-3 py-2"
           >
             <option value="all">All maintenance events</option>
             <option value="general">General bike service</option>
@@ -394,7 +394,7 @@ export function MaintenanceHistoryManager({
             ))}
           </select>
         </label>
-        <p className="text-xs text-orange-900/70">
+        <p className="text-xs text-slate-600">
           Showing {filteredEvents.length} of {events.length}
         </p>
       </div>
@@ -411,7 +411,7 @@ export function MaintenanceHistoryManager({
           ))}
         </div>
       ) : (
-        <p className="rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-4 py-4 text-sm text-orange-900/75">
+        <p className="rounded-lg border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-600">
           No maintenance events match this component filter.
         </p>
       )}

@@ -12,14 +12,14 @@ type MetricCardProps = {
 
 export function MetricCard({ title, value, subtitle, icon, className }: MetricCardProps) {
   return (
-    <article className={cn("rounded-3xl border border-orange-200 bg-white p-4 shadow-warm", className)}>
+    <article className={cn("rounded-xl border border-slate-200 bg-white p-4 shadow-sm", className)}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-orange-900/70">{title}</p>
-          <p className="font-display mt-1 text-2xl font-bold text-orange-950">{value}</p>
-          {subtitle ? <p className="mt-1 text-xs text-orange-900/70">{subtitle}</p> : null}
+          <p className="text-sm font-medium text-slate-600">{title}</p>
+          <p className="font-display mt-1 text-2xl font-bold text-slate-900">{value}</p>
+          {subtitle ? <p className="mt-1 text-xs text-slate-600">{subtitle}</p> : null}
         </div>
-        {icon ? <div className="text-orange-600">{icon}</div> : null}
+        {icon ? <div className="text-slate-600">{icon}</div> : null}
       </div>
     </article>
   );

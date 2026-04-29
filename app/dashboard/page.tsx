@@ -143,13 +143,13 @@ export default async function DashboardPage() {
         <>
           <Link
             href="/rides"
-            className="rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700"
+            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
           >
             Log Ride
           </Link>
           <Link
             href="/maintenance"
-            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
           >
             Add Maintenance
           </Link>
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
       }
     >
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-3xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-warm">
+        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
           <h2 className="font-display text-xl font-semibold">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
@@ -173,7 +173,7 @@ export default async function DashboardPage() {
             value={`${bike ? data.maintenance.readiness.score : 0}%`}
             subtitle={bike ? `${data.maintenance.readiness.label} · View maintenance` : "No bike found"}
             icon={<ShieldCheck className="h-5 w-5" />}
-            className="h-full hover:bg-orange-50/70"
+            className="h-full hover:bg-slate-50"
           />
         </Link>
         <Link href="/pressure" className="block">
@@ -182,7 +182,7 @@ export default async function DashboardPage() {
             value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
             subtitle="Front/Rear PSI"
             icon={<Gauge className="h-5 w-5" />}
-            className="h-full hover:bg-orange-50/70"
+            className="h-full hover:bg-slate-50"
           />
         </Link>
         <Link href="/rides" className="block">
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
             value={`${bikeMileage.toFixed(1)} mi`}
             subtitle="From logged rides"
             icon={<Activity className="h-5 w-5" />}
-            className="h-full hover:bg-orange-50/70"
+            className="h-full hover:bg-slate-50"
           />
         </Link>
         <Link href="/maintenance" className="block">
@@ -200,18 +200,18 @@ export default async function DashboardPage() {
             value={`${dueNowCount}`}
             subtitle="Maintenance items"
             icon={<Wrench className="h-5 w-5" />}
-            className="h-full hover:bg-orange-50/70"
+            className="h-full hover:bg-slate-50"
           />
         </Link>
       </section>
 
       {bike ? (
-        <section className="mt-4 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+        <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-orange-950">Readiness reasoning</h2>
+            <h2 className="font-display text-xl font-semibold text-slate-900">Readiness reasoning</h2>
             <Link
               href="/maintenance"
-              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open maintenance
             </Link>
@@ -221,14 +221,14 @@ export default async function DashboardPage() {
               {data.maintenance.readiness.reasons.map((reason) => (
                 <li
                   key={reason}
-                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2 text-sm text-orange-900/80"
+                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
                 >
                   {reason}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
               No readiness deductions. You are fully ready to ride.
             </p>
           )}
@@ -249,12 +249,12 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-orange-950">Recent rides</h2>
+            <h2 className="font-display text-xl font-semibold text-slate-900">Recent rides</h2>
             <Link
               href="/rides"
-              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open rides
             </Link>
@@ -264,15 +264,15 @@ export default async function DashboardPage() {
               {recentRides.map((ride) => (
                 <li
                   key={ride.id}
-                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2"
+                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
                 >
-                  <p className="text-xs uppercase tracking-wide text-orange-700">
+                  <p className="text-xs uppercase tracking-wide text-slate-600">
                     {ride.date.toLocaleDateString()}
                   </p>
-                  <p className="text-sm font-semibold text-orange-950">
+                  <p className="text-sm font-semibold text-slate-900">
                     {ride.distanceMiles.toFixed(1)} mi · {ride.rideType.replaceAll("_", " ")}
                   </p>
-                  <p className="text-xs text-orange-900/75">
+                  <p className="text-xs text-slate-600">
                     {ride.durationMinutes ? `${ride.durationMinutes} min` : "Duration not set"}
                     {ride.roadCondition ? ` · ${ride.roadCondition}` : ""}
                     {ride.wasWet ? " · Wet ride" : ""}
@@ -281,20 +281,20 @@ export default async function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-3 rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+            <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600">
               No rides logged yet.
             </p>
           )}
         </section>
 
-        <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-orange-950">
+            <h2 className="font-display text-xl font-semibold text-slate-900">
               Component mileage highlights
             </h2>
             <Link
               href="/components"
-              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open components
             </Link>
@@ -304,30 +304,30 @@ export default async function DashboardPage() {
               {componentMileageHighlights.map((component) => (
                 <li
                   key={component.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-orange-950">{component.name}</p>
-                    <p className="text-xs text-orange-900/75">
+                    <p className="text-sm font-semibold text-slate-900">{component.name}</p>
+                    <p className="text-xs text-slate-600">
                       {component.type.replaceAll("_", " ")}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-orange-950">
+                  <p className="text-sm font-semibold text-slate-900">
                     {component.currentMileage.toFixed(1)} mi
                   </p>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-3 rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+            <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600">
               No active components found.
             </p>
           )}
         </section>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
-        <h2 className="font-display text-xl font-semibold text-orange-950">Quick actions</h2>
+      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="font-display text-xl font-semibold text-slate-900">Quick actions</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { href: "/rides", label: "Log Ride" },
@@ -339,13 +339,13 @@ export default async function DashboardPage() {
             <Link
               key={action.label}
               href={action.href}
-              className="rounded-full border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-semibold text-orange-900 hover:bg-orange-100"
+              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
             >
               {action.label}
             </Link>
           ))}
         </div>
-        <p className="mt-4 text-sm text-orange-900/75">
+        <p className="mt-4 text-sm text-slate-600">
           {bike
             ? `${bike.name} · ${bike.rides.length} rides currently logged.`
             : "No bike data found yet."}

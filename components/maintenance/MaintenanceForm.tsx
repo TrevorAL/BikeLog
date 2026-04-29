@@ -82,7 +82,7 @@ export function MaintenanceForm({
 
   return (
     <form
-      className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm"
+      className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -165,26 +165,26 @@ export function MaintenanceForm({
       }}
     >
       <div className="flex items-center justify-between gap-4">
-        <h3 className="font-display text-xl font-semibold text-orange-950">Log maintenance</h3>
+        <h3 className="font-display text-xl font-semibold text-slate-900">Log maintenance</h3>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Date
           <input
             name="date"
             type="date"
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             required
           />
         </label>
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Event type
           <select
             name="type"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             value={eventType}
             onChange={(event) =>
               setEventType(event.target.value as (typeof MAINTENANCE_EVENT_TYPES)[number])
@@ -197,11 +197,11 @@ export function MaintenanceForm({
             ))}
           </select>
         </label>
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Component
           <select
             name="componentId"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             value={selectedComponentId}
             onChange={(event) => setSelectedComponentId(event.target.value)}
           >
@@ -213,9 +213,9 @@ export function MaintenanceForm({
             ))}
           </select>
         </label>
-        <fieldset className="text-sm text-orange-900">
+        <fieldset className="text-sm text-slate-700">
           <legend>Mileage source</legend>
-          <div className="mt-1 flex flex-wrap gap-4 rounded-xl border border-orange-200 px-3 py-2">
+          <div className="mt-1 flex flex-wrap gap-4 rounded-xl border border-slate-200 px-3 py-2">
             <label className="inline-flex items-center gap-2">
               <input
                 type="radio"
@@ -238,7 +238,7 @@ export function MaintenanceForm({
             </label>
           </div>
         </fieldset>
-        <label className="text-sm text-orange-900">
+        <label className="text-sm text-slate-700">
           Mileage at service
           <input
             name="mileageAtService"
@@ -248,16 +248,16 @@ export function MaintenanceForm({
             value={mileageAtServiceInput}
             onChange={(event) => setMileageAtServiceInput(event.target.value)}
             placeholder={bikeCurrentMileage.toFixed(1)}
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             disabled={mileageSource === "component"}
           />
           {mileageSource === "manual" ? (
-            <p className="mt-1 text-xs text-orange-900/70">
+            <p className="mt-1 text-xs text-slate-600">
               Defaults to current bike mileage ({bikeCurrentMileage.toFixed(1)} mi). Enter
               manually, or switch source to use the selected component.
             </p>
           ) : (
-            <p className="mt-1 text-xs text-orange-900/70">
+            <p className="mt-1 text-xs text-slate-600">
               {selectedComponent
                 ? `Will use ${selectedComponent.currentMileage.toFixed(1)} mi from ${selectedComponent.name}.`
                 : "Select a component to use its current mileage."}
@@ -266,32 +266,32 @@ export function MaintenanceForm({
         </label>
       </div>
 
-      <label className="mt-3 block text-sm text-orange-900">
+      <label className="mt-3 block text-sm text-slate-700">
         Notes
         <textarea
           name="notes"
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+          className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
         />
       </label>
 
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Saving..." : "Save event"}
       </button>
 
       {status.type === "success" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
           {status.message}
         </p>
       ) : null}
 
       {status.type === "error" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
       ) : null}
     </form>
   );
