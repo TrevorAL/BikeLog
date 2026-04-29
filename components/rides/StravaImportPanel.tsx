@@ -41,6 +41,10 @@ type ConfirmResponse = {
   importedCount: number;
   skippedCount: number;
   errorCount: number;
+  imported?: Array<{
+    activityId: string;
+    rideId: string;
+  }>;
   sync: {
     status: StravaSyncSummary["status"];
     lastSyncAt: string;
@@ -115,6 +119,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
   const searchParams = useSearchParams();
 
   const [sync, setSync] = useState<StravaSyncSummary | null>(connection?.sync ?? null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [preview, setPreview] = useState<PreviewActivity[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
@@ -161,6 +166,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
       setPreview(result.activities);
       setSelectedIds(result.activities.filter((activity) => !activity.alreadyImported).map((activity) => activity.stravaActivityId));
       setSync(result.sync);
+      setIsPreviewOpen(true);
 
       if (result.activities.length === 0) {
         setPreviewStatus({
@@ -226,7 +232,40 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
         message: `Imported ${result.importedCount} ride(s). Skipped ${result.skippedCount}.`,
       });
 
-      setSelectedIds([]);
+      const importedMap = new Map(
+        (result.imported ?? []).map((entry) => [entry.activityId, entry.rideId]),
+      );
+      const nextPreview = preview
+        .map((activity) => {
+          const rideId = importedMap.get(activity.stravaActivityId);
+          if (!rideId) {
+            return activity;
+          }
+
+          return {
+            ...activity,
+            alreadyImported: true,
+            rideId,
+          };
+        })
+        .filter((activity) => !activity.alreadyImported);
+
+      setPreview(nextPreview);
+      setSelectedIds((current) =>
+        current.filter((activityId) => !importedMap.has(activityId)),
+      );
+
+      if (nextPreview.length === 0) {
+        setIsPreviewOpen(false);
+      }
+
+      if (selectableIds.length > 0 && result.importedCount >= selectableIds.length) {
+        setPreviewStatus({
+          type: "success",
+          message: "All previewed rides were imported. Load preview again for newer activities.",
+        });
+      }
+
       router.refresh();
     } catch (error) {
       setConfirmStatus({
@@ -236,6 +275,14 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
     } finally {
       setIsImporting(false);
     }
+  }
+
+  function closePreview() {
+    setIsPreviewOpen(false);
+    setPreview([]);
+    setSelectedIds([]);
+    setPreviewStatus({ type: "idle" });
+    setConfirmStatus({ type: "idle" });
   }
 
   if (disabled) {
@@ -283,16 +330,27 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            void loadPreview();
-          }}
-          disabled={isPreviewLoading || isImporting}
-          className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isPreviewLoading ? "Loading..." : "Preview recent rides"}
-        </button>
+        {isPreviewOpen ? (
+          <button
+            type="button"
+            onClick={closePreview}
+            disabled={isPreviewLoading || isImporting}
+            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Close preview
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              void loadPreview();
+            }}
+            disabled={isPreviewLoading || isImporting}
+            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isPreviewLoading ? "Loading..." : "Preview recent rides"}
+          </button>
+        )}
       </div>
 
       {flashStatus === "connected" ? (
@@ -344,7 +402,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
         <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{previewStatus.message}</p>
       ) : null}
 
-      {preview.length > 0 ? (
+      {isPreviewOpen && preview.length > 0 ? (
         <div className="mt-4">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-orange-900">
