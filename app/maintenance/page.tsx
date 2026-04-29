@@ -4,6 +4,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
+import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
@@ -15,12 +16,17 @@ type MaintenancePageProps = {
 
 async function getMaintenancePageData(userId: string) {
   try {
-    const bike = await prisma.bike.findFirst({
+    const bikeId = await getOwnedBikeId({ userId });
+    if (!bikeId) {
+      return {
+        bike: undefined,
+        dbConnected: true,
+      };
+    }
+
+    const bike = await prisma.bike.findUnique({
       where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "asc",
+        id: bikeId,
       },
       select: {
         id: true,

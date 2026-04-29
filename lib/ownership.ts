@@ -155,10 +155,11 @@ async function createSeededBikeForUser(userId: string) {
   });
 }
 
-export async function ensureUserBike(userId: string) {
-  const existing = await prisma.bike.findFirst({
+async function getFirstOwnedBike(userId: string) {
+  return prisma.bike.findFirst({
     where: {
       userId,
+      isArchived: false,
     },
     orderBy: {
       createdAt: "asc",
@@ -167,8 +168,97 @@ export async function ensureUserBike(userId: string) {
       id: true,
     },
   });
+}
+
+function isSelectedBikeFieldUnavailable(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return (
+    error.message.includes("selectedBikeId") ||
+    error.message.includes("selectedBike") ||
+    error.message.includes("Unknown field")
+  );
+}
+
+async function syncSelectedBikeIdForUser(input: {
+  userId: string;
+  fallbackBikeId?: string | null;
+}) {
+  let user: {
+    selectedBikeId: string | null;
+    selectedBike: { id: string; userId: string | null; isArchived: boolean } | null;
+  } | null = null;
+
+  try {
+    user = await prisma.user.findUnique({
+      where: {
+        id: input.userId,
+      },
+      select: {
+        selectedBikeId: true,
+        selectedBike: {
+          select: {
+            id: true,
+            userId: true,
+            isArchived: true,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    if (isSelectedBikeFieldUnavailable(error)) {
+      return input.fallbackBikeId ?? null;
+    }
+
+    throw error;
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (
+    user.selectedBike &&
+    user.selectedBike.userId === input.userId &&
+    !user.selectedBike.isArchived
+  ) {
+    return user.selectedBike.id;
+  }
+
+  const nextSelectedBikeId = input.fallbackBikeId ?? null;
+
+  if (user.selectedBikeId !== nextSelectedBikeId) {
+    try {
+      await prisma.user.update({
+        where: {
+          id: input.userId,
+        },
+        data: {
+          selectedBikeId: nextSelectedBikeId,
+        },
+      });
+    } catch (error) {
+      if (isSelectedBikeFieldUnavailable(error)) {
+        return nextSelectedBikeId;
+      }
+
+      throw error;
+    }
+  }
+
+  return nextSelectedBikeId;
+}
+
+export async function ensureUserBike(userId: string) {
+  const existing = await getFirstOwnedBike(userId);
 
   if (existing) {
+    await syncSelectedBikeIdForUser({
+      userId,
+      fallbackBikeId: existing.id,
+    });
     return existing;
   }
 
@@ -196,59 +286,110 @@ export async function ensureUserBike(userId: string) {
     });
 
     if (claimedUpdate.count === 1) {
+      await syncSelectedBikeIdForUser({
+        userId,
+        fallbackBikeId: claimed.id,
+      });
       return {
         id: claimed.id,
       };
     }
 
-    const maybeOwnedNow = await prisma.bike.findFirst({
-      where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      select: {
-        id: true,
-      },
-    });
+    const maybeOwnedNow = await getFirstOwnedBike(userId);
 
     if (maybeOwnedNow) {
+      await syncSelectedBikeIdForUser({
+        userId,
+        fallbackBikeId: maybeOwnedNow.id,
+      });
       return maybeOwnedNow;
     }
   }
 
-  return createSeededBikeForUser(userId);
+  const createdBike = await createSeededBikeForUser(userId);
+  await syncSelectedBikeIdForUser({
+    userId,
+    fallbackBikeId: createdBike.id,
+  });
+  return createdBike;
 }
 
-export async function getOwnedBikeId(input: { userId: string; bikeId?: string }) {
-  if (input.bikeId) {
-    const bike = await prisma.bike.findFirst({
-      where: {
-        id: input.bikeId,
-        userId: input.userId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    return bike?.id ?? null;
-  }
-
-  const firstBike = await prisma.bike.findFirst({
+export async function getOwnedBikes(input: {
+  userId: string;
+  includeArchived?: boolean;
+}) {
+  return prisma.bike.findMany({
     where: {
       userId: input.userId,
+      isArchived: input.includeArchived ? undefined : false,
     },
     orderBy: {
       createdAt: "asc",
     },
     select: {
       id: true,
+      name: true,
+      brand: true,
+      model: true,
+      year: true,
+      isArchived: true,
+    },
+  });
+}
+
+export async function setSelectedBikeIdForUser(input: { userId: string; bikeId: string }) {
+  const bike = await prisma.bike.findFirst({
+    where: {
+      id: input.bikeId,
+      userId: input.userId,
+      isArchived: false,
+    },
+    select: {
+      id: true,
     },
   });
 
-  return firstBike?.id ?? null;
+  if (!bike) {
+    return null;
+  }
+
+  try {
+    await prisma.user.update({
+      where: {
+        id: input.userId,
+      },
+      data: {
+        selectedBikeId: bike.id,
+      },
+    });
+  } catch (error) {
+    if (!isSelectedBikeFieldUnavailable(error)) {
+      throw error;
+    }
+  }
+
+  return bike.id;
+}
+
+export async function getSelectedBikeIdForUser(input: { userId: string }) {
+  const firstBike = await getFirstOwnedBike(input.userId);
+  return syncSelectedBikeIdForUser({
+    userId: input.userId,
+    fallbackBikeId: firstBike?.id ?? null,
+  });
+}
+
+export async function getOwnedBikeId(input: { userId: string; bikeId?: string }) {
+  if (input.bikeId) {
+    return setSelectedBikeIdForUser({
+      userId: input.userId,
+      bikeId: input.bikeId,
+    });
+  }
+
+  return getSelectedBikeIdForUser({
+    userId: input.userId,
+  });
 }
 
 export async function isRideOwnedByUser(input: { rideId: string; userId: string }) {

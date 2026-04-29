@@ -5,16 +5,24 @@ import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
 async function getFitPageData(userId: string) {
   try {
-    const bike = await prisma.bike.findFirst({
+    const bikeId = await getOwnedBikeId({ userId });
+    if (!bikeId) {
+      return {
+        bike: undefined,
+        dbConnected: true,
+      };
+    }
+
+    const bike = await prisma.bike.findUnique({
       where: {
-        userId,
+        id: bikeId,
       },
-      orderBy: { createdAt: "asc" },
       select: {
         id: true,
         fitMeasurements: {

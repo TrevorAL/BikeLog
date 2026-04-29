@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { BikeManager } from "@/components/bike/BikeManager";
 import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -7,17 +8,24 @@ import { MetricCard } from "@/components/ui/MetricCard";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
+import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
 async function getBikePageData(userId: string) {
   try {
-    const bike = await prisma.bike.findFirst({
+    const bikeId = await getOwnedBikeId({ userId });
+    if (!bikeId) {
+      return {
+        bike: undefined,
+        bikes: [],
+        dbConnected: true,
+      };
+    }
+
+    const bike = await prisma.bike.findUnique({
       where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "asc",
+        id: bikeId,
       },
       select: {
         id: true,
@@ -70,9 +78,35 @@ async function getBikePageData(userId: string) {
       },
     });
 
+    const bikes = await prisma.bike.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        brand: true,
+        model: true,
+        year: true,
+        type: true,
+        frameSize: true,
+        frameMaterial: true,
+        drivetrain: true,
+        brakeType: true,
+        wheelset: true,
+        tireSetup: true,
+        notes: true,
+        isArchived: true,
+      },
+    });
+
     if (!bike) {
       return {
         bike: undefined,
+        bikes,
         dbConnected: true,
       };
     }
@@ -85,12 +119,14 @@ async function getBikePageData(userId: string) {
 
     return {
       bike,
+      bikes,
       maintenance,
       dbConnected: true,
     };
   } catch {
     return {
       bike: undefined,
+      bikes: [],
       dbConnected: false,
     };
   }
@@ -192,10 +228,14 @@ export default async function BikePage() {
         </>
       ) : (
         <EmptyState
-          title="No bike profile found"
-          description="Seed the default bike first, then this page will show live profile and summary data."
+          title="No active bike selected"
+          description="Create a new bike or restore an archived bike below."
         />
       )}
+
+      <section className="mt-6">
+        <BikeManager bikes={data.bikes} selectedBikeId={bike?.id} />
+      </section>
     </AppShell>
   );
 }

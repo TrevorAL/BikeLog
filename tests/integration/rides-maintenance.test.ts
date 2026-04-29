@@ -3,6 +3,8 @@ import test from "node:test";
 
 import { ComponentStatus, ComponentType, RideType } from "@prisma/client";
 
+import { POST as selectBike } from "../../app/api/bikes/select/route";
+import { PATCH as updateBike } from "../../app/api/bikes/[bikeId]/route";
 import { POST as recalculateMileage } from "../../app/api/components/recalculate-mileage/route";
 import { POST as createMaintenanceEvent } from "../../app/api/maintenance-events/route";
 import { POST as createRide } from "../../app/api/rides/route";
@@ -199,6 +201,168 @@ test("POST /api/rides increments mileage-based components only", async (t) => {
   assert.ok(di2After);
   assert.equal(chainAfter.currentMileage, 127.5);
   assert.equal(di2After.currentMileage, 50);
+});
+
+test("POST /api/bikes/select updates selected bike used by ride creation fallback", async (t) => {
+  const scope = `${Date.now()}-bike-select`;
+  const bike = await createTestBike(scope);
+
+  const secondBike = await prisma.bike.create({
+    data: {
+      userId: bike.userId,
+      name: `Integration Bike ${scope} second`,
+      brand: "Test",
+      model: "Second",
+      year: 2026,
+      type: "Road",
+      frameMaterial: "Carbon",
+      drivetrain: "Shimano 2x12",
+      brakeType: "Hydraulic disc",
+      wheelset: "Test wheelset",
+      tireSetup: "28c",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  t.after(async () => {
+    await cleanupBike(secondBike.id, bike.userId);
+    await cleanupBike(bike.bikeId, bike.userId);
+  });
+
+  const selectResponse = await selectBike(
+    new Request("http://localhost/api/bikes/select", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        bikeId: secondBike.id,
+      }),
+    }),
+  );
+
+  assert.ok(selectResponse);
+  assert.equal(selectResponse.status, 200);
+
+  const fallbackRideResponse = await createRide(
+    new Request("http://localhost/api/rides", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        date: "2026-04-28",
+        distanceMiles: 10,
+        durationMinutes: 30,
+        rideType: RideType.OUTDOOR,
+      }),
+    }),
+  );
+
+  assert.ok(fallbackRideResponse);
+  assert.equal(fallbackRideResponse.status, 200);
+
+  const ridePayload = (await fallbackRideResponse.json()) as {
+    ride?: { bikeId: string };
+    error?: string;
+  };
+  assert.ok(ridePayload.ride, ridePayload.error ?? "Ride was not created.");
+  assert.equal(ridePayload.ride.bikeId, secondBike.id);
+});
+
+test("Archiving selected bike falls back to first active bike", async (t) => {
+  const scope = `${Date.now()}-archive-fallback`;
+  const bike = await createTestBike(scope);
+
+  const secondBike = await prisma.bike.create({
+    data: {
+      userId: bike.userId,
+      name: `Integration Bike ${scope} second`,
+      brand: "Test",
+      model: "Second",
+      year: 2026,
+      type: "Road",
+      frameMaterial: "Carbon",
+      drivetrain: "Shimano 2x12",
+      brakeType: "Hydraulic disc",
+      wheelset: "Test wheelset",
+      tireSetup: "28c",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  t.after(async () => {
+    await cleanupBike(secondBike.id, bike.userId);
+    await cleanupBike(bike.bikeId, bike.userId);
+  });
+
+  const selectResponse = await selectBike(
+    new Request("http://localhost/api/bikes/select", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        bikeId: secondBike.id,
+      }),
+    }),
+  );
+  assert.ok(selectResponse);
+  assert.equal(selectResponse.status, 200);
+
+  const archiveResponse = await updateBike(
+    new Request(`http://localhost/api/bikes/${secondBike.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        isArchived: true,
+      }),
+    }),
+    {
+      params: Promise.resolve({
+        bikeId: secondBike.id,
+      }),
+    },
+  );
+  assert.ok(archiveResponse);
+  assert.equal(archiveResponse.status, 200);
+
+  const fallbackRideResponse = await createRide(
+    new Request("http://localhost/api/rides", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        date: "2026-04-28",
+        distanceMiles: 8,
+        durationMinutes: 24,
+        rideType: RideType.OUTDOOR,
+      }),
+    }),
+  );
+  assert.ok(fallbackRideResponse);
+
+  assert.equal(fallbackRideResponse.status, 200);
+
+  const ridePayload = (await fallbackRideResponse.json()) as {
+    ride?: { bikeId: string };
+    error?: string;
+  };
+
+  assert.ok(ridePayload.ride, ridePayload.error ?? "Ride was not created.");
+  assert.equal(ridePayload.ride.bikeId, bike.bikeId);
 });
 
 test("Mark-complete payload logs maintenance event with component mileage", async (t) => {

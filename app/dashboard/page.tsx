@@ -7,18 +7,24 @@ import { MetricCard } from "@/components/ui/MetricCard";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
+import { getOwnedBikeId } from "@/lib/ownership";
 import { calculatePressure } from "@/lib/pressure";
 
 export const dynamic = "force-dynamic";
 
 async function getDashboardData(userId: string) {
   try {
-    const bike = await prisma.bike.findFirst({
+    const bikeId = await getOwnedBikeId({ userId });
+    if (!bikeId) {
+      return {
+        bike: undefined,
+        dbConnected: true,
+      };
+    }
+
+    const bike = await prisma.bike.findUnique({
       where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: "asc",
+        id: bikeId,
       },
       select: {
         id: true,

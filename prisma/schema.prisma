@@ -9,33 +9,37 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String?   @unique
-  name          String?
-  emailVerified DateTime?
-  image         String?
-  bikes         Bike[]
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
+  id             String    @id @default(cuid())
+  email          String?   @unique
+  name           String?
+  emailVerified  DateTime?
+  image          String?
+  selectedBikeId String?
+  bikes          Bike[]    @relation("UserOwnedBikes")
+  selectedBike   Bike?     @relation("UserSelectedBike", fields: [selectedBikeId], references: [id], onDelete: SetNull)
+  accounts       Account[]
+  sessions       Session[]
+  createdAt      DateTime  @default(now())
 }
 
 model Bike {
-  id            String   @id @default(cuid())
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
-  name          String
-  brand         String?
-  model         String?
-  year          Int?
-  type          String?
-  frameSize     String?
-  frameMaterial String?
-  drivetrain    String?
-  brakeType     String?
-  wheelset      String?
-  tireSetup     String?
-  notes         String?
+  id              String   @id @default(cuid())
+  userId          String?
+  user            User?    @relation("UserOwnedBikes", fields: [userId], references: [id])
+  selectedByUsers User[]   @relation("UserSelectedBike")
+  name            String
+  brand           String?
+  model           String?
+  year            Int?
+  type            String?
+  frameSize       String?
+  frameMaterial   String?
+  drivetrain      String?
+  brakeType       String?
+  wheelset        String?
+  tireSetup       String?
+  notes           String?
+  isArchived      Boolean  @default(false)
 
   components        Component[]
   rides             Ride[]

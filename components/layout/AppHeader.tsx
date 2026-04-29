@@ -4,18 +4,36 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+
+type AppHeaderBike = {
+  id: string;
+  name: string;
+  brand: string | null;
+  model: string | null;
+  year: number | null;
+};
 
 type AppHeaderProps = {
   title: string;
   description?: string;
   actions?: ReactNode;
   userEmail?: string;
+  bikes?: AppHeaderBike[];
+  selectedBikeId?: string;
 };
 
-export function AppHeader({ title, description, actions, userEmail }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  description,
+  actions,
+  userEmail,
+  bikes = [],
+  selectedBikeId,
+}: AppHeaderProps) {
   const pathname = usePathname();
 
   return (
@@ -32,6 +50,9 @@ export function AppHeader({ title, description, actions, userEmail }: AppHeaderP
             ) : null}
           </div>
           <div className="hidden items-center gap-2 md:flex">
+            {userEmail ? (
+              <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
+            ) : null}
             {userEmail ? (
               <p className="max-w-56 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
             ) : null}
@@ -63,8 +84,13 @@ export function AppHeader({ title, description, actions, userEmail }: AppHeaderP
 
         {userEmail ? (
           <div className="mt-3 flex items-center justify-between gap-2 md:hidden">
-            <p className="max-w-56 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
-            <SignOutButton />
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="max-w-40 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
+              <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
+            </div>
+            <div>
+              <SignOutButton />
+            </div>
           </div>
         ) : null}
       </div>
