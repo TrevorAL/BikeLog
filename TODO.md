@@ -10,11 +10,11 @@ Last updated: 2026-04-28
 
 ## P0 - Core Product Milestones
 
-Maybe allow for the overdue commonents to be clicked and and bring to maintnance page or something similar
+- Maybe allow for the overdue components to be clicked and and bring to maintnance page or something similar
 
-Have the shifting charge and breaklights charge update on Time Ridden rather than days or miles
+- Have the shifting charge and breaklights charge update on time of bike ridden Ridden rather than days or miles
 
-allow for the ready to ride to be clicked on and it takes you to maitinance : Ready to Ride 70% Good, minor checks
+- allow for the ready to ride to be clicked on and it takes you to maitinance : Ready to Ride 70% Good, minor checks
 
 or even just the reasoning because right like this it says 90 but nothing looks wrong:
 
