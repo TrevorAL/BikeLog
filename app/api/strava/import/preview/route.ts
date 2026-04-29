@@ -5,7 +5,9 @@ import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
 import {
   fetchStravaActivityPreview,
+  fetchStravaBikeOptions,
   getFreshStravaConnectionForUser,
+  resolveStravaBikeOptions,
 } from "@/lib/strava";
 
 function optionalString(value: unknown) {
@@ -26,6 +28,26 @@ function parseLimit(value: unknown) {
   return Math.max(1, Math.min(Math.trunc(parsed), 50));
 }
 
+const STRAVA_BIKE_FILTER_ALL = "all";
+const STRAVA_BIKE_FILTER_NONE = "none";
+
+function applyStravaBikeFilter<TActivity extends { gearId: string | null }>(input: {
+  activities: TActivity[];
+  stravaBikeFilter: string;
+}) : TActivity[] {
+  if (input.stravaBikeFilter === STRAVA_BIKE_FILTER_ALL) {
+    return input.activities;
+  }
+
+  if (input.stravaBikeFilter === STRAVA_BIKE_FILTER_NONE) {
+    return input.activities.filter((activity) => !activity.gearId);
+  }
+
+  return input.activities.filter(
+    (activity) => activity.gearId === input.stravaBikeFilter,
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const auth = await requireApiUser(request);
@@ -35,6 +57,8 @@ export async function POST(request: Request) {
 
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const bikeIdInput = optionalString(body.bikeId);
+    const stravaBikeFilterInput =
+      optionalString(body.stravaBikeFilter) ?? STRAVA_BIKE_FILTER_ALL;
     const bikeId = await getOwnedBikeId({
       userId: auth.user.id,
       bikeId: bikeIdInput,
@@ -59,9 +83,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const preview = await fetchStravaActivityPreview({
+    const [previewAll, stravaBikes] = await Promise.all([
+      fetchStravaActivityPreview({
+        userId: auth.user.id,
+        limit: parseLimit(body.limit),
+      }),
+      fetchStravaBikeOptions({
+        userId: auth.user.id,
+      }),
+    ]);
+
+    const preview = applyStravaBikeFilter({
+      activities: previewAll,
+      stravaBikeFilter: stravaBikeFilterInput,
+    });
+    const bikeOptions = await resolveStravaBikeOptions({
       userId: auth.user.id,
-      limit: parseLimit(body.limit),
+      baseOptions: stravaBikes,
+      previewActivities: previewAll,
     });
 
     const previewIds = preview.map((activity) => activity.stravaActivityId);
@@ -98,6 +137,8 @@ export async function POST(request: Request) {
         alreadyImported: importedByActivityId.has(activity.stravaActivityId),
         rideId: importedByActivityId.get(activity.stravaActivityId) ?? null,
       })),
+      bikeOptions,
+      selectedBikeFilter: stravaBikeFilterInput,
       sync: {
         status: connection.lastSyncStatus,
         lastSyncAt: connection.lastSyncAt?.toISOString() ?? null,

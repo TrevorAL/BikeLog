@@ -9,13 +9,20 @@ import { prisma } from "@/lib/db";
 const STRAVA_OAUTH_BASE_URL = "https://www.strava.com/oauth";
 const STRAVA_API_BASE_URL = "https://www.strava.com/api/v3";
 
-const DEFAULT_STRAVA_SCOPES = "read,activity:read";
+const DEFAULT_STRAVA_SCOPES = "read,activity:read,profile:read_all";
 
 type StravaAthlete = {
   id: number;
   username?: string | null;
   firstname?: string | null;
   lastname?: string | null;
+  bikes?: Array<{
+    id?: string | null;
+    name?: string | null;
+    nickname?: string | null;
+    brand_name?: string | null;
+    model_name?: string | null;
+  }> | null;
 };
 
 type StravaTokenResponse = {
@@ -32,6 +39,11 @@ type StravaTokenResponse = {
 type StravaActivity = {
   id: number;
   name: string;
+  gear_id?: string | null;
+  gear?: {
+    id?: string | null;
+    name?: string | null;
+  } | null;
   type?: string | null;
   sport_type?: string | null;
   start_date?: string | null;
@@ -43,15 +55,64 @@ type StravaActivity = {
   description?: string | null;
 };
 
+type StravaDetailedGear = {
+  id?: string | null;
+  name?: string | null;
+  brand_name?: string | null;
+  model_name?: string | null;
+};
+
 export type StravaPreviewActivity = {
   stravaActivityId: string;
   name: string;
   type: string;
+  gearId: string | null;
+  gearName: string | null;
   startedAt: string;
   distanceMiles: number;
   durationMinutes: number | null;
   suggestedRideType: RideType;
 };
+
+export type StravaBikeOption = {
+  id: string;
+  label: string;
+};
+
+function formatStravaBikeLabel(input: {
+  bikeId: string;
+  name?: string | null;
+  nickname?: string | null;
+  brandName?: string | null;
+  modelName?: string | null;
+}) {
+  const explicitName =
+    typeof input.name === "string" && input.name.trim().length > 0
+      ? input.name.trim()
+      : null;
+  const nickname =
+    typeof input.nickname === "string" && input.nickname.trim().length > 0
+      ? input.nickname.trim()
+      : null;
+  const brand =
+    typeof input.brandName === "string" && input.brandName.trim().length > 0
+      ? input.brandName.trim()
+      : null;
+  const model =
+    typeof input.modelName === "string" && input.modelName.trim().length > 0
+      ? input.modelName.trim()
+      : null;
+
+  const brandAndModel = [brand, model]
+    .filter((part): part is string => Boolean(part))
+    .join(" ");
+
+  return (
+    explicitName ??
+    nickname ??
+    (brandAndModel.length > 0 ? brandAndModel : `Bike ${input.bikeId}`)
+  );
+}
 
 function getRequiredEnv(name: string) {
   const value = process.env[name]?.trim();
@@ -274,6 +335,11 @@ function toPreviewActivity(activity: StravaActivity): StravaPreviewActivity | nu
     stravaActivityId: String(activity.id),
     name: activity.name || "Strava ride",
     type: normalizeStravaActivityType(activity),
+    gearId: activity.gear_id ?? null,
+    gearName:
+      typeof activity.gear?.name === "string" && activity.gear.name.trim().length > 0
+        ? activity.gear.name.trim()
+        : null,
     startedAt: startedAt.toISOString(),
     distanceMiles,
     durationMinutes,
@@ -357,6 +423,128 @@ export async function fetchStravaActivityPreview(input: {
   }
 
   return previewActivities;
+}
+
+export async function fetchStravaBikeOptions(input: { userId: string }) {
+  const athlete = await fetchStravaApi<StravaAthlete>({
+    userId: input.userId,
+    path: "/athlete",
+  });
+
+  const bikes = athlete.bikes ?? [];
+  const options: StravaBikeOption[] = [];
+  const seenBikeIds = new Set<string>();
+
+  for (const bike of bikes) {
+    const bikeId = typeof bike.id === "string" ? bike.id.trim() : "";
+    if (!bikeId) {
+      continue;
+    }
+    if (seenBikeIds.has(bikeId)) {
+      continue;
+    }
+    seenBikeIds.add(bikeId);
+
+    options.push({
+      id: bikeId,
+      label: formatStravaBikeLabel({
+        bikeId,
+        name: bike.name,
+        nickname: bike.nickname,
+        brandName: bike.brand_name,
+        modelName: bike.model_name,
+      }),
+    });
+  }
+
+  return options;
+}
+
+export async function fetchStravaGearOptionById(input: {
+  userId: string;
+  gearId: string;
+}) {
+  const gear = await fetchStravaApi<StravaDetailedGear>({
+    userId: input.userId,
+    path: `/gear/${encodeURIComponent(input.gearId)}`,
+  });
+
+  const normalizedId =
+    typeof gear.id === "string" && gear.id.trim().length > 0
+      ? gear.id.trim()
+      : input.gearId;
+
+  return {
+    id: normalizedId,
+    label: formatStravaBikeLabel({
+      bikeId: normalizedId,
+      name: gear.name,
+      brandName: gear.brand_name,
+      modelName: gear.model_name,
+    }),
+  } satisfies StravaBikeOption;
+}
+
+export async function resolveStravaBikeOptions(input: {
+  userId: string;
+  baseOptions: StravaBikeOption[];
+  previewActivities: Array<{ gearId: string | null; gearName?: string | null }>;
+}) {
+  const optionMap = new Map<string, string>();
+
+  for (const option of input.baseOptions) {
+    optionMap.set(option.id, option.label);
+  }
+
+  const unresolvedGearIds = new Set<string>();
+  for (const activity of input.previewActivities) {
+    if (!activity.gearId || optionMap.has(activity.gearId)) {
+      continue;
+    }
+
+    unresolvedGearIds.add(activity.gearId);
+  }
+
+  if (unresolvedGearIds.size > 0) {
+    const lookedUpOptions = await Promise.all(
+      Array.from(unresolvedGearIds).map(async (gearId) => {
+        try {
+          return await fetchStravaGearOptionById({
+            userId: input.userId,
+            gearId,
+          });
+        } catch {
+          return null;
+        }
+      }),
+    );
+
+    for (const option of lookedUpOptions) {
+      if (!option) {
+        continue;
+      }
+
+      optionMap.set(option.id, option.label);
+    }
+  }
+
+  for (const activity of input.previewActivities) {
+    if (!activity.gearId || optionMap.has(activity.gearId)) {
+      continue;
+    }
+
+    const fallbackName =
+      typeof activity.gearName === "string" && activity.gearName.trim().length > 0
+        ? activity.gearName.trim()
+        : `Bike ${activity.gearId}`;
+
+    optionMap.set(activity.gearId, fallbackName);
+  }
+
+  return Array.from(optionMap.entries()).map(([id, label]) => ({
+    id,
+    label,
+  }));
 }
 
 export async function fetchStravaActivityById(input: {

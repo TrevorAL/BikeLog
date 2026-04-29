@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -23,6 +23,8 @@ type PreviewActivity = {
   stravaActivityId: string;
   name: string;
   type: string;
+  gearId: string | null;
+  gearName: string | null;
   startedAt: string;
   distanceMiles: number;
   durationMinutes: number | null;
@@ -31,8 +33,15 @@ type PreviewActivity = {
   rideId: string | null;
 };
 
+type StravaBikeOption = {
+  id: string;
+  label: string;
+};
+
 type PreviewResponse = {
   activities: PreviewActivity[];
+  bikeOptions?: StravaBikeOption[];
+  selectedBikeFilter?: string;
   sync: StravaSyncSummary;
   error?: string;
 };
@@ -54,6 +63,11 @@ type ConfirmResponse = {
   error?: string;
 };
 
+type BikeOptionsResponse = {
+  bikeOptions?: StravaBikeOption[];
+  error?: string;
+};
+
 type StravaImportPanelProps = {
   bikeId?: string;
   disabled?: boolean;
@@ -64,6 +78,9 @@ type StatusBanner = {
   type: "idle" | "success" | "error";
   message?: string;
 };
+
+const STRAVA_BIKE_FILTER_ALL = "all";
+const STRAVA_BIKE_FILTER_NONE = "none";
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) {
@@ -121,6 +138,8 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
   const [sync, setSync] = useState<StravaSyncSummary | null>(connection?.sync ?? null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [preview, setPreview] = useState<PreviewActivity[]>([]);
+  const [stravaBikeOptions, setStravaBikeOptions] = useState<StravaBikeOption[]>([]);
+  const [stravaBikeFilter, setStravaBikeFilter] = useState(STRAVA_BIKE_FILTER_ALL);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -134,8 +153,75 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
     () => preview.filter((activity) => !activity.alreadyImported).map((activity) => activity.stravaActivityId),
     [preview],
   );
+  const resolvedStravaBikeOptions = useMemo(() => {
+    const map = new Map<string, string>();
+
+    for (const option of stravaBikeOptions) {
+      map.set(option.id, option.label);
+    }
+
+    for (const activity of preview) {
+      if (!activity.gearId || map.has(activity.gearId)) {
+        continue;
+      }
+
+      const fallbackName =
+        typeof activity.gearName === "string" && activity.gearName.trim().length > 0
+          ? activity.gearName.trim()
+          : `Bike ${activity.gearId}`;
+
+      map.set(activity.gearId, fallbackName);
+    }
+
+    if (
+      stravaBikeFilter !== STRAVA_BIKE_FILTER_ALL &&
+      stravaBikeFilter !== STRAVA_BIKE_FILTER_NONE &&
+      !map.has(stravaBikeFilter)
+    ) {
+      map.set(stravaBikeFilter, `Bike ${stravaBikeFilter}`);
+    }
+
+    return Array.from(map.entries()).map(([id, label]) => ({ id, label }));
+  }, [preview, stravaBikeFilter, stravaBikeOptions]);
+  const stravaBikeLabelById = useMemo(
+    () => new Map(resolvedStravaBikeOptions.map((option) => [option.id, option.label])),
+    [resolvedStravaBikeOptions],
+  );
 
   const hasConnection = Boolean(connection);
+
+  useEffect(() => {
+    if (!hasConnection) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function loadBikeOptions() {
+      try {
+        const response = await fetch("/api/strava/bikes", {
+          method: "GET",
+        });
+
+        const result = (await response.json()) as BikeOptionsResponse;
+        if (!response.ok) {
+          return;
+        }
+
+        if (!isCancelled) {
+          setStravaBikeOptions(result.bikeOptions ?? []);
+        }
+      } catch {
+        // Non-blocking: bike options can still load during preview.
+      }
+    }
+
+    void loadBikeOptions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [hasConnection]);
 
   async function loadPreview() {
     if (disabled || !hasConnection) {
@@ -155,6 +241,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
         body: JSON.stringify({
           bikeId,
           limit: 20,
+          stravaBikeFilter,
         }),
       });
 
@@ -165,6 +252,10 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
 
       setPreview(result.activities);
       setSelectedIds(result.activities.filter((activity) => !activity.alreadyImported).map((activity) => activity.stravaActivityId));
+      setStravaBikeOptions(result.bikeOptions ?? []);
+      if (typeof result.selectedBikeFilter === "string" && result.selectedBikeFilter.length > 0) {
+        setStravaBikeFilter(result.selectedBikeFilter);
+      }
       setSync(result.sync);
       setIsPreviewOpen(true);
 
@@ -285,6 +376,14 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
     setConfirmStatus({ type: "idle" });
   }
 
+  function getActivityBikeLabel(gearId: string | null) {
+    if (!gearId) {
+      return "No bike set";
+    }
+
+    return stravaBikeLabelById.get(gearId) ?? `Bike ${gearId}`;
+  }
+
   if (disabled) {
     return (
       <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
@@ -330,27 +429,50 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
           </p>
         </div>
 
-        {isPreviewOpen ? (
-          <button
-            type="button"
-            onClick={closePreview}
-            disabled={isPreviewLoading || isImporting}
-            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Close preview
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              void loadPreview();
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="strava-bike-filter">
+            Strava bike filter
+          </label>
+          <select
+            id="strava-bike-filter"
+            value={stravaBikeFilter}
+            onChange={(event) => {
+              setStravaBikeFilter(event.target.value);
             }}
             disabled={isPreviewLoading || isImporting}
-            className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-full border border-orange-300 bg-white px-3 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPreviewLoading ? "Loading..." : "Preview recent rides"}
-          </button>
-        )}
+            <option value={STRAVA_BIKE_FILTER_ALL}>All bikes</option>
+            <option value={STRAVA_BIKE_FILTER_NONE}>No bike set</option>
+            {resolvedStravaBikeOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          {isPreviewOpen ? (
+            <button
+              type="button"
+              onClick={closePreview}
+              disabled={isPreviewLoading || isImporting}
+              className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Close preview
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                void loadPreview();
+              }}
+              disabled={isPreviewLoading || isImporting}
+              className="rounded-full border border-orange-300 px-4 py-2 text-sm font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isPreviewLoading ? "Loading..." : "Preview recent rides"}
+            </button>
+          )}
+        </div>
       </div>
 
       {flashStatus === "connected" ? (
@@ -463,6 +585,9 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
                       </p>
                       <p className="mt-1 text-xs text-orange-900/75">
                         Suggested ride type: {activity.suggestedRideType.replaceAll("_", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-orange-900/75">
+                        Strava bike: {getActivityBikeLabel(activity.gearId)}
                       </p>
                     </div>
                     {activity.alreadyImported ? (
