@@ -176,18 +176,24 @@ export default async function DashboardPage() {
             className="h-full hover:bg-orange-50/70"
           />
         </Link>
-        <MetricCard
-          title="Pressure Recommendation"
-          value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
-          subtitle="Front/Rear PSI"
-          icon={<Gauge className="h-5 w-5" />}
-        />
-        <MetricCard
-          title="Recent Miles"
-          value={`${bikeMileage.toFixed(1)} mi`}
-          subtitle="From logged rides"
-          icon={<Activity className="h-5 w-5" />}
-        />
+        <Link href="/pressure" className="block">
+          <MetricCard
+            title="Pressure Recommendation"
+            value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
+            subtitle="Front/Rear PSI"
+            icon={<Gauge className="h-5 w-5" />}
+            className="h-full hover:bg-orange-50/70"
+          />
+        </Link>
+        <Link href="/rides" className="block">
+          <MetricCard
+            title="Recent Miles"
+            value={`${bikeMileage.toFixed(1)} mi`}
+            subtitle="From logged rides"
+            icon={<Activity className="h-5 w-5" />}
+            className="h-full hover:bg-orange-50/70"
+          />
+        </Link>
         <Link href="/maintenance" className="block">
           <MetricCard
             title="Due Now"

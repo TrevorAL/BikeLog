@@ -1,6 +1,6 @@
 # BikeLog TODO
 
-Last updated: 2026-04-28
+Last updated: 2026-04-29
 
 ## Priority Key
 
@@ -10,38 +10,6 @@ Last updated: 2026-04-28
 
 ## P0 - Core Product Milestones
 
-- Maybe allow for the overdue components to be clicked and and bring to maintnance page or something similar
-- Have the shifting charge and breaklights charge update on time of bike ridden Ridden rather than days or miles
-- allow for the ready to ride to be clicked on and it takes you to maitinance : Ready to Ride 70% Good, minor checks
-
-or even just the reasoning because right like this it says 90 but nothing looks wrong:
-
-Ready to Ride
-
-90%
-
-Ready
-
-Pressure Recommendation
-
-73/78
-
-Front/Rear PSI
-
-Recent Miles
-
-59.7 mi
-
-From logged rides
-
-Due Now
-
-0
-
-Maintenance items
-
-add something about tire pressure refill notification based on the last time it was done
-
 ### Due now / overdue
 
 Nothing pending.
@@ -49,10 +17,6 @@ Nothing pending.
 ### Due soon
 
 Nothing pending.
-
-Edit bike!
-
-when I sign out, then go to sign in with google it won't let me select an acount even though I had signed out
 
 - [x] Connect to Strava
   - [x] Add Strava OAuth provider + secure token refresh handling.
@@ -74,16 +38,19 @@ when I sign out, then go to sign in with google it won't let me select an acount
 
 ## P1 - UX and Account Improvements
 
-- [ ] Profile page
-  - [ ] Add `/profile` route and nav link.
-  - [ ] Show and edit name/avatar/timezone/unit preferences.
-  - [ ] Add default bike preference and account connection management (Google/Strava).
+- [x] Profile page
+  - [x] Add `/profile` route and nav link.
+  - [x] Show and edit name/avatar/timezone/unit preferences.
+  - [x] Add default bike preference and account connection management (Google/Strava).
 
 - [ ] UI enhancement pass
   - [ ] Tighten mobile layout for nav + dense dashboard cards.
   - [ ] Unify empty/loading/error states across all feature pages.
   - [ ] Add lightweight success/error toast feedback for mutations.
   - [ ] Run accessibility pass (keyboard focus, labels, contrast, hit targets).
+
+- [x] Auth UX follow-up
+  - [x] Validate Google account chooser behavior after sign-out/sign-in loop.
 
 ## P2 - Reliability and Engineering
 

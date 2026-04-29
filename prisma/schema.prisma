@@ -12,6 +12,9 @@ model User {
   id             String    @id @default(cuid())
   email          String?   @unique
   name           String?
+  timezone       String?
+  distanceUnit   DistanceUnit @default(MI)
+  pressureUnit   PressureUnit @default(PSI)
   emailVerified  DateTime?
   image          String?
   selectedBikeId String?
@@ -300,4 +303,14 @@ enum StravaSyncStatus {
   SUCCESS
   NO_NEW_DATA
   ERROR
+}
+
+enum DistanceUnit {
+  MI
+  KM
+}
+
+enum PressureUnit {
+  PSI
+  BAR
 }

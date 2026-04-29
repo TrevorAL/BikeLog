@@ -4,35 +4,19 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
-import { SignOutButton } from "@/components/layout/SignOutButton";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-type AppHeaderBike = {
-  id: string;
-  name: string;
-  brand: string | null;
-  model: string | null;
-  year: number | null;
-};
 
 type AppHeaderProps = {
   title: string;
   description?: string;
   actions?: ReactNode;
-  userEmail?: string;
-  bikes?: AppHeaderBike[];
-  selectedBikeId?: string;
 };
 
 export function AppHeader({
   title,
   description,
   actions,
-  userEmail,
-  bikes = [],
-  selectedBikeId,
 }: AppHeaderProps) {
   const pathname = usePathname();
 
@@ -49,16 +33,7 @@ export function AppHeader({
               <p className="text-sm text-orange-900/70">{description}</p>
             ) : null}
           </div>
-          <div className="hidden items-center gap-2 md:flex">
-            {userEmail ? (
-              <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
-            ) : null}
-            {userEmail ? (
-              <p className="max-w-56 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
-            ) : null}
-            {actions}
-            {userEmail ? <SignOutButton /> : null}
-          </div>
+          <div className="hidden items-center gap-2 md:flex">{actions}</div>
         </div>
 
         <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 md:hidden">
@@ -81,18 +56,6 @@ export function AppHeader({
             );
           })}
         </nav>
-
-        {userEmail ? (
-          <div className="mt-3 flex items-center justify-between gap-2 md:hidden">
-            <div className="flex min-w-0 items-center gap-2">
-              <p className="max-w-40 truncate text-xs font-medium text-orange-900/70">{userEmail}</p>
-              <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
-            </div>
-            <div>
-              <SignOutButton />
-            </div>
-          </div>
-        ) : null}
       </div>
     </header>
   );

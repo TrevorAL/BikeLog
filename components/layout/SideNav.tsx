@@ -10,6 +10,7 @@ import {
   ListChecks,
   Map,
   Ruler,
+  UserRound,
   Wrench,
 } from "lucide-react";
 
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const iconMap = {
   Dashboard: LayoutDashboard,
+  Profile: UserRound,
   Bike,
   Components: Wrench,
   Rides: Map,

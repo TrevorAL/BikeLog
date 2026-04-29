@@ -25,6 +25,8 @@ export function LoginForm() {
     try {
       await signIn("google", {
         redirectTo: nextPath,
+      }, {
+        prompt: "select_account",
       });
     } finally {
       setSubmitting(false);
@@ -67,6 +69,9 @@ export function LoginForm() {
 
       <p className="mt-4 text-xs text-orange-900/70">
         If you already have an account, use Log in. If not, use Sign up. Google handles the account flow.
+      </p>
+      <p className="mt-2 text-xs text-orange-900/70">
+        BikeLog always asks Google to show account selection so you can choose a different account after sign out.
       </p>
     </section>
   );
