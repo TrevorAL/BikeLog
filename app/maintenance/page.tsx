@@ -124,6 +124,7 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
       {bike ? (
         <MaintenanceWorkspace
           bikeId={bike.id}
+          bikeCurrentMileage={maintenance?.bikeMileage ?? 0}
           dueNowItems={maintenance?.maintenanceSummary.dueNow ?? []}
           dueSoonItems={maintenance?.maintenanceSummary.dueSoon ?? []}
           suggestions={maintenance?.maintenanceSummary.suggestions ?? []}

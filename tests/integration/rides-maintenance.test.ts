@@ -417,6 +417,65 @@ test("Mark-complete payload logs maintenance event with component mileage", asyn
   assert.equal(payload.maintenanceEvent.notes, "Marked complete from due reminder: Chain lube.");
 });
 
+test("Manual maintenance mileage defaults to current bike mileage when omitted", async (t) => {
+  const scope = `${Date.now()}-manual-mileage-default`;
+  const bike = await createTestBike(scope);
+
+  t.after(async () => {
+    await cleanupBike(bike.bikeId, bike.userId);
+  });
+
+  const rideResponse = await createRide(
+    new Request("http://localhost/api/rides", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        bikeId: bike.bikeId,
+        date: "2026-04-27",
+        distanceMiles: 22.5,
+        durationMinutes: 70,
+        rideType: RideType.OUTDOOR,
+        wasWet: false,
+      }),
+    }),
+  );
+  assert.ok(rideResponse);
+  assert.equal(rideResponse.status, 200);
+
+  const response = await createMaintenanceEvent(
+    new Request("http://localhost/api/maintenance-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        cookie: bike.authCookie,
+      },
+      body: JSON.stringify({
+        bikeId: bike.bikeId,
+        date: "2026-04-28",
+        type: "CHECKED_BOLTS",
+        mileageSource: "manual",
+        notes: "No manual mileage entered.",
+      }),
+    }),
+  );
+
+  assert.ok(response);
+  assert.equal(response.status, 200);
+
+  const payload = (await response.json()) as {
+    maintenanceEvent?: {
+      mileageAtService: number | null;
+    };
+    error?: string;
+  };
+
+  assert.ok(payload.maintenanceEvent, payload.error ?? "Maintenance event was not created.");
+  assert.equal(payload.maintenanceEvent.mileageAtService, 22.5);
+});
+
 test("Mileage recalculation dry-run previews drift, apply updates component and logs audit", async (t) => {
   const scope = `${Date.now()}-recalc`;
   const bike = await createTestBike(scope);

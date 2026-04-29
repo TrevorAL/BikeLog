@@ -22,6 +22,7 @@ export type MaintenanceFormPrefill = {
 
 type MaintenanceFormProps = {
   bikeId?: string;
+  bikeCurrentMileage: number;
   components: MaintenanceFormComponent[];
   disabled?: boolean;
   prefill?: MaintenanceFormPrefill;
@@ -49,6 +50,7 @@ function getTodayDateInputValue() {
 
 export function MaintenanceForm({
   bikeId,
+  bikeCurrentMileage,
   components,
   disabled = false,
   prefill,
@@ -71,7 +73,9 @@ export function MaintenanceForm({
   );
   const [selectedComponentId, setSelectedComponentId] = useState(prefill?.componentId ?? "");
   const [mileageAtServiceInput, setMileageAtServiceInput] = useState(
-    prefill?.mileageAtService === undefined ? "" : String(prefill.mileageAtService),
+    prefill?.mileageAtService === undefined
+      ? bikeCurrentMileage.toFixed(1)
+      : String(prefill.mileageAtService),
   );
   const [notes, setNotes] = useState(prefill?.notes ?? "");
   const selectedComponent = components.find((component) => component.id === selectedComponentId);
@@ -103,7 +107,7 @@ export function MaintenanceForm({
         const mileageAtServiceManual =
           mileageAtServiceInput.length > 0
             ? Number(mileageAtServiceInput)
-            : undefined;
+            : bikeCurrentMileage;
 
         setIsSubmitting(true);
         setStatus({ type: "idle" });
@@ -137,7 +141,7 @@ export function MaintenanceForm({
           setEventType("LUBED_CHAIN");
           setMileageSource("manual");
           setSelectedComponentId("");
-          setMileageAtServiceInput("");
+          setMileageAtServiceInput(bikeCurrentMileage.toFixed(1));
           setNotes("");
           setStatus({
             type: "success",
@@ -243,12 +247,14 @@ export function MaintenanceForm({
             step="0.1"
             value={mileageAtServiceInput}
             onChange={(event) => setMileageAtServiceInput(event.target.value)}
+            placeholder={bikeCurrentMileage.toFixed(1)}
             className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
             disabled={mileageSource === "component"}
           />
           {mileageSource === "manual" ? (
             <p className="mt-1 text-xs text-orange-900/70">
-              Enter mileage manually, or switch source to use the selected component.
+              Defaults to current bike mileage ({bikeCurrentMileage.toFixed(1)} mi). Enter
+              manually, or switch source to use the selected component.
             </p>
           ) : (
             <p className="mt-1 text-xs text-orange-900/70">

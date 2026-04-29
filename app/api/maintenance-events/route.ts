@@ -106,8 +106,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const bikeMileage = await prisma.ride.aggregate({
+      where: {
+        bikeId,
+      },
+      _sum: {
+        distanceMiles: true,
+      },
+    });
+    const currentBikeMileage = bikeMileage._sum.distanceMiles ?? 0;
+
     const mileageAtService =
-      mileageSource === "component" ? componentCurrentMileage : mileageAtServiceManual;
+      mileageSource === "component"
+        ? componentCurrentMileage
+        : mileageAtServiceManual ?? currentBikeMileage;
 
     const maintenanceEvent = await prisma.maintenanceEvent.create({
       data: {

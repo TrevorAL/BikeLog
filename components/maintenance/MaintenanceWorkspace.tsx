@@ -29,6 +29,7 @@ type MaintenanceWorkspaceEvent = {
 
 type MaintenanceWorkspaceProps = {
   bikeId?: string;
+  bikeCurrentMileage: number;
   dueNowItems: DueItem[];
   dueSoonItems: DueItem[];
   suggestions: ConditionSuggestion[];
@@ -53,6 +54,7 @@ function todayDateInputValue() {
 
 export function MaintenanceWorkspace({
   bikeId,
+  bikeCurrentMileage,
   dueNowItems,
   dueSoonItems,
   suggestions,
@@ -280,6 +282,7 @@ export function MaintenanceWorkspace({
         <MaintenanceForm
           key={prefill?.token ?? 0}
           bikeId={bikeId}
+          bikeCurrentMileage={bikeCurrentMileage}
           components={components}
           disabled={disabled}
           prefill={prefill}
