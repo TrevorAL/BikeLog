@@ -278,7 +278,7 @@ export function MaintenanceWorkspace({
         )}
       </section>
 
-      <section id="maintenance-log-form" className="mt-6">
+      <section id="maintenance-log-form" className="mt-6 scroll-mt-24">
         <MaintenanceForm
           key={prefill?.token ?? 0}
           bikeId={bikeId}

@@ -23,6 +23,7 @@ type BikeManagerBike = {
 type BikeManagerProps = {
   bikes: BikeManagerBike[];
   selectedBikeId?: string;
+  initialEditingBikeId?: string;
 };
 
 type BikeFormState = {
@@ -101,13 +102,20 @@ function bikeDisplayName(bike: BikeManagerBike) {
   return detailed.length > 0 ? detailed : bike.name;
 }
 
-export function BikeManager({ bikes, selectedBikeId }: BikeManagerProps) {
+export function BikeManager({
+  bikes,
+  selectedBikeId,
+  initialEditingBikeId,
+}: BikeManagerProps) {
   const router = useRouter();
   const [createForm, setCreateForm] = useState<BikeFormState>(blankBikeForm);
   const [createStatus, setCreateStatus] = useState<FormStatus>({ type: "idle" });
   const [isCreating, setIsCreating] = useState(false);
-  const [editingBikeId, setEditingBikeId] = useState<string | undefined>(undefined);
-  const [editForm, setEditForm] = useState<BikeFormState>(blankBikeForm);
+  const [editingBikeId, setEditingBikeId] = useState<string | undefined>(initialEditingBikeId);
+  const [editForm, setEditForm] = useState<BikeFormState>(() => {
+    const bikeToEdit = bikes.find((bike) => bike.id === initialEditingBikeId);
+    return bikeToEdit ? bikeToFormState(bikeToEdit) : blankBikeForm();
+  });
   const [editStatus, setEditStatus] = useState<FormStatus>({ type: "idle" });
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isUpdatingArchive, setIsUpdatingArchive] = useState<string | undefined>(undefined);

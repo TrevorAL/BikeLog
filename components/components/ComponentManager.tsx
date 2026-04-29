@@ -25,6 +25,7 @@ type ComponentManagerProps = {
   bikeId?: string;
   components: ComponentListItem[];
   disabled?: boolean;
+  initialShowAddForm?: boolean;
 };
 
 type FormStatus = {
@@ -604,9 +605,14 @@ function EditableComponentCard({
   );
 }
 
-export function ComponentManager({ bikeId, components, disabled = false }: ComponentManagerProps) {
+export function ComponentManager({
+  bikeId,
+  components,
+  disabled = false,
+  initialShowAddForm = false,
+}: ComponentManagerProps) {
   const router = useRouter();
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(initialShowAddForm);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
   const [recalcStatus, setRecalcStatus] = useState<FormStatus>({ type: "idle" });
   const [recalcResult, setRecalcResult] = useState<MileageRecalculationResult | undefined>(
@@ -827,16 +833,18 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
         </div>
       ) : null}
 
-      {showAddForm ? (
-        <AddComponentForm
-          bikeId={bikeId}
-          disabled={disabled}
-          onSuccess={(message) => {
-            setStatus({ type: "success", message });
-            setShowAddForm(false);
-          }}
-        />
-      ) : null}
+      <section id="add-component-form" className="scroll-mt-24">
+        {showAddForm ? (
+          <AddComponentForm
+            bikeId={bikeId}
+            disabled={disabled}
+            onSuccess={(message) => {
+              setStatus({ type: "success", message });
+              setShowAddForm(false);
+            }}
+          />
+        ) : null}
+      </section>
 
       {status.type === "success" && status.message ? (
         <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{status.message}</p>

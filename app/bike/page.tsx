@@ -12,6 +12,12 @@ import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
+type BikePageProps = {
+  searchParams?: Promise<{
+    editBikeId?: string;
+  }>;
+};
+
 async function getBikePageData(userId: string) {
   try {
     const bikeId = await getOwnedBikeId({ userId });
@@ -133,13 +139,22 @@ async function getBikePageData(userId: string) {
   }
 }
 
-export default async function BikePage() {
+export default async function BikePage({ searchParams }: BikePageProps) {
   const user = await requireServerUser();
   const data = await getBikePageData(user.id);
+  const requestedEditBikeId = (await searchParams)?.editBikeId;
+  const initialEditingBikeId =
+    requestedEditBikeId &&
+    data.bikes.some((candidate) => candidate.id === requestedEditBikeId && !candidate.isArchived)
+      ? requestedEditBikeId
+      : undefined;
   const bike = data.bike;
 
   const lastRide = bike?.rides[0];
   const lastService = bike?.maintenanceEvents[0];
+  const editBikeHref = bike
+    ? `/bike?editBikeId=${encodeURIComponent(bike.id)}#bike-manager`
+    : "/bike#bike-manager";
 
   return (
     <AppShell title="Bike Profile" description="Main bike details and quick stats.">
@@ -211,10 +226,10 @@ export default async function BikePage() {
             <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {[
-                { href: "/bike", label: "Edit Bike" },
-                { href: "/components", label: "Add Component" },
-                { href: "/rides", label: "Log Ride" },
-                { href: "/maintenance", label: "Log Maintenance" },
+                { href: editBikeHref, label: "Edit Bike" },
+                { href: "/components?open=add#add-component-form", label: "Add Component" },
+                { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
+                { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
               ].map((action) => (
                 <Link
                   key={action.label}
@@ -234,8 +249,13 @@ export default async function BikePage() {
         />
       )}
 
-      <section className="mt-6">
-        <BikeManager bikes={data.bikes} selectedBikeId={bike?.id} />
+      <section id="bike-manager" className="mt-6 scroll-mt-24">
+        <BikeManager
+          key={`${bike?.id ?? "none"}:${initialEditingBikeId ?? "none"}`}
+          bikes={data.bikes}
+          selectedBikeId={bike?.id}
+          initialEditingBikeId={initialEditingBikeId}
+        />
       </section>
     </AppShell>
   );

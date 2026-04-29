@@ -11,6 +11,12 @@ import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
+type ComponentsPageProps = {
+  searchParams?: Promise<{
+    open?: string;
+  }>;
+};
+
 const maintenanceKeyByComponentType: Partial<Record<ComponentType, string>> = {
   CHAIN: "chain-lube",
   CASSETTE: "cassette-inspect",
@@ -102,8 +108,10 @@ async function getComponentsPageData(userId: string) {
   }
 }
 
-export default async function ComponentsPage() {
+export default async function ComponentsPage({ searchParams }: ComponentsPageProps) {
   const user = await requireServerUser();
+  const openQuery = (await searchParams)?.open?.toLowerCase();
+  const shouldOpenAddForm = openQuery === "add" || openQuery === "true" || openQuery === "1";
   const data = await getComponentsPageData(user.id);
   const bike = data.bike;
 
@@ -129,6 +137,7 @@ export default async function ComponentsPage() {
         <ComponentManager
           bikeId={bike.id}
           disabled={!data.dbConnected}
+          initialShowAddForm={shouldOpenAddForm}
           components={bike.components.map((component) => {
             const maintenanceKey = maintenanceKeyByComponentType[component.type];
             const dueItem = maintenanceKey ? dueItemMap.get(maintenanceKey) : undefined;

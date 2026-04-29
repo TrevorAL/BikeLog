@@ -10,6 +10,12 @@ import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
+type RidesPageProps = {
+  searchParams?: Promise<{
+    open?: string;
+  }>;
+};
+
 async function getRidesPageData(userId: string) {
   try {
     const bikeId = await getOwnedBikeId({ userId });
@@ -74,8 +80,10 @@ async function getRidesPageData(userId: string) {
   }
 }
 
-export default async function RidesPage() {
+export default async function RidesPage({ searchParams }: RidesPageProps) {
   const user = await requireServerUser();
+  const openQuery = (await searchParams)?.open?.toLowerCase();
+  const shouldOpenRideForm = openQuery === "log" || openQuery === "true" || openQuery === "1";
   const { bike, rides, stravaConnection, dbConnected } = await getRidesPageData(user.id);
   const totalMiles = rides.reduce((sum, ride) => sum + ride.distanceMiles, 0);
   const now = new Date();
@@ -123,8 +131,13 @@ export default async function RidesPage() {
         />
       </section>
 
-      <section className="mt-6">
-        <RideForm bikeId={bike?.id} disabled={!bike || !dbConnected} collapsible />
+      <section id="ride-log-form" className="mt-6 scroll-mt-24">
+        <RideForm
+          bikeId={bike?.id}
+          disabled={!bike || !dbConnected}
+          collapsible
+          defaultOpen={shouldOpenRideForm}
+        />
       </section>
 
       <section className="mt-6">
