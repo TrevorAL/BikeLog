@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
-import { SignOutButton } from "@/components/layout/SignOutButton";
 import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +23,7 @@ type AppHeaderProps = {
   actions?: ReactNode;
   userName?: string | null;
   userEmail?: string | null;
+  userImage?: string | null;
   bikes?: AppHeaderBike[];
   selectedBikeId?: string;
 };
@@ -34,11 +34,14 @@ export function AppHeader({
   actions,
   userName,
   userEmail,
+  userImage,
   bikes = [],
   selectedBikeId,
 }: AppHeaderProps) {
   const pathname = usePathname();
   const primaryNavLinks = NAV_LINKS.filter((link) => link.href !== "/profile");
+  const profileInitial = (userName?.trim()?.charAt(0) ?? userEmail?.charAt(0) ?? "P").toUpperCase();
+  const profileImageUrl = userImage?.trim() ? userImage.trim() : null;
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -90,16 +93,26 @@ export function AppHeader({
               <Link
                 href="/profile"
                 className={cn(
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition",
+                  "flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold transition",
                   pathname === "/profile"
-                    ? "bg-sky-700 text-white"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+                    ? "border-sky-700 ring-2 ring-sky-200"
+                    : "border-slate-300 hover:border-slate-400 hover:bg-slate-100",
                 )}
+                aria-label="Profile"
+                title="Profile"
               >
-                {userName?.trim().length ? userName.trim() : "Profile"}
+                {profileImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={profileImageUrl}
+                    alt={userName?.trim().length ? `${userName.trim()} profile` : "Profile"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-slate-700">{profileInitial}</span>
+                )}
               </Link>
             ) : null}
-            {userEmail ? <SignOutButton /> : null}
           </div>
         </div>
 

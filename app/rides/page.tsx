@@ -36,6 +36,9 @@ async function getRidesPageData(userId: string) {
         select: {
           id: true,
           name: true,
+          brand: true,
+          model: true,
+          year: true,
           rides: {
             orderBy: {
               date: "desc",
@@ -105,6 +108,9 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
     wasWet: ride.wasWet,
     notes: ride.notes,
   }));
+  const bikeDisplayName = bike
+    ? [bike.year, bike.brand, bike.model].filter(Boolean).join(" ").trim() || bike.name
+    : undefined;
 
   return (
     <AppShell
@@ -143,6 +149,7 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
       <section className="mt-6">
         <StravaImportPanel
           bikeId={bike?.id}
+          bikeName={bikeDisplayName}
           disabled={!bike || !dbConnected}
           connection={
             stravaConnection

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type BikeManagerBike = {
@@ -44,6 +44,16 @@ type BikeFormState = {
 type FormStatus = {
   type: "idle" | "success" | "error";
   message?: string;
+};
+
+type StravaBikeOption = {
+  id: string;
+  label: string;
+};
+
+type BikeOptionsResponse = {
+  bikeOptions?: StravaBikeOption[];
+  error?: string;
 };
 
 function blankBikeForm(): BikeFormState {
@@ -110,6 +120,9 @@ export function BikeManager({
   const router = useRouter();
   const [createForm, setCreateForm] = useState<BikeFormState>(blankBikeForm);
   const [createStatus, setCreateStatus] = useState<FormStatus>({ type: "idle" });
+  const [stravaBikeOptions, setStravaBikeOptions] = useState<StravaBikeOption[]>([]);
+  const [selectedStravaBikeId, setSelectedStravaBikeId] = useState("");
+  const [selectedEditStravaBikeId, setSelectedEditStravaBikeId] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [editingBikeId, setEditingBikeId] = useState<string | undefined>(initialEditingBikeId);
   const [editForm, setEditForm] = useState<BikeFormState>(() => {
@@ -122,6 +135,33 @@ export function BikeManager({
 
   const activeBikes = bikes.filter((bike) => !bike.isArchived);
   const archivedBikes = bikes.filter((bike) => bike.isArchived);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadStravaBikeOptions() {
+      try {
+        const response = await fetch("/api/strava/bikes", {
+          method: "GET",
+        });
+
+        const payload = (await response.json()) as BikeOptionsResponse;
+        if (!response.ok || isCancelled) {
+          return;
+        }
+
+        setStravaBikeOptions(payload.bikeOptions ?? []);
+      } catch {
+        // Non-blocking: user can still enter bike details manually.
+      }
+    }
+
+    void loadStravaBikeOptions();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   async function toggleArchived(bike: BikeManagerBike, nextArchived: boolean) {
     setIsUpdatingArchive(bike.id);
@@ -198,6 +238,7 @@ export function BikeManager({
             }
 
             setCreateForm(blankBikeForm());
+            setSelectedStravaBikeId("");
             setCreateStatus({
               type: "success",
               message: "Bike created.",
@@ -215,6 +256,35 @@ export function BikeManager({
         }}
       >
         <h3 className="text-sm font-semibold text-slate-900">Add bike</h3>
+        {stravaBikeOptions.length > 0 ? (
+          <label className="mt-3 block text-sm text-slate-700">
+            Import name from Strava bike
+            <select
+              value={selectedStravaBikeId}
+              onChange={(event) => {
+                const nextId = event.target.value;
+                setSelectedStravaBikeId(nextId);
+                const selectedOption = stravaBikeOptions.find((option) => option.id === nextId);
+                if (!selectedOption) {
+                  return;
+                }
+
+                setCreateForm((previous) => ({
+                  ...previous,
+                  name: selectedOption.label,
+                }));
+              }}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            >
+              <option value="">Select Strava bike</option>
+              {stravaBikeOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <label className="text-sm text-slate-700">
             Name
@@ -385,6 +455,7 @@ export function BikeManager({
                       onClick={() => {
                         setEditingBikeId(bike.id);
                         setEditForm(bikeToFormState(bike));
+                        setSelectedEditStravaBikeId("");
                         setEditStatus({ type: "idle" });
                       }}
                       className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
@@ -445,6 +516,35 @@ export function BikeManager({
                       }
                     }}
                   >
+                    {stravaBikeOptions.length > 0 ? (
+                      <label className="sm:col-span-2 text-sm text-slate-700">
+                        Import name from Strava bike
+                        <select
+                          value={selectedEditStravaBikeId}
+                          onChange={(event) => {
+                            const nextId = event.target.value;
+                            setSelectedEditStravaBikeId(nextId);
+                            const selectedOption = stravaBikeOptions.find((option) => option.id === nextId);
+                            if (!selectedOption) {
+                              return;
+                            }
+
+                            setEditForm((previous) => ({
+                              ...previous,
+                              name: selectedOption.label,
+                            }));
+                          }}
+                          className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                        >
+                          <option value="">Select Strava bike</option>
+                          {stravaBikeOptions.map((option) => (
+                            <option key={option.id} value={option.id}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
                     <label className="text-sm text-slate-700">
                       Name
                       <input

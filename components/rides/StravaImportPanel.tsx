@@ -68,8 +68,27 @@ type BikeOptionsResponse = {
   error?: string;
 };
 
+type AutoImportResponse = {
+  importedCount: number;
+  skippedCount: number;
+  errorCount: number;
+  matchedBike: {
+    id: string;
+    label: string;
+  } | null;
+  message?: string;
+  sync: {
+    status: StravaSyncSummary["status"];
+    lastSyncAt: string | null;
+    lastSyncImportedCount: number;
+    lastSyncError: string | null;
+  };
+  error?: string;
+};
+
 type StravaImportPanelProps = {
   bikeId?: string;
+  bikeName?: string;
   disabled?: boolean;
   connection?: StravaConnectionSummary | null;
 };
@@ -131,7 +150,12 @@ function statusLabel(status: StravaSyncSummary["status"]) {
   return "Sync error";
 }
 
-export function StravaImportPanel({ bikeId, disabled = false, connection }: StravaImportPanelProps) {
+export function StravaImportPanel({
+  bikeId,
+  bikeName,
+  disabled = false,
+  connection,
+}: StravaImportPanelProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -143,8 +167,10 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false);
   const [previewStatus, setPreviewStatus] = useState<StatusBanner>({ type: "idle" });
   const [confirmStatus, setConfirmStatus] = useState<StatusBanner>({ type: "idle" });
+  const [autoStatus, setAutoStatus] = useState<StatusBanner>({ type: "idle" });
 
   const flashStatus = searchParams.get("strava");
   const flashMessage = searchParams.get("stravaMessage");
@@ -222,6 +248,100 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
       isCancelled = true;
     };
   }, [hasConnection]);
+
+  useEffect(() => {
+    if (disabled || !hasConnection || !bikeId || !bikeName?.trim()) {
+      return;
+    }
+
+    if (!connection?.id) {
+      return;
+    }
+
+    let isCancelled = false;
+    const autoSyncKey = `${connection.id}:${bikeId}`;
+    const sessionKey = `strava-auto-sync:${autoSyncKey}`;
+
+    if (sessionStorage.getItem(sessionKey) === "done") {
+      return;
+    }
+
+    async function autoImportByBikeName() {
+      setIsAutoSyncing(true);
+      let shouldMarkComplete = false;
+
+      try {
+        const response = await fetch("/api/strava/import/auto", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            bikeId,
+          }),
+        });
+
+        const result = (await response.json()) as AutoImportResponse;
+        if (!response.ok) {
+          throw new Error(result.error ?? "Could not auto-import Strava rides.");
+        }
+        shouldMarkComplete = true;
+
+        if (!isCancelled) {
+          setSync((current) =>
+            current
+              ? {
+                  ...current,
+                  status: result.sync.status,
+                  lastSyncAt: result.sync.lastSyncAt,
+                  lastSyncImportedCount: result.sync.lastSyncImportedCount,
+                  lastSyncError: result.sync.lastSyncError,
+                  totalImportedCount:
+                    current.totalImportedCount + Math.max(0, result.importedCount),
+                }
+              : current,
+          );
+
+          if (result.importedCount > 0) {
+            const matchedLabel = result.matchedBike?.label ?? "matched bike";
+            setAutoStatus({
+              type: "success",
+              message: `Auto-imported ${result.importedCount} Strava ride(s) for ${matchedLabel}.`,
+            });
+            router.refresh();
+          } else if (result.message) {
+            setAutoStatus({
+              type: "success",
+              message: result.message,
+            });
+          }
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setAutoStatus({
+            type: "error",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Could not auto-import Strava rides right now.",
+          });
+        }
+      } finally {
+        if (shouldMarkComplete) {
+          sessionStorage.setItem(sessionKey, "done");
+        }
+        if (!isCancelled) {
+          setIsAutoSyncing(false);
+        }
+      }
+    }
+
+    void autoImportByBikeName();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [bikeId, bikeName, connection?.id, disabled, hasConnection, router]);
 
   async function loadPreview() {
     if (disabled || !hasConnection) {
@@ -439,7 +559,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
             onChange={(event) => {
               setStravaBikeFilter(event.target.value);
             }}
-            disabled={isPreviewLoading || isImporting}
+            disabled={isPreviewLoading || isImporting || isAutoSyncing}
             className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <option value={STRAVA_BIKE_FILTER_ALL}>All bikes</option>
@@ -455,7 +575,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
             <button
               type="button"
               onClick={closePreview}
-              disabled={isPreviewLoading || isImporting}
+              disabled={isPreviewLoading || isImporting || isAutoSyncing}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Close preview
@@ -466,10 +586,14 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
               onClick={() => {
                 void loadPreview();
               }}
-              disabled={isPreviewLoading || isImporting}
+              disabled={isPreviewLoading || isImporting || isAutoSyncing}
               className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isPreviewLoading ? "Loading..." : "Preview recent rides"}
+              {isAutoSyncing
+                ? "Auto-syncing..."
+                : isPreviewLoading
+                  ? "Loading..."
+                  : "Preview recent rides"}
             </button>
           )}
         </div>
@@ -484,6 +608,18 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
       {flashStatus === "error" ? (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
           {flashMessage ?? "Strava connection failed."}
+        </p>
+      ) : null}
+
+      {autoStatus.type === "success" && autoStatus.message ? (
+        <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {autoStatus.message}
+        </p>
+      ) : null}
+
+      {autoStatus.type === "error" && autoStatus.message ? (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+          {autoStatus.message}
         </p>
       ) : null}
 
@@ -606,7 +742,7 @@ export function StravaImportPanel({ bikeId, disabled = false, connection }: Stra
             onClick={() => {
               void importSelected();
             }}
-            disabled={selectedIds.length === 0 || isImporting || isPreviewLoading}
+            disabled={selectedIds.length === 0 || isImporting || isPreviewLoading || isAutoSyncing}
             className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isImporting ? "Importing..." : `Import selected (${selectedIds.length})`}

@@ -32,6 +32,7 @@ export async function AppShell({ title, description, actions, children }: AppShe
         actions={actions}
         userName={user?.name}
         userEmail={user?.email}
+        userImage={user?.image}
         bikes={bikes}
         selectedBikeId={selectedBikeId ?? undefined}
       />
