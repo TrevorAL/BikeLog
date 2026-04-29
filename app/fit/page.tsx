@@ -58,7 +58,7 @@ export default async function FitPage() {
     <AppShell title="Bike Fit" description="Store your setup measurements and keep fit history organized.">
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
-          <h2 className="font-display text-xl font-semibold">Database not connected</h2>
+          <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
             <code>npm run db:seed</code>.
@@ -84,7 +84,7 @@ export default async function FitPage() {
           </section>
 
           <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-display text-xl font-semibold text-slate-900">Fit history</h2>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Fit history</h2>
             <div className="mt-3">
               <FitHistoryManager
                 measurements={bike.fitMeasurements.map((measurement) => ({

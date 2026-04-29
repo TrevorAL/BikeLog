@@ -255,7 +255,7 @@ export function MaintenanceWorkspace({
       ) : null}
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="font-display text-xl font-semibold text-slate-900">Condition-based suggestions</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Condition-based suggestions</h2>
         {suggestions.length ? (
           <ul className="mt-3 space-y-2">
             {suggestions.map((suggestion) => (
@@ -290,7 +290,7 @@ export function MaintenanceWorkspace({
       </section>
 
       <section className="mt-6">
-        <h2 className="font-display text-xl font-semibold text-slate-900">Maintenance history</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Maintenance history</h2>
         <div className="mt-3">
           {events.length > 0 ? (
             <MaintenanceHistoryManager

@@ -138,7 +138,7 @@ function EditableMaintenanceEvent({
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
           </button>
@@ -244,7 +244,7 @@ function EditableMaintenanceEvent({
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
@@ -279,7 +279,7 @@ function EditableMaintenanceEvent({
             setIsEditing(true);
             setStatus({ type: "idle" });
           }}
-          className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Edit
         </button>
@@ -319,7 +319,7 @@ function EditableMaintenanceEvent({
               setIsSubmitting(false);
             }
           }}
-          className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Working..." : "Delete"}
         </button>
@@ -400,7 +400,7 @@ export function MaintenanceHistoryManager({
       </div>
 
       {filteredEvents.length > 0 ? (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className="grid gap-3 xl:grid-cols-2">
           {filteredEvents.map((event) => (
             <EditableMaintenanceEvent
               key={event.id}

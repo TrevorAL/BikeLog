@@ -12,8 +12,8 @@ type DueSoonListProps = {
 export function DueSoonList({ title, items, itemHrefBasePath }: DueSoonListProps) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="font-display text-xl font-semibold text-slate-900">{title}</h3>
-      <div className="mt-4 space-y-3">
+      <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">{title}</h3>
+      <div className="mt-4 space-y-2">
         {items.length === 0 ? (
           <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Nothing pending.</p>
         ) : (

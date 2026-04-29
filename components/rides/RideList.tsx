@@ -127,7 +127,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
             setIsEditing(false);
             setStatus({ type: "idle" });
           }}
-          className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
         >
           Cancel
         </button>
@@ -227,7 +227,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
       <button
         type="submit"
         disabled={isBusy}
-        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isBusy ? "Saving..." : "Save changes"}
       </button>
@@ -256,7 +256,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
                 setStatus({ type: "idle" });
               }}
               disabled={isBusy}
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Edit
             </button>
@@ -303,7 +303,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
                 }
               }}
               disabled={isBusy}
-              className="rounded-full border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isBusy ? "Working..." : "Delete"}
             </button>
@@ -339,7 +339,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
 
 export function RideList({ rides }: RideListProps) {
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className="grid gap-3 xl:grid-cols-2">
       {rides.map((ride) => (
         <EditableRideCard key={ride.id} ride={ride} />
       ))}

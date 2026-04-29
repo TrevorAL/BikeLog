@@ -46,6 +46,7 @@ async function getBikePageData(userId: string) {
             isActive: true,
           },
           select: {
+            name: true,
             type: true,
             currentMileage: true,
           },
@@ -144,7 +145,7 @@ export default async function BikePage() {
     <AppShell title="Bike Profile" description="Main bike details and quick stats.">
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
-          <h2 className="font-display text-xl font-semibold">Database not connected</h2>
+          <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
             <code>npm run db:seed</code>.
@@ -207,7 +208,7 @@ export default async function BikePage() {
           </section>
 
           <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-display text-xl font-semibold text-slate-900">Quick actions</h2>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {[
                 { href: "/bike", label: "Edit Bike" },
@@ -218,7 +219,7 @@ export default async function BikePage() {
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 >
                   {action.label}
                 </Link>

@@ -52,7 +52,7 @@ export function LoginForm() {
           type="button"
           disabled={submitting}
           onClick={() => handleGoogleAuth("signup")}
-          className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting && mode === "signup" ? "Starting sign up..." : "Sign up with Google"}
         </button>
@@ -61,7 +61,7 @@ export function LoginForm() {
           type="button"
           disabled={submitting}
           onClick={() => handleGoogleAuth("login")}
-          className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+          className="inline-flex items-center justify-center rounded-md bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting && mode === "login" ? "Logging in..." : "Log in with Google"}
         </button>

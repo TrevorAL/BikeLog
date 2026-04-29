@@ -237,7 +237,7 @@ function AddComponentForm({
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Saving..." : "Add component"}
       </button>
@@ -328,7 +328,7 @@ function EditableComponentCard({
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
@@ -423,7 +423,7 @@ function EditableComponentCard({
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
@@ -488,7 +488,7 @@ function EditableComponentCard({
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
@@ -548,7 +548,7 @@ function EditableComponentCard({
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Replacing..." : "Confirm replace"}
         </button>
@@ -578,7 +578,7 @@ function EditableComponentCard({
                 setMode("edit");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Edit
             </button>
@@ -589,7 +589,7 @@ function EditableComponentCard({
                 setMode("replace");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Replace
             </button>
@@ -693,7 +693,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
   return (
     <section>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-display text-xl font-semibold text-slate-900">Active components</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Active components</h2>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -701,7 +701,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
             onClick={() => {
               runRecalculation(false);
             }}
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRecalcBusy ? "Working..." : "Preview recalc"}
           </button>
@@ -718,7 +718,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
 
               runRecalculation(true);
             }}
-            className="rounded-full border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRecalcBusy ? "Working..." : "Apply recalc"}
           </button>
@@ -735,7 +735,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
               }
               setStatus({ type: "idle" });
             }}
-            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {showAddForm ? "Close" : "Add component"}
           </button>
@@ -764,7 +764,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
               <button
                 type="button"
                 onClick={() => setShowRecalcInfo((previous) => !previous)}
-                className="h-7 w-7 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="h-7 w-7 rounded-md border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 aria-label="What does mileage recalculation do?"
                 title="What does mileage recalculation do?"
               >
@@ -777,7 +777,7 @@ export function ComponentManager({ bikeId, components, disabled = false }: Compo
                   setShowRecalcInfo(false);
                   setRecalcStatus({ type: "idle" });
                 }}
-                className="h-7 w-7 rounded-full border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                className="h-7 w-7 rounded-md border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100"
                 aria-label="Close preview"
                 title="Close preview"
               >

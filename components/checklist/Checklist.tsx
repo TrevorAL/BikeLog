@@ -35,7 +35,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="font-display text-xl font-semibold text-slate-900">Before-ride checklist</h3>
+          <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Before-ride checklist</h3>
           <p className="text-sm text-slate-600">
             {completedCount}/{items.length} completed
           </p>
@@ -78,7 +78,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
               setIsSubmitting(false);
             }
           }}
-          className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Working..." : "Reset"}
         </button>
@@ -143,7 +143,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
             <button
               type="button"
               disabled={disabled || isSubmitting}
-              className="ml-auto rounded-full border border-red-300 px-2 py-0.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="ml-auto rounded-md border border-red-300 px-2 py-0.5 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={async () => {
                 setIsSubmitting(true);
                 setStatus({ type: "idle" });
@@ -243,7 +243,7 @@ export function Checklist({ bikeId, initialItems, disabled = false }: ChecklistP
         <button
           type="submit"
           disabled={disabled || isSubmitting}
-          className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Add"}
         </button>

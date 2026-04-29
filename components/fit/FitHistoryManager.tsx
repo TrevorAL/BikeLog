@@ -129,7 +129,7 @@ function EditableFitMeasurement({
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
           </button>
@@ -243,7 +243,7 @@ function EditableFitMeasurement({
         <button
           type="submit"
           disabled={isSubmitting || disabled}
-          className="mt-3 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
@@ -263,7 +263,7 @@ function EditableFitMeasurement({
         <p className="font-semibold text-slate-900">{new Date(measurement.date).toLocaleDateString()}</p>
         <div className="flex flex-wrap items-center gap-2">
           {measurement.isCurrent ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
+            <span className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-800">
               Current
             </span>
           ) : (
@@ -298,7 +298,7 @@ function EditableFitMeasurement({
                   setIsSubmitting(false);
                 }
               }}
-              className="rounded-full border border-emerald-300 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-md border border-emerald-300 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? "Updating..." : "Mark current"}
             </button>
@@ -311,7 +311,7 @@ function EditableFitMeasurement({
               setIsEditing(true);
               setStatus({ type: "idle" });
             }}
-            className="rounded-full border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Edit
           </button>

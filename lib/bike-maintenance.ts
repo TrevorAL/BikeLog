@@ -16,7 +16,7 @@ type MaintenanceEventInput = Pick<
 
 type ComputeBikeMaintenanceInput = {
   rides: Pick<Ride, "distanceMiles" | "durationMinutes" | "date" | "wasWet" | "roadCondition">[];
-  components: Pick<Component, "type" | "currentMileage">[];
+  components: Pick<Component, "name" | "type" | "currentMileage">[];
   maintenanceEvents: MaintenanceEventInput[];
 };
 
@@ -72,6 +72,14 @@ export function computeBikeMaintenance(input: ComputeBikeMaintenanceInput) {
   const bikeMileage = input.rides.reduce((sum, ride) => sum + ride.distanceMiles, 0);
 
   const chainComponent = input.components.find((component) => component.type === "CHAIN");
+  const hasDi2BatteryComponent = input.components.some(
+    (component) => component.type === "DI2_BATTERY",
+  );
+  const hasLightsComponent = input.components.some(
+    (component) =>
+      component.type === "OTHER" &&
+      component.name.toLowerCase().includes("light"),
+  );
   const chainMileage = chainComponent?.currentMileage ?? bikeMileage;
 
   const mostRecentRide = [...input.rides].sort(
@@ -120,9 +128,7 @@ export function computeBikeMaintenance(input: ComputeBikeMaintenanceInput) {
       Boolean(event.notes?.includes(LIGHTS_CHARGE_NOTE_TAG)),
   );
 
-  const mostRecentBatteryChargeDate = [lastDi2ChargeEvent?.date, lastLightsChargeEvent?.date]
-    .filter((value): value is Date => Boolean(value))
-    .sort((a, b) => b.getTime() - a.getTime())[0];
+  const shouldTrackLightsBattery = hasLightsComponent || Boolean(lastLightsChargeEvent);
 
   const lastPressureCheckEvent = latestEventByTypes(input.maintenanceEvents, [
     MaintenanceEventType.CHECKED_TIRE_PRESSURE,
@@ -153,6 +159,8 @@ export function computeBikeMaintenance(input: ComputeBikeMaintenanceInput) {
   const maintenanceSummary = buildMaintenanceSummary({
     bikeMileage,
     chainMileage,
+    includeDi2BatteryReminder: hasDi2BatteryComponent,
+    includeLightsBatteryReminder: shouldTrackLightsBattery,
     lastChainLubeMileage: latestEventMileage(lastChainLubeEvent, chainMileage),
     lastChainWearMileage: latestEventMileage(lastChainWearEvent, chainMileage),
     lastTireInspectMileage: latestEventMileage(lastTireInspectEvent, bikeMileage),
@@ -167,8 +175,8 @@ export function computeBikeMaintenance(input: ComputeBikeMaintenanceInput) {
     rideMinutesSinceDi2Charge: lastDi2ChargeEvent
       ? getRideMinutesSince(input.rides, lastDi2ChargeEvent.date)
       : undefined,
-    rideMinutesSinceLightsCharge: mostRecentBatteryChargeDate
-      ? getRideMinutesSince(input.rides, mostRecentBatteryChargeDate)
+    rideMinutesSinceLightsCharge: lastLightsChargeEvent
+      ? getRideMinutesSince(input.rides, lastLightsChargeEvent.date)
       : undefined,
     hasRecentWetRide: Boolean(mostRecentRide?.wasWet),
     hasRecentRoughRide:
@@ -178,7 +186,7 @@ export function computeBikeMaintenance(input: ComputeBikeMaintenanceInput) {
     roughRideInspectedAfterRide,
   });
 
-  const di2StatusKnown = Boolean(lastDi2ChargeEvent);
+  const di2StatusKnown = hasDi2BatteryComponent ? Boolean(lastDi2ChargeEvent) : true;
 
   const readiness = calculateReadinessBreakdown({
     statuses: maintenanceSummary.dueItems.map((item) => item.status),

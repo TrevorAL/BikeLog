@@ -57,6 +57,8 @@ export function getRideMinutesStatus(
 type BuildMaintenanceInput = {
   bikeMileage: number;
   chainMileage?: number;
+  includeDi2BatteryReminder?: boolean;
+  includeLightsBatteryReminder?: boolean;
   lastChainLubeMileage?: number;
   lastChainWearMileage?: number;
   lastTireInspectMileage?: number;
@@ -275,50 +277,54 @@ export function buildMaintenanceSummary(input: BuildMaintenanceInput) {
     });
   }
 
-  if (input.rideMinutesSinceDi2Charge !== undefined) {
-    dueItems.push({
-      key: "di2-charge",
-      label: "Di2 battery",
-      status: getRideMinutesStatus(
-        input.rideMinutesSinceDi2Charge,
-        MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
-        MAINTENANCE_INTERVALS.di2ChargeRideTime.warningMinutesBefore,
-      ),
-      detail: formatRideTimeDetail(
-        MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
-        input.rideMinutesSinceDi2Charge,
-      ),
-    });
-  } else {
-    dueItems.push({
-      key: "di2-charge",
-      label: "Di2 battery",
-      status: "DUE_SOON",
-      detail: "Charge status unknown",
-    });
+  if (input.includeDi2BatteryReminder) {
+    if (input.rideMinutesSinceDi2Charge !== undefined) {
+      dueItems.push({
+        key: "di2-charge",
+        label: "Di2 battery",
+        status: getRideMinutesStatus(
+          input.rideMinutesSinceDi2Charge,
+          MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
+          MAINTENANCE_INTERVALS.di2ChargeRideTime.warningMinutesBefore,
+        ),
+        detail: formatRideTimeDetail(
+          MAINTENANCE_INTERVALS.di2ChargeRideTime.intervalMinutes,
+          input.rideMinutesSinceDi2Charge,
+        ),
+      });
+    } else {
+      dueItems.push({
+        key: "di2-charge",
+        label: "Di2 battery",
+        status: "DUE_SOON",
+        detail: "Charge status unknown",
+      });
+    }
   }
 
-  if (input.rideMinutesSinceLightsCharge !== undefined) {
-    dueItems.push({
-      key: "lights-charge",
-      label: "Bike lights battery",
-      status: getRideMinutesStatus(
-        input.rideMinutesSinceLightsCharge,
-        MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
-        MAINTENANCE_INTERVALS.lightsChargeRideTime.warningMinutesBefore,
-      ),
-      detail: formatRideTimeDetail(
-        MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
-        input.rideMinutesSinceLightsCharge,
-      ),
-    });
-  } else {
-    dueItems.push({
-      key: "lights-charge",
-      label: "Bike lights battery",
-      status: "DUE_SOON",
-      detail: "Charge status unknown",
-    });
+  if (input.includeLightsBatteryReminder) {
+    if (input.rideMinutesSinceLightsCharge !== undefined) {
+      dueItems.push({
+        key: "lights-charge",
+        label: "Bike lights battery",
+        status: getRideMinutesStatus(
+          input.rideMinutesSinceLightsCharge,
+          MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
+          MAINTENANCE_INTERVALS.lightsChargeRideTime.warningMinutesBefore,
+        ),
+        detail: formatRideTimeDetail(
+          MAINTENANCE_INTERVALS.lightsChargeRideTime.intervalMinutes,
+          input.rideMinutesSinceLightsCharge,
+        ),
+      });
+    } else {
+      dueItems.push({
+        key: "lights-charge",
+        label: "Bike lights battery",
+        status: "DUE_SOON",
+        detail: "Charge status unknown",
+      });
+    }
   }
 
   const suggestions: ConditionSuggestion[] = [];

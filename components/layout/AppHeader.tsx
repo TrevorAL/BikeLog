@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
@@ -41,11 +42,24 @@ export function AppHeader({
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="h-0.5 w-full bg-gradient-to-r from-sky-600 via-slate-200 to-orange-500" />
       <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-6">
-            <Link href="/dashboard" className="font-display text-lg font-semibold text-slate-900">
-              BikeLog
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <span className="relative h-8 w-8 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+                <Image
+                  src="/icons/app-icon.png"
+                  alt="BikeLog"
+                  fill
+                  sizes="32px"
+                  className="object-cover"
+                  priority
+                />
+              </span>
+              <span className="font-display text-lg font-semibold text-slate-900">
+                Bike<span className="text-sky-700">Log</span>
+              </span>
             </Link>
             <nav className="hidden items-center gap-1 lg:flex">
               {primaryNavLinks.map((link) => {
@@ -58,7 +72,7 @@ export function AppHeader({
                     className={cn(
                       "rounded-md px-3 py-1.5 text-sm font-medium transition",
                       active
-                        ? "bg-slate-900 text-white"
+                        ? "bg-sky-700 text-white"
                         : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
                     )}
                   >
@@ -78,7 +92,7 @@ export function AppHeader({
                 className={cn(
                   "rounded-md px-3 py-1.5 text-sm font-medium transition",
                   pathname === "/profile"
-                    ? "bg-slate-900 text-white"
+                    ? "bg-sky-700 text-white"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
                 )}
               >
@@ -100,7 +114,7 @@ export function AppHeader({
                 className={cn(
                   "rounded-md border px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition",
                   active
-                    ? "border-slate-900 bg-slate-900 text-white"
+                    ? "border-sky-700 bg-sky-700 text-white"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-100",
                 )}
               >
@@ -113,7 +127,9 @@ export function AppHeader({
         <div className="mt-3 border-t border-slate-100 pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="font-display text-2xl font-semibold text-slate-900">{title}</h1>
+              <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                {title}
+              </h1>
               {description ? <p className="text-sm text-slate-600">{description}</p> : null}
             </div>
             <div className="flex flex-wrap items-center gap-2">{actions}</div>

@@ -99,7 +99,7 @@ export function FitMeasurementForm({ bikeId, disabled = false }: FitMeasurementF
       }}
     >
       <div className="flex items-center justify-between gap-4">
-        <h3 className="font-display text-xl font-semibold text-slate-900">Add fit measurement</h3>
+        <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Add fit measurement</h3>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -211,7 +211,7 @@ export function FitMeasurementForm({ bikeId, disabled = false }: FitMeasurementF
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Saving..." : "Save measurement"}
       </button>

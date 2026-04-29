@@ -143,13 +143,13 @@ export default async function DashboardPage() {
         <>
           <Link
             href="/rides"
-            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"
           >
             Log Ride
           </Link>
           <Link
             href="/maintenance"
-            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
           >
             Add Maintenance
           </Link>
@@ -158,7 +158,7 @@ export default async function DashboardPage() {
     >
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
-          <h2 className="font-display text-xl font-semibold">Database not connected</h2>
+          <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
             <code>npm run db:seed</code>.
@@ -208,10 +208,10 @@ export default async function DashboardPage() {
       {bike ? (
         <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-slate-900">Readiness reasoning</h2>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Readiness reasoning</h2>
             <Link
               href="/maintenance"
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open maintenance
             </Link>
@@ -251,10 +251,10 @@ export default async function DashboardPage() {
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-slate-900">Recent rides</h2>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Recent rides</h2>
             <Link
               href="/rides"
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open rides
             </Link>
@@ -289,12 +289,12 @@ export default async function DashboardPage() {
 
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-xl font-semibold text-slate-900">
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
               Component mileage highlights
             </h2>
             <Link
               href="/components"
-              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open components
             </Link>
@@ -327,7 +327,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="font-display text-xl font-semibold text-slate-900">Quick actions</h2>
+        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {[
             { href: "/rides", label: "Log Ride" },
@@ -339,7 +339,7 @@ export default async function DashboardPage() {
             <Link
               key={action.label}
               href={action.href}
-              className="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
             >
               {action.label}
             </Link>

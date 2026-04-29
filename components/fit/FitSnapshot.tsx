@@ -21,7 +21,7 @@ export function FitSnapshot({
 }: FitSnapshotProps) {
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="font-display text-xl font-semibold text-slate-900">Bike Fit Snapshot</h3>
+      <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Bike Fit Snapshot</h3>
       <p className="mt-1 text-sm text-slate-600">Save the measurements that keep your bike feeling dialed.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="rounded-lg bg-slate-50 p-3 text-sm">Saddle height: {saddleHeightMm ?? "-"} mm</div>

@@ -27,39 +27,39 @@ export function RideCard({
   const normalizedDate = date instanceof Date ? date : new Date(date);
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-600">{rideType.replaceAll("_", " ")}</p>
-          <h3 className="font-display text-lg font-semibold text-slate-900">
+          <h3 className="font-display text-base font-semibold tracking-tight text-slate-900">
             {normalizedDate.toLocaleDateString()}
           </h3>
         </div>
         {wasWet ? (
-          <span className="rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
+          <span className="rounded-md bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
             Wet ride
           </span>
         ) : null}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        <div className="rounded-lg bg-slate-50 p-2.5 text-sm">
           <p className="text-xs text-slate-600">Distance</p>
           <p className="font-semibold text-slate-900">{distanceMiles.toFixed(1)} mi</p>
         </div>
-        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+        <div className="rounded-lg bg-slate-50 p-2.5 text-sm">
           <p className="text-xs text-slate-600">Duration</p>
           <p className="font-semibold text-slate-900">
             {durationMinutes ? `${durationMinutes} min` : "Not set"}
           </p>
         </div>
-        <div className="rounded-lg bg-slate-50 p-3 text-sm">
+        <div className="rounded-lg bg-slate-50 p-2.5 text-sm">
           <p className="text-xs text-slate-600">Road</p>
           <p className="font-semibold text-slate-900">{roadCondition ?? "Unknown"}</p>
         </div>
       </div>
 
-      <div className="mt-4 space-y-1 text-sm text-slate-600">
+      <div className="mt-3 space-y-1 text-sm text-slate-600">
         {weather ? (
           <p className="flex items-center gap-2">
             <CloudDrizzle className="h-4 w-4 text-slate-600" />
@@ -80,7 +80,7 @@ export function RideCard({
         ) : null}
       </div>
 
-      {actions ? <div className="mt-4">{actions}</div> : null}
+      {actions ? <div className="mt-3">{actions}</div> : null}
     </article>
   );
 }

@@ -118,7 +118,7 @@ export function PressureCalculator({ bikeId, disabled = false }: PressureCalcula
         }
       }}
     >
-      <h3 className="font-display text-xl font-semibold text-slate-900">Tire pressure calculator</h3>
+      <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Tire pressure calculator</h3>
       <p className="mt-1 text-sm text-slate-600">
         Estimate only. Tune pressure by comfort, grip, and local road conditions.
       </p>
@@ -250,7 +250,7 @@ export function PressureCalculator({ bikeId, disabled = false }: PressureCalcula
       <button
         type="submit"
         disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSubmitting ? "Saving..." : "Save preset"}
       </button>

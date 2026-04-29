@@ -113,7 +113,7 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
     >
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
-          <h2 className="font-display text-xl font-semibold">Database not connected</h2>
+          <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
             <code>npm run db:seed</code>.
