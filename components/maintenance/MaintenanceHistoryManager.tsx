@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { MAINTENANCE_EVENT_TYPES } from "@/lib/maintenance-options";
@@ -343,16 +343,78 @@ export function MaintenanceHistoryManager({
   components,
   disabled = false,
 }: MaintenanceHistoryManagerProps) {
+  const [componentFilter, setComponentFilter] = useState("all");
+
+  const componentOptions = useMemo(() => {
+    const optionMap = new Map<string, string>();
+
+    for (const component of components) {
+      optionMap.set(component.id, component.name);
+    }
+
+    for (const event of events) {
+      if (event.componentId && event.componentName && !optionMap.has(event.componentId)) {
+        optionMap.set(event.componentId, event.componentName);
+      }
+    }
+
+    return [...optionMap.entries()]
+      .map(([id, name]) => ({ id, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [components, events]);
+
+  const filteredEvents = useMemo(() => {
+    if (componentFilter === "all") {
+      return events;
+    }
+
+    if (componentFilter === "general") {
+      return events.filter((event) => !event.componentId);
+    }
+
+    return events.filter((event) => event.componentId === componentFilter);
+  }, [componentFilter, events]);
+
   return (
-    <div className="grid gap-4 xl:grid-cols-2">
-      {events.map((event) => (
-        <EditableMaintenanceEvent
-          key={event.id}
-          event={event}
-          components={components}
-          disabled={disabled}
-        />
-      ))}
+    <div>
+      <div className="mb-3 flex flex-wrap items-end gap-3">
+        <label className="text-sm text-orange-900">
+          Filter by component
+          <select
+            value={componentFilter}
+            onChange={(event) => setComponentFilter(event.target.value)}
+            className="mt-1 block min-w-56 rounded-xl border border-orange-200 px-3 py-2"
+          >
+            <option value="all">All maintenance events</option>
+            <option value="general">General bike service</option>
+            {componentOptions.map((component) => (
+              <option key={component.id} value={component.id}>
+                {component.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="text-xs text-orange-900/70">
+          Showing {filteredEvents.length} of {events.length}
+        </p>
+      </div>
+
+      {filteredEvents.length > 0 ? (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {filteredEvents.map((event) => (
+            <EditableMaintenanceEvent
+              key={event.id}
+              event={event}
+              components={components}
+              disabled={disabled}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-4 py-4 text-sm text-orange-900/75">
+          No maintenance events match this component filter.
+        </p>
+      )}
     </div>
   );
 }

@@ -37,6 +37,7 @@ async function getDashboardData(userId: string) {
             date: true,
             wasWet: true,
             roadCondition: true,
+            rideType: true,
           },
           orderBy: {
             date: "desc",
@@ -47,6 +48,8 @@ async function getDashboardData(userId: string) {
             isActive: true,
           },
           select: {
+            id: true,
+            name: true,
             type: true,
             currentMileage: true,
           },
@@ -127,6 +130,10 @@ export default async function DashboardPage() {
 
   const bikeMileage = bike ? data.maintenance.bikeMileage : 0;
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
+  const recentRides = bike ? bike.rides.slice(0, 5) : [];
+  const componentMileageHighlights = bike
+    ? [...bike.components].sort((a, b) => b.currentMileage - a.currentMileage).slice(0, 6)
+    : [];
 
   return (
     <AppShell
@@ -233,6 +240,84 @@ export default async function DashboardPage() {
           items={bike ? data.maintenance.maintenanceSummary.dueSoon : []}
           itemHrefBasePath="/maintenance"
         />
+      </section>
+
+      <section className="mt-6 grid gap-4 lg:grid-cols-2">
+        <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-xl font-semibold text-orange-950">Recent rides</h2>
+            <Link
+              href="/rides"
+              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            >
+              Open rides
+            </Link>
+          </div>
+          {recentRides.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {recentRides.map((ride) => (
+                <li
+                  key={ride.id}
+                  className="rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2"
+                >
+                  <p className="text-xs uppercase tracking-wide text-orange-700">
+                    {ride.date.toLocaleDateString()}
+                  </p>
+                  <p className="text-sm font-semibold text-orange-950">
+                    {ride.distanceMiles.toFixed(1)} mi · {ride.rideType.replaceAll("_", " ")}
+                  </p>
+                  <p className="text-xs text-orange-900/75">
+                    {ride.durationMinutes ? `${ride.durationMinutes} min` : "Duration not set"}
+                    {ride.roadCondition ? ` · ${ride.roadCondition}` : ""}
+                    {ride.wasWet ? " · Wet ride" : ""}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+              No rides logged yet.
+            </p>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="font-display text-xl font-semibold text-orange-950">
+              Component mileage highlights
+            </h2>
+            <Link
+              href="/components"
+              className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+            >
+              Open components
+            </Link>
+          </div>
+          {componentMileageHighlights.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {componentMileageHighlights.map((component) => (
+                <li
+                  key={component.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50/70 px-3 py-2"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-orange-950">{component.name}</p>
+                    <p className="text-xs text-orange-900/75">
+                      {component.type.replaceAll("_", " ")}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-orange-950">
+                    {component.currentMileage.toFixed(1)} mi
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 rounded-2xl border border-dashed border-orange-300 bg-orange-50 px-3 py-2 text-sm text-orange-900/75">
+              No active components found.
+            </p>
+          )}
+        </section>
       </section>
 
       <section className="mt-6 rounded-3xl border border-orange-200 bg-white p-5 shadow-warm">
