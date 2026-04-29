@@ -8,6 +8,8 @@ import { ROAD_CONDITIONS, RIDE_TYPES } from "@/lib/ride-options";
 type RideFormProps = {
   bikeId?: string;
   disabled?: boolean;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 };
 
 type FormStatus = {
@@ -25,10 +27,16 @@ function parseOptionalText(value: FormDataEntryValue | null) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-export function RideForm({ bikeId, disabled = false }: RideFormProps) {
+export function RideForm({
+  bikeId,
+  disabled = false,
+  collapsible = false,
+  defaultOpen = false,
+}: RideFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
+  const [isOpen, setIsOpen] = useState(() => !collapsible || defaultOpen);
 
   return (
     <form
@@ -107,127 +115,151 @@ export function RideForm({ bikeId, disabled = false }: RideFormProps) {
         }
       }}
     >
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="font-display text-xl font-semibold text-orange-950">Log a ride</h3>
           <p className="text-sm text-orange-900/70">
             Saved rides automatically update mileage on active wear-based components.
           </p>
         </div>
+
+        {collapsible ? (
+          <button
+            type="button"
+            onClick={() => setIsOpen((current) => !current)}
+            disabled={disabled}
+            className="rounded-full border border-orange-300 px-3 py-1.5 text-xs font-semibold text-orange-900 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isOpen ? "Hide form" : "Log a ride"}
+          </button>
+        ) : null}
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <label className="text-sm text-orange-900">
-          Date
-          <input
-            name="date"
-            type="date"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-            required
-          />
-        </label>
-        <label className="text-sm text-orange-900">
-          Distance (mi)
-          <input
-            name="distanceMiles"
-            type="number"
-            min="0.1"
-            step="0.1"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-            required
-          />
-        </label>
-        <label className="text-sm text-orange-900">
-          Duration (minutes)
-          <input
-            name="durationMinutes"
-            type="number"
-            min="0"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm text-orange-900">
-          Ride type
-          <select
-            name="rideType"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-            defaultValue="OUTDOOR"
+      {isOpen ? (
+        <>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="text-sm text-orange-900">
+              Date
+              <input
+                name="date"
+                type="date"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                required
+              />
+            </label>
+            <label className="text-sm text-orange-900">
+              Distance (mi)
+              <input
+                name="distanceMiles"
+                type="number"
+                min="0.1"
+                step="0.1"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                required
+              />
+            </label>
+            <label className="text-sm text-orange-900">
+              Duration (minutes)
+              <input
+                name="durationMinutes"
+                type="number"
+                min="0"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm text-orange-900">
+              Ride type
+              <select
+                name="rideType"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                defaultValue="OUTDOOR"
+              >
+                {RIDE_TYPES.map((rideType) => (
+                  <option key={rideType} value={rideType}>
+                    {rideType.replaceAll("_", " ")}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-sm text-orange-900">
+              Weather
+              <input
+                name="weather"
+                type="text"
+                placeholder="Optional"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+              />
+            </label>
+            <label className="text-sm text-orange-900">
+              Road condition
+              <select
+                name="roadCondition"
+                className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
+                defaultValue="Normal"
+              >
+                {ROAD_CONDITIONS.map((condition) => (
+                  <option key={condition} value={condition}>
+                    {condition}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex items-center gap-2 pt-6 text-sm text-orange-900">
+              <input
+                name="wasWet"
+                type="checkbox"
+                className="h-4 w-4 rounded border-orange-300 text-orange-600"
+              />
+              Ride was wet
+            </label>
+          </div>
+
+          <label className="mt-3 block text-sm text-orange-900">
+            Notes
+            <textarea
+              name="notes"
+              className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || disabled}
+            className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {RIDE_TYPES.map((rideType) => (
-              <option key={rideType} value={rideType}>
-                {rideType.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-orange-900">
-          Weather
-          <input
-            name="weather"
-            type="text"
-            placeholder="Optional"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm text-orange-900">
-          Road condition
-          <select
-            name="roadCondition"
-            className="mt-1 w-full rounded-xl border border-orange-200 px-3 py-2"
-            defaultValue="Normal"
-          >
-            {ROAD_CONDITIONS.map((condition) => (
-              <option key={condition} value={condition}>
-                {condition}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2 pt-6 text-sm text-orange-900">
-          <input
-            name="wasWet"
-            type="checkbox"
-            className="h-4 w-4 rounded border-orange-300 text-orange-600"
-          />
-          Ride was wet
-        </label>
-      </div>
+            {isSubmitting ? "Saving..." : "Save ride"}
+          </button>
 
-      <label className="mt-3 block text-sm text-orange-900">
-        Notes
-        <textarea name="notes" className="mt-1 h-20 w-full rounded-xl border border-orange-200 px-3 py-2" />
-      </label>
+          {status.type === "success" && status.message ? (
+            <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              {status.message}
+            </p>
+          ) : null}
 
-      <button
-        type="submit"
-        disabled={isSubmitting || disabled}
-        className="mt-4 rounded-full bg-orange-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isSubmitting ? "Saving..." : "Save ride"}
-      </button>
+          {status.type === "error" && status.message ? (
+            <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">
+              {status.message}
+            </p>
+          ) : null}
 
-      {status.type === "success" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {status.message}
+          {status.type === "success" && status.suggestions && status.suggestions.length > 0 ? (
+            <ul className="mt-3 space-y-2">
+              {status.suggestions.map((suggestion) => (
+                <li
+                  key={suggestion}
+                  className="rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-900/80"
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </>
+      ) : (
+        <p className="mt-3 text-sm text-orange-900/70">
+          Tap <span className="font-semibold">Log a ride</span> to open the entry form.
         </p>
-      ) : null}
-
-      {status.type === "error" && status.message ? (
-        <p className="mt-3 rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
-      ) : null}
-
-      {status.type === "success" && status.suggestions && status.suggestions.length > 0 ? (
-        <ul className="mt-3 space-y-2">
-          {status.suggestions.map((suggestion) => (
-            <li
-              key={suggestion}
-              className="rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 text-sm text-orange-900/80"
-            >
-              {suggestion}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      )}
     </form>
   );
 }

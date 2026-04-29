@@ -11,9 +11,7 @@ Last updated: 2026-04-28
 ## P0 - Core Product Milestones
 
 - Maybe allow for the overdue components to be clicked and and bring to maintnance page or something similar
-
 - Have the shifting charge and breaklights charge update on time of bike ridden Ridden rather than days or miles
-
 - allow for the ready to ride to be clicked on and it takes you to maitinance : Ready to Ride 70% Good, minor checks
 
 or even just the reasoning because right like this it says 90 but nothing looks wrong:
@@ -56,17 +54,17 @@ Edit bike!
 
 when I sign out, then go to sign in with google it won't let me select an acount even though I had signed out
 
-- [ ] Connect to Strava
-  - [ ] Add Strava OAuth provider + secure token refresh handling.
-  - [ ] Add external activity mapping table to prevent duplicate imports.
-  - [ ] Add "Import rides from Strava" flow with preview + manual confirmation.
-  - [ ] Add sync metadata (last sync time, activity count, error state) in UI.
+- [x] Connect to Strava
+  - [x] Add Strava OAuth provider + secure token refresh handling.
+  - [x] Add external activity mapping table to prevent duplicate imports.
+  - [x] Add "Import rides from Strava" flow with preview + manual confirmation.
+  - [x] Add sync metadata (last sync time, activity count, error state) in UI.
 
-- [ ] Multi-bike optionality
-  - [ ] Add bike switcher in app shell and persist selected bike per user.
-  - [ ] Update server queries/services to use selected bike instead of `findFirst`.
-  - [ ] Add create/edit/archive bike flows and safe defaults for first-time users.
-  - [ ] Ensure all logging pages (rides, maintenance, pressure, fit, checklist) are bike-aware.
+- [x] Multi-bike optionality
+  - [x] Add bike switcher in app shell and persist selected bike per user.
+  - [x] Update server queries/services to use selected bike instead of `findFirst`.
+  - [x] Add create/edit/archive bike flows and safe defaults for first-time users.
+  - [x] Ensure all logging pages (rides, maintenance, pressure, fit, checklist) are bike-aware.
 
 - [ ] Dev / Stage / Prod environment flow
   - [ ] Define separate env var sets and databases for development, staging, and production.

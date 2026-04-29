@@ -17,6 +17,7 @@ model User {
   selectedBikeId String?
   bikes          Bike[]    @relation("UserOwnedBikes")
   selectedBike   Bike?     @relation("UserSelectedBike", fields: [selectedBikeId], references: [id], onDelete: SetNull)
+  stravaConnection StravaConnection?
   accounts       Account[]
   sessions       Session[]
   createdAt      DateTime  @default(now())
@@ -47,6 +48,7 @@ model Bike {
   pressureSetups    TirePressureSetup[]
   fitMeasurements   FitMeasurement[]
   checklistItems    ChecklistItem[]
+  stravaImports     StravaActivityImport[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -85,6 +87,7 @@ model Ride {
   roadCondition   String?
   wasWet          Boolean  @default(false)
   notes           String?
+  stravaImport    StravaActivityImport?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -158,6 +161,49 @@ model ChecklistItem {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model StravaConnection {
+  id                  String           @id @default(cuid())
+  userId              String           @unique
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stravaAthleteId     BigInt           @unique
+  username            String?
+  firstName           String?
+  lastName            String?
+  accessToken         String
+  refreshToken        String
+  tokenType           String           @default("Bearer")
+  scope               String
+  expiresAt           DateTime
+  lastSyncAt          DateTime?
+  lastSyncImportedCount Int            @default(0)
+  lastSyncStatus      StravaSyncStatus @default(CONNECTED)
+  lastSyncError       String?
+  activityImports     StravaActivityImport[]
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model StravaActivityImport {
+  id                 String           @id @default(cuid())
+  stravaConnectionId String
+  stravaConnection   StravaConnection @relation(fields: [stravaConnectionId], references: [id], onDelete: Cascade)
+  stravaActivityId   String
+  bikeId             String
+  bike               Bike             @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  rideId             String?          @unique
+  ride               Ride?            @relation(fields: [rideId], references: [id], onDelete: SetNull)
+  activityName       String?
+  activityType       String?
+  startedAt          DateTime
+  distanceMeters     Float?
+  movingTimeSeconds  Int?
+  importedAt         DateTime         @default(now())
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@unique([stravaConnectionId, stravaActivityId])
 }
 
 model Account {
@@ -247,4 +293,11 @@ enum MaintenanceEventType {
   FIT_ADJUSTMENT
   REPLACED_COMPONENT
   OTHER
+}
+
+enum StravaSyncStatus {
+  CONNECTED
+  SUCCESS
+  NO_NEW_DATA
+  ERROR
 }

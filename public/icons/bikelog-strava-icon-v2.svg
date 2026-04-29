@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Tire -->
+  <circle cx="512" cy="512" r="300" fill="none" stroke="#fb923c" stroke-width="92"/>
+  <circle cx="512" cy="512" r="300" fill="none" stroke="#fdba74" stroke-width="20" stroke-dasharray="8 24" stroke-linecap="round"/>
+  <circle cx="512" cy="512" r="214" fill="none" stroke="#1f2937" stroke-width="22"/>
+
+  <!-- Wrench in tire -->
+  <g transform="rotate(-34 512 512)">
+    <!-- Handle -->
+    <rect x="472" y="312" width="80" height="392" rx="38" fill="#f8fafc"/>
+
+    <!-- Open-end jaw -->
+    <circle cx="512" cy="292" r="88" fill="#f8fafc"/>
+    <polygon points="512,292 640,238 640,346" fill="#111827"/>
+    <circle cx="512" cy="292" r="34" fill="#111827"/>
+
+    <!-- Box-end -->
+    <circle cx="512" cy="736" r="92" fill="#f8fafc"/>
+    <circle cx="512" cy="736" r="42" fill="#111827"/>
+  </g>
+
+  <!-- Hub accent -->
+  <circle cx="512" cy="512" r="56" fill="#fb923c"/>
+  <circle cx="512" cy="512" r="18" fill="#f8fafc"/>
+</svg>

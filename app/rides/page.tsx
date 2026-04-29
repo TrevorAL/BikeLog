@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { RideForm } from "@/components/rides/RideForm";
 import { RideList } from "@/components/rides/RideList";
+import { StravaImportPanel } from "@/components/rides/StravaImportPanel";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { requireServerUser } from "@/lib/auth";
@@ -16,34 +17,58 @@ async function getRidesPageData(userId: string) {
       return {
         bike: undefined,
         rides: [],
+        stravaConnection: null,
         dbConnected: true,
       };
     }
 
-    const bike = await prisma.bike.findUnique({
-      where: {
-        id: bikeId,
-      },
-      select: {
-        id: true,
-        name: true,
-        rides: {
-          orderBy: {
-            date: "desc",
+    const [bike, stravaConnection] = await Promise.all([
+      prisma.bike.findUnique({
+        where: {
+          id: bikeId,
+        },
+        select: {
+          id: true,
+          name: true,
+          rides: {
+            orderBy: {
+              date: "desc",
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.stravaConnection.findUnique({
+        where: {
+          userId,
+        },
+        select: {
+          id: true,
+          scope: true,
+          expiresAt: true,
+          lastSyncAt: true,
+          lastSyncImportedCount: true,
+          lastSyncStatus: true,
+          lastSyncError: true,
+          _count: {
+            select: {
+              activityImports: true,
+            },
+          },
+        },
+      }),
+    ]);
 
     return {
       bike,
       rides: bike?.rides ?? [],
+      stravaConnection,
       dbConnected: true,
     };
   } catch {
     return {
       bike: undefined,
       rides: [],
+      stravaConnection: null,
       dbConnected: false,
     };
   }
@@ -51,7 +76,7 @@ async function getRidesPageData(userId: string) {
 
 export default async function RidesPage() {
   const user = await requireServerUser();
-  const { bike, rides, dbConnected } = await getRidesPageData(user.id);
+  const { bike, rides, stravaConnection, dbConnected } = await getRidesPageData(user.id);
   const totalMiles = rides.reduce((sum, ride) => sum + ride.distanceMiles, 0);
   const now = new Date();
   const monthlyMiles = rides
@@ -99,7 +124,30 @@ export default async function RidesPage() {
       </section>
 
       <section className="mt-6">
-        <RideForm bikeId={bike?.id} disabled={!bike || !dbConnected} />
+        <RideForm bikeId={bike?.id} disabled={!bike || !dbConnected} collapsible />
+      </section>
+
+      <section className="mt-6">
+        <StravaImportPanel
+          bikeId={bike?.id}
+          disabled={!bike || !dbConnected}
+          connection={
+            stravaConnection
+              ? {
+                  id: stravaConnection.id,
+                  sync: {
+                    status: stravaConnection.lastSyncStatus,
+                    lastSyncAt: stravaConnection.lastSyncAt?.toISOString() ?? null,
+                    lastSyncImportedCount: stravaConnection.lastSyncImportedCount,
+                    lastSyncError: stravaConnection.lastSyncError,
+                    totalImportedCount: stravaConnection._count.activityImports,
+                    expiresAt: stravaConnection.expiresAt.toISOString(),
+                    scope: stravaConnection.scope,
+                  },
+                }
+              : null
+          }
+        />
       </section>
 
       <section className="mt-6">

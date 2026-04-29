@@ -88,6 +88,28 @@ async function adjustActiveComponentMileage(
   }
 }
 
+export async function createRideAndUpdateMileageWithTx(
+  tx: Prisma.TransactionClient,
+  input: CreateRideInput,
+) {
+  const ride = await tx.ride.create({
+    data: {
+      bikeId: input.bikeId,
+      date: input.date,
+      distanceMiles: input.distanceMiles,
+      durationMinutes: input.durationMinutes,
+      rideType: input.rideType,
+      weather: input.weather,
+      roadCondition: input.roadCondition,
+      wasWet: input.wasWet,
+      notes: input.notes,
+    },
+  });
+
+  await adjustActiveComponentMileage(tx, input.bikeId, input.distanceMiles);
+  return ride;
+}
+
 export function getRideConditionSuggestions(input: {
   wasWet: boolean;
   roadCondition?: string;
@@ -107,22 +129,7 @@ export function getRideConditionSuggestions(input: {
 
 export async function createRideAndUpdateMileage(input: CreateRideInput): Promise<Ride> {
   return prisma.$transaction(async (tx) => {
-    const ride = await tx.ride.create({
-      data: {
-        bikeId: input.bikeId,
-        date: input.date,
-        distanceMiles: input.distanceMiles,
-        durationMinutes: input.durationMinutes,
-        rideType: input.rideType,
-        weather: input.weather,
-        roadCondition: input.roadCondition,
-        wasWet: input.wasWet,
-        notes: input.notes,
-      },
-    });
-
-    await adjustActiveComponentMileage(tx, input.bikeId, input.distanceMiles);
-    return ride;
+    return createRideAndUpdateMileageWithTx(tx, input);
   });
 }
 
