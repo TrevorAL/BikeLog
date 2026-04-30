@@ -51,7 +51,31 @@ type StravaActivity = {
   distance?: number | null;
   moving_time?: number | null;
   elapsed_time?: number | null;
+  total_elevation_gain?: number | null;
+  elev_high?: number | null;
+  elev_low?: number | null;
+  average_speed?: number | null;
+  max_speed?: number | null;
+  average_cadence?: number | null;
+  average_watts?: number | null;
+  weighted_average_watts?: number | null;
+  max_watts?: number | null;
+  average_heartrate?: number | null;
+  max_heartrate?: number | null;
+  calories?: number | null;
+  kilojoules?: number | null;
+  suffer_score?: number | null;
+  kudos_count?: number | null;
+  comment_count?: number | null;
+  achievement_count?: number | null;
+  device_watts?: boolean | null;
   trainer?: boolean | null;
+  commute?: boolean | null;
+  map?: {
+    id?: string | null;
+    summary_polyline?: string | null;
+    polyline?: string | null;
+  } | null;
   description?: string | null;
 };
 
@@ -61,6 +85,75 @@ type StravaDetailedGear = {
   brand_name?: string | null;
   model_name?: string | null;
 };
+
+type StravaStreamResponseItem = {
+  type?: string;
+  data?: unknown[];
+  series_type?: string;
+  original_size?: number;
+  resolution?: string;
+};
+
+type StravaStreamResponse = Record<string, StravaStreamResponseItem | undefined>;
+
+export type StravaActivityStreams = {
+  time: Array<number | null>;
+  distance: Array<number | null>;
+  altitude: Array<number | null>;
+  velocitySmooth: Array<number | null>;
+  gradeSmooth: Array<number | null>;
+  heartRate: Array<number | null>;
+  cadence: Array<number | null>;
+  watts: Array<number | null>;
+  temperature: Array<number | null>;
+  moving: Array<number | null>;
+  latLng: Array<{ lat: number; lng: number }>;
+};
+
+function toNullableNumberSeries(stream?: StravaStreamResponseItem) {
+  if (!stream || !Array.isArray(stream.data)) {
+    return [] as Array<number | null>;
+  }
+
+  return stream.data.map((value) => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+
+    if (typeof value === "boolean") {
+      return value ? 1 : 0;
+    }
+
+    return null;
+  });
+}
+
+function toLatLngSeries(stream?: StravaStreamResponseItem) {
+  if (!stream || !Array.isArray(stream.data)) {
+    return [] as Array<{ lat: number; lng: number }>;
+  }
+
+  const points: Array<{ lat: number; lng: number }> = [];
+
+  for (const value of stream.data) {
+    if (!Array.isArray(value) || value.length < 2) {
+      continue;
+    }
+
+    const lat = value[0];
+    const lng = value[1];
+    if (
+      typeof lat === "number" &&
+      Number.isFinite(lat) &&
+      typeof lng === "number" &&
+      Number.isFinite(lng)
+    ) {
+      points.push({ lat, lng });
+    }
+  }
+
+  return points;
+}
 
 export type StravaPreviewActivity = {
   stravaActivityId: string;
@@ -557,6 +650,36 @@ export async function fetchStravaActivityById(input: {
   });
 
   return payload;
+}
+
+export async function fetchStravaActivityStreamsById(input: {
+  userId: string;
+  activityId: string;
+}) {
+  const payload = await fetchStravaApi<StravaStreamResponse>({
+    userId: input.userId,
+    path: `/activities/${encodeURIComponent(input.activityId)}/streams`,
+    query: {
+      keys: "time,distance,altitude,velocity_smooth,grade_smooth,heartrate,cadence,watts,temp,moving,latlng",
+      key_by_type: "true",
+      resolution: "high",
+      series_type: "time",
+    },
+  });
+
+  return {
+    time: toNullableNumberSeries(payload.time),
+    distance: toNullableNumberSeries(payload.distance),
+    altitude: toNullableNumberSeries(payload.altitude),
+    velocitySmooth: toNullableNumberSeries(payload.velocity_smooth),
+    gradeSmooth: toNullableNumberSeries(payload.grade_smooth),
+    heartRate: toNullableNumberSeries(payload.heartrate),
+    cadence: toNullableNumberSeries(payload.cadence),
+    watts: toNullableNumberSeries(payload.watts),
+    temperature: toNullableNumberSeries(payload.temp),
+    moving: toNullableNumberSeries(payload.moving),
+    latLng: toLatLngSeries(payload.latlng),
+  } satisfies StravaActivityStreams;
 }
 
 export function toRideCreationPayload(activity: StravaActivity) {

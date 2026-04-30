@@ -369,7 +369,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
 
       <div className="mt-4 h-[420px] rounded-xl border border-slate-100 bg-slate-50 p-3">
         {chartData.length > 1 ? (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
             <AreaChart data={chartData} margin={{ top: 16, right: 24, left: 8, bottom: 12 }}>
               <defs>
                 <linearGradient id="ride-distance-fill" x1="0" y1="0" x2="0" y2="1">

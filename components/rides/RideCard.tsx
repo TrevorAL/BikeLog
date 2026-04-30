@@ -11,6 +11,7 @@ type RideCardProps = {
   wasWet?: boolean;
   notes?: string | null;
   actions?: ReactNode;
+  onClick?: () => void;
 };
 
 export function RideCard({
@@ -23,11 +24,30 @@ export function RideCard({
   wasWet,
   notes,
   actions,
+  onClick,
 }: RideCardProps) {
   const normalizedDate = date instanceof Date ? date : new Date(date);
+  const isInteractive = typeof onClick === "function";
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <article
+      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
+        isInteractive ? "cursor-pointer transition hover:border-sky-300 hover:shadow" : ""
+      }`}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!isInteractive) {
+          return;
+        }
+
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick?.();
+        }
+      }}
+      role={isInteractive ? "button" : undefined}
+      tabIndex={isInteractive ? 0 : undefined}
+    >
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-600">{rideType.replaceAll("_", " ")}</p>
@@ -80,7 +100,11 @@ export function RideCard({
         ) : null}
       </div>
 
-      {actions ? <div className="mt-3">{actions}</div> : null}
+      {actions ? (
+        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+          {actions}
+        </div>
+      ) : null}
     </article>
   );
 }
