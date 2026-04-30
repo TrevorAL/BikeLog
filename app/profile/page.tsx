@@ -3,6 +3,7 @@ import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getNotificationPreferencesForUser } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,19 @@ type ProfilePageData = {
       lastSyncError: string | null;
     } | null;
   };
+  notifications?: {
+    notificationsEnabled: boolean;
+    emailEnabled: boolean;
+    smsEnabled: boolean;
+    phoneNumber: string | null;
+    bikes: Array<{
+      bikeId: string;
+      bikeLabel: string;
+      enabled: boolean;
+      emailEnabled: boolean;
+      smsEnabled: boolean;
+    }>;
+  };
 };
 
 function bikeLabel(input: {
@@ -51,7 +65,7 @@ function bikeLabel(input: {
 
 async function getProfilePageData(userId: string): Promise<ProfilePageData> {
   try {
-    const [user, bikes, googleAccount, stravaConnection] = await Promise.all([
+    const [user, bikes, googleAccount, stravaConnection, notifications] = await Promise.all([
       prisma.user.findUnique({
         where: {
           id: userId,
@@ -106,6 +120,7 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
           lastSyncError: true,
         },
       }),
+      getNotificationPreferencesForUser(userId),
     ]);
 
     if (!user) {
@@ -147,6 +162,7 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
             }
           : null,
       },
+      notifications,
     };
   } catch {
     return {
@@ -174,11 +190,12 @@ export default async function ProfilePage() {
         </section>
       ) : null}
 
-      {data.user && data.bikes && data.connections ? (
+      {data.user && data.bikes && data.connections && data.notifications ? (
         <ProfileSettingsForm
           user={data.user}
           bikes={data.bikes}
           connections={data.connections}
+          notifications={data.notifications}
         />
       ) : (
         <EmptyState

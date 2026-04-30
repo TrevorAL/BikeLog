@@ -11,6 +11,7 @@ import {
   MobileNavDropdown,
   type NavMenuGroup,
 } from "@/components/layout/NavDropdown";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { cn } from "@/lib/utils";
 
 type AppHeaderBike = {
@@ -195,6 +196,7 @@ export function AppHeader({
             {userEmail && bikes.length > 0 ? (
               <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
             ) : null}
+            {userEmail ? <NotificationBell /> : null}
             {userEmail ? (
               <Link
                 href="/profile"

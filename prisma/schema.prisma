@@ -21,6 +21,7 @@ model User {
   bikes          Bike[]    @relation("UserOwnedBikes")
   selectedBike   Bike?     @relation("UserSelectedBike", fields: [selectedBikeId], references: [id], onDelete: SetNull)
   stravaConnection StravaConnection?
+  notificationPreference UserNotificationPreference?
   accounts       Account[]
   sessions       Session[]
   createdAt      DateTime  @default(now())
@@ -52,6 +53,8 @@ model Bike {
   fitMeasurements   FitMeasurement[]
   checklistItems    ChecklistItem[]
   stravaImports     StravaActivityImport[]
+  notificationPreferences BikeNotificationPreference[]
+  maintenanceNotificationLogs MaintenanceNotificationLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -209,6 +212,60 @@ model StravaActivityImport {
   @@unique([stravaConnectionId, stravaActivityId])
 }
 
+model UserNotificationPreference {
+  id                   String                     @id @default(cuid())
+  userId               String                     @unique
+  user                 User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationsEnabled Boolean                    @default(true)
+  emailEnabled         Boolean                    @default(true)
+  smsEnabled           Boolean                    @default(false)
+  phoneNumber          String?
+  bikePreferences      BikeNotificationPreference[]
+  deliveryLogs         MaintenanceNotificationLog[]
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+}
+
+model BikeNotificationPreference {
+  id                           String                     @id @default(cuid())
+  userNotificationPreferenceId String
+  userNotificationPreference   UserNotificationPreference @relation(fields: [userNotificationPreferenceId], references: [id], onDelete: Cascade)
+  userId                       String
+  bikeId                       String
+  bike                         Bike                       @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  enabled                      Boolean                    @default(true)
+  emailEnabled                 Boolean                    @default(true)
+  smsEnabled                   Boolean                    @default(false)
+  createdAt                    DateTime                   @default(now())
+  updatedAt                    DateTime                   @updatedAt
+
+  @@unique([userId, bikeId])
+  @@index([userNotificationPreferenceId])
+  @@index([bikeId])
+}
+
+model MaintenanceNotificationLog {
+  id                           String                     @id @default(cuid())
+  userNotificationPreferenceId String
+  userNotificationPreference   UserNotificationPreference @relation(fields: [userNotificationPreferenceId], references: [id], onDelete: Cascade)
+  userId                       String
+  bikeId                       String
+  bike                         Bike                       @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  dueKey                       String
+  dueStatus                    String
+  channel                      NotificationChannel
+  dayKey                       String
+  deliveryStatus               NotificationDeliveryStatus @default(PENDING)
+  attemptedAt                  DateTime                   @default(now())
+  deliveredAt                  DateTime?
+  errorMessage                 String?
+  createdAt                    DateTime                   @default(now())
+  updatedAt                    DateTime                   @updatedAt
+
+  @@unique([userId, bikeId, dueKey, channel, dayKey])
+  @@index([bikeId, dayKey])
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -313,4 +370,16 @@ enum DistanceUnit {
 enum PressureUnit {
   PSI
   BAR
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  DELIVERED
+  SKIPPED
+  ERROR
 }

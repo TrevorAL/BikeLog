@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { SignOutButton } from "@/components/layout/SignOutButton";
+import {
+  publishNotificationsEnabledValue,
+  subscribeToNotificationsEnabledChange,
+} from "@/lib/notification-sync";
 
 type DistanceUnit = "MI" | "KM";
 type PressureUnit = "PSI" | "BAR";
@@ -46,10 +50,25 @@ type ProfileConnections = {
   strava: ProfileStravaConnection | null;
 };
 
+type ProfileNotificationSettings = {
+  notificationsEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  phoneNumber: string | null;
+  bikes: Array<{
+    bikeId: string;
+    bikeLabel: string;
+    enabled: boolean;
+    emailEnabled: boolean;
+    smsEnabled: boolean;
+  }>;
+};
+
 type ProfileSettingsFormProps = {
   user: ProfileUser;
   bikes: ProfileBikeOption[];
   connections: ProfileConnections;
+  notifications: ProfileNotificationSettings;
 };
 
 type FormStatus = {
@@ -81,6 +100,27 @@ type ProfileUpdateResponse = {
 type ProfileAvatarUploadResponse = {
   error?: string;
   image?: string;
+};
+
+type NotificationPreferencesResponse = {
+  error?: string;
+  preferences?: ProfileNotificationSettings;
+};
+
+type NotificationBikeFormState = {
+  bikeId: string;
+  bikeLabel: string;
+  enabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+};
+
+type NotificationFormState = {
+  notificationsEnabled: boolean;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  phoneNumber: string;
+  bikes: NotificationBikeFormState[];
 };
 
 function toFormState(user: ProfileUser): FormState {
@@ -154,10 +194,29 @@ function isUploadedAvatarPath(value: string) {
   return value.startsWith("/uploads/avatars/");
 }
 
+function toNotificationFormState(
+  notifications: ProfileNotificationSettings,
+): NotificationFormState {
+  return {
+    notificationsEnabled: notifications.notificationsEnabled,
+    emailEnabled: notifications.emailEnabled,
+    smsEnabled: notifications.smsEnabled,
+    phoneNumber: notifications.phoneNumber ?? "",
+    bikes: notifications.bikes.map((bike) => ({
+      bikeId: bike.bikeId,
+      bikeLabel: bike.bikeLabel,
+      enabled: bike.enabled,
+      emailEnabled: bike.emailEnabled,
+      smsEnabled: bike.smsEnabled,
+    })),
+  };
+}
+
 export function ProfileSettingsForm({
   user,
   bikes,
   connections,
+  notifications,
 }: ProfileSettingsFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -172,7 +231,25 @@ export function ProfileSettingsForm({
   const [isDisconnectingStrava, setIsDisconnectingStrava] = useState(false);
   const [stravaConnection, setStravaConnection] = useState(connections.strava);
   const [stravaStatus, setStravaStatus] = useState<FormStatus>({ type: "idle" });
+  const [notificationForm, setNotificationForm] = useState<NotificationFormState>(() =>
+    toNotificationFormState(notifications),
+  );
+  const [notificationStatus, setNotificationStatus] = useState<FormStatus>({ type: "idle" });
+  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    return subscribeToNotificationsEnabledChange((enabled) => {
+      setNotificationForm((current) =>
+        current.notificationsEnabled === enabled
+          ? current
+          : {
+              ...current,
+              notificationsEnabled: enabled,
+            },
+      );
+    });
+  }, []);
 
   const browserTimezone = useMemo(() => {
     try {
@@ -375,6 +452,56 @@ export function ProfileSettingsForm({
       });
     } finally {
       setIsResettingAvatar(false);
+    }
+  }
+
+  async function saveNotificationSettings() {
+    setIsSavingNotifications(true);
+    setNotificationStatus({ type: "idle" });
+
+    try {
+      const response = await fetch("/api/notifications/preferences", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notificationsEnabled: notificationForm.notificationsEnabled,
+          emailEnabled: notificationForm.emailEnabled,
+          smsEnabled: notificationForm.smsEnabled,
+          phoneNumber: notificationForm.phoneNumber.trim() || null,
+          bikePreferences: notificationForm.bikes.map((bike) => ({
+            bikeId: bike.bikeId,
+            enabled: bike.enabled,
+            emailEnabled: bike.emailEnabled,
+            smsEnabled: bike.smsEnabled,
+          })),
+        }),
+      });
+
+      const payload = (await response.json()) as NotificationPreferencesResponse;
+      if (!response.ok || !payload.preferences) {
+        throw new Error(payload.error ?? "Could not save notification settings.");
+      }
+
+      setNotificationForm(toNotificationFormState(payload.preferences));
+      publishNotificationsEnabledValue(payload.preferences.notificationsEnabled);
+      setNotificationStatus({
+        type: "success",
+        message: "Notification settings saved.",
+      });
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not save notification settings right now.";
+      setNotificationStatus({
+        type: "error",
+        message,
+      });
+    } finally {
+      setIsSavingNotifications(false);
     }
   }
 
@@ -586,6 +713,185 @@ export function ProfileSettingsForm({
           {saveStatus.type === "error" && saveStatus.message ? (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
               {saveStatus.message}
+            </p>
+          ) : null}
+        </form>
+      </section>
+
+      <section id="notifications" className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm scroll-mt-40">
+        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Notifications</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Choose which bikes send maintenance alerts and whether they arrive by email, text, or both.
+        </p>
+
+        <form
+          className="mt-4 space-y-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            await saveNotificationSettings();
+          }}
+        >
+          <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+            <input
+              type="checkbox"
+              checked={notificationForm.notificationsEnabled}
+              onChange={(event) => {
+                const enabled = event.target.checked;
+                setNotificationForm((current) => ({
+                  ...current,
+                  notificationsEnabled: enabled,
+                }));
+                publishNotificationsEnabledValue(enabled);
+              }}
+              className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+            />
+            Enable maintenance notifications
+          </label>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={notificationForm.emailEnabled}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    emailEnabled: event.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+              />
+              Email notifications
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={notificationForm.smsEnabled}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    smsEnabled: event.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+              />
+              Text (SMS) notifications
+            </label>
+          </div>
+
+          <label className="block text-sm text-slate-700">
+            SMS phone number
+            <input
+              type="tel"
+              value={notificationForm.phoneNumber}
+              onChange={(event) =>
+                setNotificationForm((current) => ({
+                  ...current,
+                  phoneNumber: event.target.value,
+                }))
+              }
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              placeholder="+1 555 555 1234"
+            />
+            <span className="mt-1 block text-xs text-slate-500">
+              Required only if SMS delivery is enabled globally or for any bike.
+            </span>
+          </label>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">Per-bike delivery</p>
+            <div className="mt-2 space-y-2">
+              {notificationForm.bikes.map((bike, index) => {
+                const mode =
+                  !bike.enabled
+                    ? "off"
+                    : bike.emailEnabled && bike.smsEnabled
+                      ? "both"
+                      : bike.emailEnabled
+                        ? "email"
+                        : bike.smsEnabled
+                          ? "sms"
+                          : "off";
+
+                return (
+                  <div
+                    key={bike.bikeId}
+                    className="grid gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 sm:grid-cols-[minmax(0,_1fr)_220px]"
+                  >
+                    <p className="text-sm font-medium text-slate-900">{bike.bikeLabel}</p>
+                    <label className="text-xs text-slate-700">
+                      Channel
+                      <select
+                        value={mode}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setNotificationForm((current) => {
+                            const nextBikes = [...current.bikes];
+                            const nextBike = { ...nextBikes[index] };
+
+                            if (value === "off") {
+                              nextBike.enabled = false;
+                              nextBike.emailEnabled = false;
+                              nextBike.smsEnabled = false;
+                            } else if (value === "email") {
+                              nextBike.enabled = true;
+                              nextBike.emailEnabled = true;
+                              nextBike.smsEnabled = false;
+                            } else if (value === "sms") {
+                              nextBike.enabled = true;
+                              nextBike.emailEnabled = false;
+                              nextBike.smsEnabled = true;
+                            } else {
+                              nextBike.enabled = true;
+                              nextBike.emailEnabled = true;
+                              nextBike.smsEnabled = true;
+                            }
+
+                            nextBikes[index] = nextBike;
+                            return {
+                              ...current,
+                              bikes: nextBikes,
+                            };
+                          });
+                        }}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900"
+                      >
+                        <option value="off">Off</option>
+                        <option value="email">Email</option>
+                        <option value="sms">Text</option>
+                        <option value="both">Email + Text</option>
+                      </select>
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {notificationForm.smsEnabled &&
+          notificationForm.phoneNumber.trim().length === 0 ? (
+            <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              SMS is enabled, but no phone number is set.
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={isSavingNotifications}
+            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSavingNotifications ? "Saving..." : "Save notifications"}
+          </button>
+
+          {notificationStatus.type === "success" && notificationStatus.message ? (
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              {notificationStatus.message}
+            </p>
+          ) : null}
+
+          {notificationStatus.type === "error" && notificationStatus.message ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              {notificationStatus.message}
             </p>
           ) : null}
         </form>
