@@ -5,6 +5,9 @@ import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { OrbitDial } from "@/components/ui/viz/OrbitDial";
+import { PillBars } from "@/components/ui/viz/PillBars";
+import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
@@ -155,6 +158,26 @@ export default async function BikePage({ searchParams }: BikePageProps) {
   const editBikeHref = bike
     ? `/bike?editBikeId=${encodeURIComponent(bike.id)}#bike-manager`
     : "/bike#bike-manager";
+  const rideTrendValues = bike
+    ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles)
+    : [];
+  const componentMileageBars = bike
+    ? [...bike.components]
+        .sort((a, b) => b.currentMileage - a.currentMileage)
+        .slice(0, 6)
+        .map((component) => ({
+          label: component.name,
+          value: component.currentMileage,
+          hint: component.type.replaceAll("_", " "),
+        }))
+    : [];
+  const serviceMileages = bike
+    ? bike.maintenanceEvents
+        .filter((event) => typeof event.mileageAtService === "number")
+        .slice(0, 8)
+        .reverse()
+        .map((event) => event.mileageAtService as number)
+    : [];
 
   return (
     <AppShell title="Bike Profile" description="Main bike details and quick stats.">
@@ -219,6 +242,48 @@ export default async function BikePage({ searchParams }: BikePageProps) {
               title="Ready to Ride"
               value={`${data.maintenance.readiness.score}%`}
               subtitle={data.maintenance.readiness.label}
+            />
+          </section>
+
+          <section className="mt-6 grid gap-4 xl:grid-cols-3">
+            <OrbitDial
+              label="Ready Gauge"
+              value={data.maintenance.readiness.score}
+              suffix="%"
+              hint={data.maintenance.readiness.label}
+              tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
+            />
+            <WaveSparkline
+              title="Ride Distance Stream"
+              values={rideTrendValues}
+              valueLabel={`${bike.rides.length} total rides`}
+              subtitle="Newest rides push the wave to the right."
+              tone="sky"
+            />
+            <PillBars
+              title="Component Mileage Stack"
+              items={componentMileageBars}
+              valueSuffix=" mi"
+              tone="sky"
+              scrollable
+              className="h-full"
+            />
+          </section>
+
+          <section className="mt-4 grid gap-4 xl:grid-cols-2">
+            <WaveSparkline
+              title="Service Mileage Rhythm"
+              values={serviceMileages}
+              valueLabel={serviceMileages.length > 0 ? `${serviceMileages.length} logged events` : "No samples"}
+              subtitle="Mileage points captured at each service event."
+              tone="orange"
+            />
+            <OrbitDial
+              label="Service Coverage"
+              value={Math.max(0, 100 - data.maintenance.maintenanceSummary.dueNow.length * 22)}
+              suffix="%"
+              hint={`${data.maintenance.maintenanceSummary.dueNow.length} due now`}
+              tone={data.maintenance.maintenanceSummary.dueNow.length > 0 ? "orange" : "emerald"}
             />
           </section>
 

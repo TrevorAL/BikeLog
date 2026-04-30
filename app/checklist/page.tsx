@@ -1,6 +1,8 @@
 import { Checklist } from "@/components/checklist/Checklist";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { OrbitDial } from "@/components/ui/viz/OrbitDial";
+import { PillBars } from "@/components/ui/viz/PillBars";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
@@ -54,6 +56,18 @@ export default async function ChecklistPage() {
   const user = await requireServerUser();
   const data = await getChecklistPageData(user.id);
   const bike = data.bike;
+  const items = bike?.checklistItems ?? [];
+  const completedCount = items.filter((item) => item.completed).length;
+  const pendingCount = Math.max(0, items.length - completedCount);
+  const defaultCount = items.filter((item) => item.isDefault).length;
+  const customCount = Math.max(0, items.length - defaultCount);
+  const completionPercent = items.length > 0 ? (completedCount / items.length) * 100 : 0;
+  const checklistBars = [
+    { label: "Completed", value: completedCount },
+    { label: "Pending", value: pendingCount },
+    { label: "Default items", value: defaultCount },
+    { label: "Custom items", value: customCount },
+  ];
 
   return (
     <AppShell title="Checklist" description="Before-ride readiness checks and custom prep items.">
@@ -68,11 +82,24 @@ export default async function ChecklistPage() {
       ) : null}
 
       {bike ? (
-        <Checklist
-          bikeId={bike.id}
-          initialItems={bike.checklistItems}
-          disabled={!data.dbConnected}
-        />
+        <>
+          <section className="mb-6 grid gap-4 xl:grid-cols-2">
+            <OrbitDial
+              label="Checklist Completion"
+              value={completionPercent}
+              suffix="%"
+              hint={`${completedCount}/${items.length} items complete`}
+              tone={completionPercent >= 80 ? "emerald" : "sky"}
+            />
+            <PillBars title="Checklist Breakdown" items={checklistBars} tone="emerald" />
+          </section>
+
+          <Checklist
+            bikeId={bike.id}
+            initialItems={bike.checklistItems}
+            disabled={!data.dbConnected}
+          />
+        </>
       ) : (
         <EmptyState
           title="No bike data yet"

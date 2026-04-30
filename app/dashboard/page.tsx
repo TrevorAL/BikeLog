@@ -1,16 +1,105 @@
 import Link from "next/link";
+import type { ComponentType } from "@prisma/client";
 import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { DueSoonList } from "@/components/maintenance/DueSoonList";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { OrbitDial } from "@/components/ui/viz/OrbitDial";
+import { PillBars } from "@/components/ui/viz/PillBars";
+import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
+import { MAINTENANCE_INTERVALS } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
 import { calculatePressure } from "@/lib/pressure";
 
 export const dynamic = "force-dynamic";
+
+const componentMaintenanceRuleByType: Partial<
+  Record<ComponentType, { key: string; intervalMiles: number }>
+> = {
+  CHAIN: {
+    key: "chain-lube",
+    intervalMiles: MAINTENANCE_INTERVALS.chainLube.intervalMiles,
+  },
+  CASSETTE: {
+    key: "cassette-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.cassetteInspection.intervalMiles,
+  },
+  FRONT_TIRE: {
+    key: "tire-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.tireInspection.intervalMiles,
+  },
+  REAR_TIRE: {
+    key: "tire-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.tireInspection.intervalMiles,
+  },
+  FRONT_BRAKE_PAD: {
+    key: "brake-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles,
+  },
+  REAR_BRAKE_PAD: {
+    key: "brake-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles,
+  },
+  FRONT_ROTOR: {
+    key: "rotor-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.rotorInspection.intervalMiles,
+  },
+  REAR_ROTOR: {
+    key: "rotor-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.rotorInspection.intervalMiles,
+  },
+  CHAINRINGS: {
+    key: "chain-wear",
+    intervalMiles: MAINTENANCE_INTERVALS.chainWear.intervalMiles,
+  },
+  CLEATS: {
+    key: "cleat-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.cleatInspection.intervalMiles,
+  },
+  BAR_TAPE: {
+    key: "bar-tape-inspect",
+    intervalMiles: MAINTENANCE_INTERVALS.barTapeInspection.intervalMiles,
+  },
+};
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function getProgressToService(input: {
+  detail: string;
+  intervalMiles: number;
+  status: "GOOD" | "DUE_SOON" | "DUE_NOW" | "OVERDUE";
+}) {
+  if (input.detail.toLowerCase() === "due now") {
+    return 100;
+  }
+
+  const remainingMatch = input.detail.match(/^([0-9]+(?:\.[0-9]+)?) miles remaining$/i);
+  if (remainingMatch) {
+    const milesRemaining = Number(remainingMatch[1]);
+    return clampPercent(((input.intervalMiles - milesRemaining) / input.intervalMiles) * 100);
+  }
+
+  const overdueMatch = input.detail.match(/^([0-9]+(?:\.[0-9]+)?) miles overdue$/i);
+  if (overdueMatch) {
+    return 100;
+  }
+
+  if (input.status === "DUE_NOW" || input.status === "OVERDUE") {
+    return 100;
+  }
+
+  if (input.status === "DUE_SOON") {
+    return 85;
+  }
+
+  return 0;
+}
 
 async function getDashboardData(userId: string) {
   try {
@@ -130,10 +219,54 @@ export default async function DashboardPage() {
 
   const bikeMileage = bike ? data.maintenance.bikeMileage : 0;
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
+  const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
   const recentRides = bike ? bike.rides.slice(0, 5) : [];
-  const componentMileageHighlights = bike
-    ? [...bike.components].sort((a, b) => b.currentMileage - a.currentMileage).slice(0, 6)
+  const rideTrendValues = bike ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles) : [];
+  const dueItemMap = new Map(
+    bike ? data.maintenance.maintenanceSummary.dueItems.map((item) => [item.key, item] as const) : [],
+  );
+  const componentMileageBars = bike
+    ? [...bike.components]
+        .map((component) => {
+          const maintenanceRule = componentMaintenanceRuleByType[component.type];
+          if (!maintenanceRule) {
+            return null;
+          }
+
+          const dueItem = dueItemMap.get(maintenanceRule.key);
+          if (!dueItem) {
+            return null;
+          }
+
+          return {
+            label: component.name,
+            value: getProgressToService({
+              detail: dueItem.detail,
+              intervalMiles: maintenanceRule.intervalMiles,
+              status: dueItem.status,
+            }),
+            hint: `${component.type.replaceAll("_", " ")} · ${dueItem.detail}`,
+          };
+        })
+        .filter(
+          (bar): bar is { label: string; value: number; hint: string } =>
+            Boolean(bar),
+        )
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8)
     : [];
+  const rideTypeMap = new Map<string, number>();
+  for (const ride of bike?.rides ?? []) {
+    const key = ride.rideType.replaceAll("_", " ");
+    rideTypeMap.set(key, (rideTypeMap.get(key) ?? 0) + 1);
+  }
+  const rideTypeBars = Array.from(rideTypeMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([label, value]) => ({
+      label,
+      value,
+    }));
 
   return (
     <AppShell
@@ -204,6 +337,30 @@ export default async function DashboardPage() {
           />
         </Link>
       </section>
+
+      {bike ? (
+        <section className="mt-6 grid gap-4 xl:grid-cols-3">
+          <OrbitDial
+            label="Readiness Pulse"
+            value={data.maintenance.readiness.score}
+            suffix="%"
+            hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
+            tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
+          />
+          <WaveSparkline
+            title="Ride Distance Wave"
+            values={rideTrendValues}
+            valueLabel={`${rideTrendValues.length} rides`}
+            subtitle="Most recent rides trend from left to right."
+            tone="sky"
+          />
+          <PillBars
+            title="Ride Type Mix"
+            items={rideTypeBars}
+            tone="orange"
+          />
+        </section>
+      ) : null}
 
       {bike ? (
         <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -287,43 +444,25 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
-              Component mileage highlights
-            </h2>
+        <PillBars
+          title="Component Mileage Load"
+          items={componentMileageBars}
+          valueSuffix="%"
+          tone="sky"
+          maxValue={100}
+          minBarPercent={0}
+          scrollable
+          listMaxHeightClassName="max-h-[340px] overflow-y-auto pr-1"
+          className="h-full p-5"
+          headerAction={
             <Link
               href="/components"
               className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
               Open components
             </Link>
-          </div>
-          {componentMileageHighlights.length > 0 ? (
-            <ul className="mt-3 space-y-2">
-              {componentMileageHighlights.map((component) => (
-                <li
-                  key={component.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{component.name}</p>
-                    <p className="text-xs text-slate-600">
-                      {component.type.replaceAll("_", " ")}
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {component.currentMileage.toFixed(1)} mi
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-              No active components found.
-            </p>
-          )}
-        </section>
+          }
+        />
       </section>
 
       <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">

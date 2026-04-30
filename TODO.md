@@ -10,25 +10,18 @@ Last updated: 2026-04-29
 
 ## P0 - Core Product Milestones
 
-### Due now / overdue
+- [ ] Maintenance reminder system
+  - [ ] Add scheduled reminder generation for due-soon and overdue items.
+  - [ ] Add per-bike notification preferences (in-app first, optional email next).
+  - [ ] Add "tomorrow / this week" reminder buckets.
+  - [ ] Trigger reminder emails from background Strava-updated data at the correct local send time.
+  - [ ] Ensure reminders only run for components present on that bike (no Di2/light reminders when missing).
 
-Nothing pending.
-
-### Due soon
-
-Nothing pending.
-
-- [x] Connect to Strava
-  - [x] Add Strava OAuth provider + secure token refresh handling.
-  - [x] Add external activity mapping table to prevent duplicate imports.
-  - [x] Add "Import rides from Strava" flow with preview + manual confirmation.
-  - [x] Add sync metadata (last sync time, activity count, error state) in UI.
-
-- [x] Multi-bike optionality
-  - [x] Add bike switcher in app shell and persist selected bike per user.
-  - [x] Update server queries/services to use selected bike instead of `findFirst`.
-  - [x] Add create/edit/archive bike flows and safe defaults for first-time users.
-  - [x] Ensure all logging pages (rides, maintenance, pressure, fit, checklist) are bike-aware.
+- [ ] Strava Sync 2.0
+  - [ ] Add background scheduled sync (not only on manual actions/page open).
+  - [ ] Add configurable sync windows (last 7/30/90 days).
+  - [ ] Add conflict handling for changed/deleted Strava activities.
+  - [ ] Add manual "sync now" action with result summary.
 
 - [ ] Dev / Stage / Prod environment flow
   - [ ] Define separate env var sets and databases for development, staging, and production.
@@ -38,10 +31,15 @@ Nothing pending.
 
 ## P1 - UX and Account Improvements
 
-- [x] Profile page
-  - [x] Add `/profile` route and nav link.
-  - [x] Show and edit name/avatar/timezone/unit preferences.
-  - [x] Add default bike preference and account connection management (Google/Strava).
+- [ ] Data integrity + trust
+  - [ ] Add source-of-truth mileage recalculation job from rides.
+  - [ ] Handle ride edit/delete impacts consistently across component mileage and readiness.
+  - [ ] Add Strava import/sync audit page (imported, skipped, failed, why).
+
+- [ ] Dashboard upgrade
+  - [ ] Add "This week" maintenance plan section.
+  - [ ] Add projected due dates for top wear-based components.
+  - [ ] Show readiness score deductions with direct fix links.
 
 - [ ] UI enhancement pass
   - [ ] Tighten mobile layout for nav + dense dashboard cards.
@@ -49,10 +47,12 @@ Nothing pending.
   - [ ] Add lightweight success/error toast feedback for mutations.
   - [ ] Run accessibility pass (keyboard focus, labels, contrast, hit targets).
 
-- [x] Auth UX follow-up
-  - [x] Validate Google account chooser behavior after sign-out/sign-in loop.
-
 ## P2 - Reliability and Engineering
+
+- [ ] Mobile + PWA polish
+  - [ ] Add installable PWA support and app metadata polish.
+  - [ ] Add fast "quick log ride" mobile flow.
+  - [ ] Add offline draft logging with retry on reconnect.
 
 - [ ] Expand automated tests
   - [ ] Add integration tests for components, maintenance, pressure presets, fit, and checklist APIs.

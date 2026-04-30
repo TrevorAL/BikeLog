@@ -3,6 +3,9 @@ import type { ComponentType } from "@prisma/client";
 import { ComponentManager } from "@/components/components/ComponentManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { OrbitDial } from "@/components/ui/viz/OrbitDial";
+import { PillBars } from "@/components/ui/viz/PillBars";
+import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import type { MaintenanceStatus } from "@/lib/constants";
@@ -120,6 +123,19 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
       ? data.maintenance.maintenanceSummary.dueItems.map((item) => [item.key, item] as const)
       : [],
   );
+  const mileageBars = bike
+    ? [...bike.components]
+        .sort((a, b) => b.currentMileage - a.currentMileage)
+        .slice(0, 8)
+        .map((component) => ({
+          label: component.name,
+          value: component.currentMileage,
+          hint: component.type.replaceAll("_", " "),
+        }))
+    : [];
+  const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
+  const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
+  const rideDistanceWave = bike ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles) : [];
 
   return (
     <AppShell title="Components" description="Track wear and mileage for every major part.">
@@ -134,33 +150,60 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
       ) : null}
 
       {bike ? (
-        <ComponentManager
-          bikeId={bike.id}
-          disabled={!data.dbConnected}
-          initialShowAddForm={shouldOpenAddForm}
-          components={bike.components.map((component) => {
-            const maintenanceKey = maintenanceKeyByComponentType[component.type];
-            const dueItem = maintenanceKey ? dueItemMap.get(maintenanceKey) : undefined;
-            const conditionStatus = (dueItem?.status ?? "GOOD") as MaintenanceStatus;
-            const nextMaintenance = dueItem
-              ? `${dueItem.label}: ${dueItem.detail}`
-              : "No immediate action";
+        <>
+          <section className="mb-6 grid gap-4 xl:grid-cols-3">
+            <OrbitDial
+              label="Component Health"
+              value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
+              suffix="%"
+              hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
+              tone={dueNowCount > 0 ? "orange" : "emerald"}
+            />
+            <WaveSparkline
+              title="Ride Input Wave"
+              values={rideDistanceWave}
+              valueLabel={`${bike.rides.length} rides`}
+              subtitle="Mileage flow that drives wear on active parts."
+              tone="sky"
+            />
+            <PillBars
+              title="Top Mileage Components"
+              items={mileageBars}
+              valueSuffix=" mi"
+              tone="sky"
+              scrollable
+              className="h-full"
+            />
+          </section>
 
-            return {
-              id: component.id,
-              type: component.type,
-              name: component.name,
-              brand: component.brand,
-              model: component.model,
-              installDate: component.installDate?.toISOString() ?? null,
-              initialMileage: component.initialMileage,
-              currentMileage: component.currentMileage,
-              notes: component.notes,
-              conditionStatus,
-              nextMaintenance,
-            };
-          })}
-        />
+          <ComponentManager
+            bikeId={bike.id}
+            disabled={!data.dbConnected}
+            initialShowAddForm={shouldOpenAddForm}
+            components={bike.components.map((component) => {
+              const maintenanceKey = maintenanceKeyByComponentType[component.type];
+              const dueItem = maintenanceKey ? dueItemMap.get(maintenanceKey) : undefined;
+              const conditionStatus = (dueItem?.status ?? "GOOD") as MaintenanceStatus;
+              const nextMaintenance = dueItem
+                ? `${dueItem.label}: ${dueItem.detail}`
+                : "No immediate action";
+
+              return {
+                id: component.id,
+                type: component.type,
+                name: component.name,
+                brand: component.brand,
+                model: component.model,
+                installDate: component.installDate?.toISOString() ?? null,
+                initialMileage: component.initialMileage,
+                currentMileage: component.currentMileage,
+                notes: component.notes,
+                conditionStatus,
+                nextMaintenance,
+              };
+            })}
+          />
+        </>
       ) : (
         <EmptyState
           title="No bike data yet"

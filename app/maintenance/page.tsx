@@ -1,6 +1,9 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { MaintenanceWorkspace } from "@/components/maintenance/MaintenanceWorkspace";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { OrbitDial } from "@/components/ui/viz/OrbitDial";
+import { PillBars } from "@/components/ui/viz/PillBars";
+import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
@@ -105,6 +108,15 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
   const data = await getMaintenancePageData(user.id);
   const bike = data.bike;
   const maintenance = bike ? data.maintenance : undefined;
+  const dueNowCount = maintenance?.maintenanceSummary.dueNow.length ?? 0;
+  const dueSoonCount = maintenance?.maintenanceSummary.dueSoon.length ?? 0;
+  const suggestionCount = maintenance?.maintenanceSummary.suggestions.length ?? 0;
+  const rideDistanceWave = bike ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles) : [];
+  const dueBars = [
+    { label: "Due now / overdue", value: dueNowCount },
+    { label: "Due soon", value: dueSoonCount },
+    { label: "Condition suggestions", value: suggestionCount },
+  ];
 
   return (
     <AppShell
@@ -122,30 +134,49 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
       ) : null}
 
       {bike ? (
-        <MaintenanceWorkspace
-          bikeId={bike.id}
-          bikeCurrentMileage={maintenance?.bikeMileage ?? 0}
-          dueNowItems={maintenance?.maintenanceSummary.dueNow ?? []}
-          dueSoonItems={maintenance?.maintenanceSummary.dueSoon ?? []}
-          suggestions={maintenance?.maintenanceSummary.suggestions ?? []}
-          initialDueKey={typeof dueFromQuery === "string" ? dueFromQuery : undefined}
-          components={bike.components.map((component) => ({
-            id: component.id,
-            name: component.name,
-            type: component.type,
-            currentMileage: component.currentMileage,
-          }))}
-          events={bike.maintenanceEvents.map((event) => ({
-            id: event.id,
-            date: event.date.toISOString(),
-            type: event.type,
-            mileageAtService: event.mileageAtService,
-            notes: event.notes,
-            componentId: event.componentId,
-            componentName: event.component?.name,
-          }))}
-          disabled={!data.dbConnected}
-        />
+        <>
+          <section className="mb-6 grid gap-4 xl:grid-cols-3">
+            <OrbitDial
+              label="Maintenance Heat"
+              value={Math.min(100, dueNowCount * 24 + dueSoonCount * 10 + suggestionCount * 6)}
+              hint={`${dueNowCount} urgent · ${dueSoonCount} upcoming`}
+              tone={dueNowCount > 0 ? "orange" : "sky"}
+            />
+            <WaveSparkline
+              title="Ride Stress Wave"
+              values={rideDistanceWave}
+              valueLabel={`${bike.rides.length} rides`}
+              subtitle="Recent ride load that may trigger service actions."
+              tone="orange"
+            />
+            <PillBars title="Maintenance Queue" items={dueBars} tone="orange" />
+          </section>
+
+          <MaintenanceWorkspace
+            bikeId={bike.id}
+            bikeCurrentMileage={maintenance?.bikeMileage ?? 0}
+            dueNowItems={maintenance?.maintenanceSummary.dueNow ?? []}
+            dueSoonItems={maintenance?.maintenanceSummary.dueSoon ?? []}
+            suggestions={maintenance?.maintenanceSummary.suggestions ?? []}
+            initialDueKey={typeof dueFromQuery === "string" ? dueFromQuery : undefined}
+            components={bike.components.map((component) => ({
+              id: component.id,
+              name: component.name,
+              type: component.type,
+              currentMileage: component.currentMileage,
+            }))}
+            events={bike.maintenanceEvents.map((event) => ({
+              id: event.id,
+              date: event.date.toISOString(),
+              type: event.type,
+              mileageAtService: event.mileageAtService,
+              notes: event.notes,
+              componentId: event.componentId,
+              componentName: event.component?.name,
+            }))}
+            disabled={!data.dbConnected}
+          />
+        </>
       ) : (
         <section className="mt-6">
           <EmptyState
