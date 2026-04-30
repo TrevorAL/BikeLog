@@ -1,9 +1,18 @@
+import { cn } from "@/lib/utils";
+
 type WaveSparklineProps = {
   title: string;
   values: number[];
   valueLabel?: string;
   subtitle?: string;
   tone?: "sky" | "orange" | "emerald";
+  size?: "default" | "large";
+  detailed?: boolean;
+  xAxisLabels?: {
+    left: string;
+    right: string;
+  };
+  className?: string;
 };
 
 const toneMap = {
@@ -33,6 +42,11 @@ function toPath(values: number[], width: number, height: number, padding: number
       line: "",
       area: "",
       points: [] as Array<{ x: number; y: number }>,
+      min: 0,
+      max: 0,
+      range: 1,
+      graphWidth: width - padding * 2,
+      graphHeight: height - padding * 2,
     };
   }
 
@@ -56,7 +70,7 @@ function toPath(values: number[], width: number, height: number, padding: number
 
   const area = `${line} L ${(padding + graphWidth).toFixed(1)} ${(height - padding).toFixed(1)} L ${padding.toFixed(1)} ${(height - padding).toFixed(1)} Z`;
 
-  return { line, area, points };
+  return { line, area, points, min, max, range, graphWidth, graphHeight };
 }
 
 export function WaveSparkline({
@@ -65,16 +79,24 @@ export function WaveSparkline({
   valueLabel,
   subtitle,
   tone = "sky",
+  size = "default",
+  detailed = false,
+  xAxisLabels,
+  className,
 }: WaveSparklineProps) {
-  const height = 126;
-  const width = 320;
-  const padding = 14;
+  const isLarge = size === "large";
+  const height = isLarge ? 220 : 126;
+  const width = isLarge ? 720 : 320;
+  const padding = detailed ? 28 : 14;
   const colors = toneMap[tone];
-  const { line, area, points } = toPath(values, width, height, padding);
+  const { line, area, points, graphHeight, min, max, range } = toPath(values, width, height, padding);
   const latestPoint = points[points.length - 1];
+  const average = values.length > 0 ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+  const gradientId = `spark-fill-${tone}-${size}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const yTickRatios = detailed ? [0, 0.25, 0.5, 0.75, 1] : [];
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className={cn("rounded-2xl border border-slate-200 bg-white p-4 shadow-sm", className)}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -84,17 +106,69 @@ export function WaveSparkline({
           <span className={`rounded-full px-2 py-1 text-xs font-semibold ${colors.badge}`}>{valueLabel}</span>
         ) : null}
       </div>
-      <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 px-2 py-2">
+      {detailed && values.length > 0 ? (
+        <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+            <p className="uppercase tracking-wide text-slate-500">Latest</p>
+            <p className="font-semibold text-slate-800">{values[values.length - 1].toFixed(1)} mi</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+            <p className="uppercase tracking-wide text-slate-500">Average</p>
+            <p className="font-semibold text-slate-800">{average.toFixed(1)} mi</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+            <p className="uppercase tracking-wide text-slate-500">Peak</p>
+            <p className="font-semibold text-slate-800">{max.toFixed(1)} mi</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+            <p className="uppercase tracking-wide text-slate-500">Lowest</p>
+            <p className="font-semibold text-slate-800">{min.toFixed(1)} mi</p>
+          </div>
+        </div>
+      ) : null}
+      <div className={cn("mt-3 overflow-hidden rounded-xl border border-slate-100 bg-slate-50 px-2 py-2", isLarge ? "px-3 py-3" : "")}>
         {values.length > 1 ? (
-          <svg viewBox={`0 0 ${width} ${height}`} className="h-28 w-full">
+          <svg viewBox={`0 0 ${width} ${height}`} className={cn("w-full", isLarge ? "h-56" : "h-28")}>
             <defs>
-              <linearGradient id={`spark-fill-${tone}`} x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={colors.fillFrom} />
                 <stop offset="100%" stopColor={colors.fillTo} />
               </linearGradient>
             </defs>
-            <path d={area} fill={`url(#spark-fill-${tone})`} />
+            {yTickRatios.map((ratio) => {
+              const y = (padding + graphHeight - ratio * graphHeight).toFixed(1);
+              const tickValue = min + ratio * range;
+              return (
+                <g key={`tick-${ratio}`}>
+                  <line
+                    x1={padding}
+                    y1={y}
+                    x2={(width - padding).toFixed(1)}
+                    y2={y}
+                    stroke="#cbd5e1"
+                    strokeDasharray={ratio === 0 || ratio === 1 ? "0" : "4 4"}
+                    strokeWidth="1"
+                  />
+                  <text x={6} y={Number(y) + 3} fontSize="10" fill="#64748b">
+                    {tickValue.toFixed(0)}
+                  </text>
+                </g>
+              );
+            })}
+            <path d={area} fill={`url(#${gradientId})`} />
             <path d={line} fill="none" stroke={colors.stroke} strokeWidth="3" strokeLinecap="round" />
+            {detailed
+              ? points.map((point, index) => (
+                  <circle
+                    key={`${point.x}-${point.y}-${index}`}
+                    cx={point.x}
+                    cy={point.y}
+                    r="2.1"
+                    fill={colors.stroke}
+                    opacity={0.85}
+                  />
+                ))
+              : null}
             {latestPoint ? (
               <circle
                 cx={latestPoint.x}
@@ -109,6 +183,12 @@ export function WaveSparkline({
         ) : (
           <p className="py-10 text-center text-sm text-slate-600">Add more data to see trend waves.</p>
         )}
+        {detailed && xAxisLabels ? (
+          <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+            <span>{xAxisLabels.left}</span>
+            <span>{xAxisLabels.right}</span>
+          </div>
+        ) : null}
       </div>
     </article>
   );

@@ -1,9 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { PressureCalculator } from "@/components/pressure/PressureCalculator";
 import { PressurePresetManager } from "@/components/pressure/PressurePresetManager";
-import { OrbitDial } from "@/components/ui/viz/OrbitDial";
-import { PillBars } from "@/components/ui/viz/PillBars";
-import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
@@ -63,26 +60,6 @@ export default async function PressurePage() {
   const user = await requireServerUser();
   const data = await getPressurePageData(user.id);
   const bike = data.bike;
-  const presets = bike?.pressureSetups ?? [];
-  const frontSeries = [...presets.slice(0, 12)].reverse().map((preset) => preset.frontPsi);
-  const rearSeries = [...presets.slice(0, 12)].reverse().map((preset) => preset.rearPsi);
-  const frontAverage =
-    frontSeries.length > 0
-      ? frontSeries.reduce((sum, value) => sum + value, 0) / frontSeries.length
-      : 0;
-  const rearAverage =
-    rearSeries.length > 0
-      ? rearSeries.reduce((sum, value) => sum + value, 0) / rearSeries.length
-      : 0;
-  const surfaceCountMap = new Map<string, number>();
-  for (const preset of presets) {
-    const key = preset.surface.replaceAll("_", " ");
-    surfaceCountMap.set(key, (surfaceCountMap.get(key) ?? 0) + 1);
-  }
-  const surfaceBars = Array.from(surfaceCountMap.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-    .map(([label, value]) => ({ label, value }));
 
   return (
     <AppShell
@@ -98,45 +75,6 @@ export default async function PressurePage() {
           </p>
         </section>
       ) : null}
-
-      <section className="mb-6 grid gap-4 xl:grid-cols-3">
-        <OrbitDial
-          label="Front PSI Orbit"
-          value={frontAverage}
-          min={50}
-          max={100}
-          suffix=" psi"
-          hint={presets[0] ? `Latest: ${Math.round(presets[0].frontPsi)} psi` : "No presets yet"}
-          tone="sky"
-        />
-        <OrbitDial
-          label="Rear PSI Orbit"
-          value={rearAverage}
-          min={55}
-          max={105}
-          suffix=" psi"
-          hint={presets[0] ? `Latest: ${Math.round(presets[0].rearPsi)} psi` : "No presets yet"}
-          tone="orange"
-        />
-        <PillBars title="Surface Preset Mix" items={surfaceBars} tone="emerald" />
-      </section>
-
-      <section className="mb-6 grid gap-4 xl:grid-cols-2">
-        <WaveSparkline
-          title="Front Pressure Trend"
-          values={frontSeries}
-          valueLabel={`${frontSeries.length} samples`}
-          subtitle="Trend across your most recently updated presets."
-          tone="sky"
-        />
-        <WaveSparkline
-          title="Rear Pressure Trend"
-          values={rearSeries}
-          valueLabel={`${rearSeries.length} samples`}
-          subtitle="Rear pressure trend for saved setups."
-          tone="orange"
-        />
-      </section>
 
       <PressureCalculator bikeId={bike?.id} disabled={!bike || !data.dbConnected} />
 

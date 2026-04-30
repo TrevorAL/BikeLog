@@ -5,7 +5,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
-import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import type { MaintenanceStatus } from "@/lib/constants";
@@ -135,7 +134,6 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
     : [];
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
-  const rideDistanceWave = bike ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles) : [];
 
   return (
     <AppShell title="Components" description="Track wear and mileage for every major part.">
@@ -151,20 +149,13 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
 
       {bike ? (
         <>
-          <section className="mb-6 grid gap-4 xl:grid-cols-3">
+          <section className="mb-6 grid gap-4 xl:grid-cols-2">
             <OrbitDial
               label="Component Health"
               value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
               suffix="%"
               hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
               tone={dueNowCount > 0 ? "orange" : "emerald"}
-            />
-            <WaveSparkline
-              title="Ride Input Wave"
-              values={rideDistanceWave}
-              valueLabel={`${bike.rides.length} rides`}
-              subtitle="Mileage flow that drives wear on active parts."
-              tone="sky"
             />
             <PillBars
               title="Top Mileage Components"

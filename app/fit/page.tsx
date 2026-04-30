@@ -1,11 +1,9 @@
 import { FitHistoryManager } from "@/components/fit/FitHistoryManager";
 import { FitMeasurementForm } from "@/components/fit/FitMeasurementForm";
+import { FitRangeCoach } from "@/components/fit/FitRangeCoach";
 import { FitSnapshot } from "@/components/fit/FitSnapshot";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { OrbitDial } from "@/components/ui/viz/OrbitDial";
-import { PillBars } from "@/components/ui/viz/PillBars";
-import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
@@ -56,25 +54,6 @@ export default async function FitPage() {
   const currentMeasurement =
     bike?.fitMeasurements.find((measurement) => measurement.isCurrent) ??
     bike?.fitMeasurements[0];
-  const history = bike?.fitMeasurements ?? [];
-  const saddleSeries = [...history]
-    .reverse()
-    .map((measurement) => measurement.saddleHeightMm)
-    .filter((value): value is number => typeof value === "number");
-  const reachSeries = [...history]
-    .reverse()
-    .map((measurement) => measurement.reachToHoodsMm)
-    .filter((value): value is number => typeof value === "number");
-  const currentMetricBars = [
-    { label: "Saddle height", value: currentMeasurement?.saddleHeightMm ?? 0, hint: "mm" },
-    { label: "Saddle setback", value: currentMeasurement?.saddleSetbackMm ?? 0, hint: "mm" },
-    { label: "Stem length", value: currentMeasurement?.stemLengthMm ?? 0, hint: "mm" },
-    { label: "Bar width", value: currentMeasurement?.handlebarWidthMm ?? 0, hint: "mm" },
-    { label: "Reach to hoods", value: currentMeasurement?.reachToHoodsMm ?? 0, hint: "mm" },
-  ].filter((item) => item.value > 0);
-  const saddleRange =
-    saddleSeries.length > 1 ? Math.max(...saddleSeries) - Math.min(...saddleSeries) : 0;
-  const fitConsistencyScore = Math.max(0, Math.min(100, 100 - saddleRange * 2.4));
 
   return (
     <AppShell title="Bike Fit" description="Store your setup measurements and keep fit history organized.">
@@ -90,40 +69,17 @@ export default async function FitPage() {
 
       {bike ? (
         <>
-          <section className="mb-6 grid gap-4 xl:grid-cols-3">
-            <OrbitDial
-              label="Fit Consistency"
-              value={fitConsistencyScore}
-              suffix="%"
-              hint={
-                saddleSeries.length > 1
-                  ? `Saddle height variation: ${saddleRange.toFixed(1)} mm`
-                  : "Add more measurements for consistency tracking."
-              }
-              tone={fitConsistencyScore >= 85 ? "emerald" : "orange"}
-            />
-            <WaveSparkline
-              title="Saddle Height Wave"
-              values={saddleSeries}
-              valueLabel={`${saddleSeries.length} samples`}
-              subtitle="History of saddle height adjustments."
-              tone="emerald"
-            />
-            <WaveSparkline
-              title="Reach Wave"
-              values={reachSeries}
-              valueLabel={`${reachSeries.length} samples`}
-              subtitle="History of reach-to-hoods adjustments."
-              tone="sky"
-            />
-          </section>
-
           <section className="mb-6">
-            <PillBars
-              title="Current Fit Metric Stack"
-              items={currentMetricBars}
-              valueSuffix=" mm"
-              tone="sky"
+            <FitRangeCoach
+              current={{
+                saddleHeightMm: currentMeasurement?.saddleHeightMm ?? undefined,
+                saddleSetbackMm: currentMeasurement?.saddleSetbackMm ?? undefined,
+                stemLengthMm: currentMeasurement?.stemLengthMm ?? undefined,
+                handlebarWidthMm: currentMeasurement?.handlebarWidthMm ?? undefined,
+                reachToHoodsMm: currentMeasurement?.reachToHoodsMm ?? undefined,
+                crankLengthMm: currentMeasurement?.crankLengthMm ?? undefined,
+                spacerStackMm: currentMeasurement?.spacerStackMm ?? undefined,
+              }}
             />
           </section>
 

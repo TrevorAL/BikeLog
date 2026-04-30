@@ -5,8 +5,6 @@ import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { OrbitDial } from "@/components/ui/viz/OrbitDial";
-import { PillBars } from "@/components/ui/viz/PillBars";
 import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
@@ -158,26 +156,21 @@ export default async function BikePage({ searchParams }: BikePageProps) {
   const editBikeHref = bike
     ? `/bike?editBikeId=${encodeURIComponent(bike.id)}#bike-manager`
     : "/bike#bike-manager";
-  const rideTrendValues = bike
-    ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles)
-    : [];
-  const componentMileageBars = bike
-    ? [...bike.components]
-        .sort((a, b) => b.currentMileage - a.currentMileage)
-        .slice(0, 6)
-        .map((component) => ({
-          label: component.name,
-          value: component.currentMileage,
-          hint: component.type.replaceAll("_", " "),
-        }))
-    : [];
-  const serviceMileages = bike
-    ? bike.maintenanceEvents
-        .filter((event) => typeof event.mileageAtService === "number")
-        .slice(0, 8)
-        .reverse()
-        .map((event) => event.mileageAtService as number)
-    : [];
+  const rideTrendRides = bike ? [...bike.rides.slice(0, 24)].reverse() : [];
+  const rideTrendValues = rideTrendRides.map((ride) => ride.distanceMiles);
+  const rideTrendAxisLabels =
+    rideTrendRides.length > 0
+      ? {
+          left: rideTrendRides[0].date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          }),
+          right: rideTrendRides[rideTrendRides.length - 1].date.toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+          }),
+        }
+      : undefined;
 
   return (
     <AppShell title="Bike Profile" description="Main bike details and quick stats.">
@@ -193,6 +186,26 @@ export default async function BikePage({ searchParams }: BikePageProps) {
 
       {bike ? (
         <>
+          <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                { href: editBikeHref, label: "Edit Bike" },
+                { href: "/components?open=add#add-component-form", label: "Add Component" },
+                { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
+                { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
+              ].map((action) => (
+                <Link
+                  key={action.label}
+                  href={action.href}
+                  className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  {action.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+
           <BikeSummaryCard
             name={`${bike.year ? `${bike.year} ` : ""}${bike.brand ?? ""} ${bike.model ?? bike.name}`.trim()}
             subtitle={`${bike.drivetrain ?? "Drivetrain not set"} · ${bike.brakeType ?? "Brake type not set"}`}
@@ -245,66 +258,17 @@ export default async function BikePage({ searchParams }: BikePageProps) {
             />
           </section>
 
-          <section className="mt-6 grid gap-4 xl:grid-cols-3">
-            <OrbitDial
-              label="Ready Gauge"
-              value={data.maintenance.readiness.score}
-              suffix="%"
-              hint={data.maintenance.readiness.label}
-              tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
-            />
+          <section className="mt-6">
             <WaveSparkline
               title="Ride Distance Stream"
               values={rideTrendValues}
-              valueLabel={`${bike.rides.length} total rides`}
-              subtitle="Newest rides push the wave to the right."
+              valueLabel={`${rideTrendRides.length} ride sample`}
+              subtitle="Detailed distance trend across your latest rides."
               tone="sky"
+              size="large"
+              detailed
+              xAxisLabels={rideTrendAxisLabels}
             />
-            <PillBars
-              title="Component Mileage Stack"
-              items={componentMileageBars}
-              valueSuffix=" mi"
-              tone="sky"
-              scrollable
-              className="h-full"
-            />
-          </section>
-
-          <section className="mt-4 grid gap-4 xl:grid-cols-2">
-            <WaveSparkline
-              title="Service Mileage Rhythm"
-              values={serviceMileages}
-              valueLabel={serviceMileages.length > 0 ? `${serviceMileages.length} logged events` : "No samples"}
-              subtitle="Mileage points captured at each service event."
-              tone="orange"
-            />
-            <OrbitDial
-              label="Service Coverage"
-              value={Math.max(0, 100 - data.maintenance.maintenanceSummary.dueNow.length * 22)}
-              suffix="%"
-              hint={`${data.maintenance.maintenanceSummary.dueNow.length} due now`}
-              tone={data.maintenance.maintenanceSummary.dueNow.length > 0 ? "orange" : "emerald"}
-            />
-          </section>
-
-          <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                { href: editBikeHref, label: "Edit Bike" },
-                { href: "/components?open=add#add-component-form", label: "Add Component" },
-                { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
-                { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                >
-                  {action.label}
-                </Link>
-              ))}
-            </div>
           </section>
         </>
       ) : (
