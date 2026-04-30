@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -78,6 +78,11 @@ type ProfileUpdateResponse = {
   };
 };
 
+type ProfileAvatarUploadResponse = {
+  error?: string;
+  image?: string;
+};
+
 function toFormState(user: ProfileUser): FormState {
   return {
     name: user.name ?? "",
@@ -138,6 +143,17 @@ function maskProviderAccountId(providerAccountId: string | null) {
   return `${providerAccountId.slice(0, 4)}...${providerAccountId.slice(-4)}`;
 }
 
+function getAvatarInitial(name: string, email: string | null) {
+  const firstName = name.trim().split(/\s+/)[0];
+  const fromName = firstName?.charAt(0);
+  const fromEmail = email?.trim().charAt(0);
+  return (fromName ?? fromEmail ?? "P").toUpperCase();
+}
+
+function isUploadedAvatarPath(value: string) {
+  return value.startsWith("/uploads/avatars/");
+}
+
 export function ProfileSettingsForm({
   user,
   bikes,
@@ -149,10 +165,14 @@ export function ProfileSettingsForm({
   const [form, setForm] = useState<FormState>(() => toFormState(user));
   const [saveStatus, setSaveStatus] = useState<FormStatus>({ type: "idle" });
   const [isSaving, setIsSaving] = useState(false);
+  const [avatarStatus, setAvatarStatus] = useState<FormStatus>({ type: "idle" });
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isResettingAvatar, setIsResettingAvatar] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [isDisconnectingStrava, setIsDisconnectingStrava] = useState(false);
   const [stravaConnection, setStravaConnection] = useState(connections.strava);
   const [stravaStatus, setStravaStatus] = useState<FormStatus>({ type: "idle" });
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const browserTimezone = useMemo(() => {
     try {
@@ -165,7 +185,10 @@ export function ProfileSettingsForm({
   const stravaFlashStatus = searchParams.get("strava");
   const stravaFlashMessage = searchParams.get("stravaMessage");
 
-  const avatarPreview = form.image.trim();
+  const avatarPath = form.image.trim();
+  const avatarPreview = isUploadedAvatarPath(avatarPath) ? avatarPath : "";
+  const avatarInitial = getAvatarInitial(form.name, user.email);
+  const hasCustomAvatar = avatarPreview.length > 0;
   const hasBikeOptions = bikes.length > 0;
   const googleConnected = connections.google.connected;
   const selectedBikeLabel =
@@ -258,6 +281,103 @@ export function ProfileSettingsForm({
     }
   }
 
+  async function uploadAvatar() {
+    const selectedFile = avatarInputRef.current?.files?.[0];
+    if (!selectedFile) {
+      setAvatarStatus({
+        type: "error",
+        message: "Choose an image file first.",
+      });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setAvatarStatus({ type: "idle" });
+
+    try {
+      const formData = new FormData();
+      formData.set("avatar", selectedFile);
+
+      const response = await fetch("/api/profile/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      const payload = (await response.json()) as ProfileAvatarUploadResponse;
+      if (!response.ok || !payload.image) {
+        throw new Error(payload.error ?? "Could not upload avatar.");
+      }
+
+      setForm((current) => ({
+        ...current,
+        image: payload.image ?? "",
+      }));
+      setAvatarStatus({
+        type: "success",
+        message: "Avatar uploaded.",
+      });
+      setSaveStatus({ type: "idle" });
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not upload avatar right now.";
+      setAvatarStatus({
+        type: "error",
+        message,
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
+  async function resetAvatarToDefault() {
+    setIsResettingAvatar(true);
+    setAvatarStatus({ type: "idle" });
+
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          image: "",
+        }),
+      });
+
+      const payload = (await response.json()) as ProfileUpdateResponse;
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Could not reset avatar.");
+      }
+
+      setForm((current) => ({
+        ...current,
+        image: "",
+      }));
+      setAvatarStatus({
+        type: "success",
+        message: "Switched to default avatar.",
+      });
+      setSaveStatus({ type: "idle" });
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not reset avatar right now.";
+      setAvatarStatus({
+        type: "error",
+        message,
+      });
+    } finally {
+      setIsResettingAvatar(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -305,31 +425,68 @@ export function ProfileSettingsForm({
                 placeholder="Your name"
               />
             </label>
-            <label className="text-sm text-slate-700">
-              Avatar URL
-              <input
-                value={form.image}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, image: event.target.value }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                placeholder="https://example.com/avatar.jpg"
-              />
-              <p className="mt-1 text-xs text-slate-600">
-                Leave blank to remove custom avatar.
-              </p>
-            </label>
           </div>
 
-          {avatarPreview ? (
-            <div className="inline-flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+          <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">Profile picture</p>
+            <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
               <div
                 aria-hidden
-                className="h-10 w-10 rounded-full border border-slate-200 bg-cover bg-center"
-                style={{ backgroundImage: `url(${avatarPreview})` }}
-              />
-              <span className="text-xs text-slate-600">Avatar preview</span>
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-sky-600 text-sm font-semibold text-white"
+              >
+                {hasCustomAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarPreview} alt="Avatar preview" className="h-full w-full object-cover" />
+                ) : (
+                  <span>{avatarInitial}</span>
+                )}
+              </div>
+              <span className="text-xs text-slate-600">
+                {hasCustomAvatar ? "Custom avatar active" : "Default avatar active"}
+              </span>
             </div>
+            <div className="mt-3 flex flex-wrap items-end gap-2">
+              <label className="text-xs text-slate-700">
+                Upload image
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-700"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={uploadAvatar}
+                disabled={isUploadingAvatar || isResettingAvatar}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isUploadingAvatar ? "Uploading..." : "Upload image"}
+              </button>
+              <button
+                type="button"
+                onClick={resetAvatarToDefault}
+                disabled={!hasCustomAvatar || isUploadingAvatar || isResettingAvatar}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isResettingAvatar ? "Resetting..." : "Use default"}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-600">
+              JPG, PNG, WEBP, or GIF up to 5 MB.
+            </p>
+          </section>
+
+          {avatarStatus.type === "success" && avatarStatus.message ? (
+            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+              {avatarStatus.message}
+            </p>
+          ) : null}
+
+          {avatarStatus.type === "error" && avatarStatus.message ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              {avatarStatus.message}
+            </p>
           ) : null}
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

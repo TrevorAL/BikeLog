@@ -7,6 +7,7 @@ import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
+import { formatComponentType } from "@/lib/component-options";
 import { MAINTENANCE_INTERVALS, type MaintenanceStatus } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
@@ -173,7 +174,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .sort((a, b) => b.currentMileage - a.currentMileage)
         .slice(0, 8)
         .map((component) => ({
-          label: component.name,
+          label: formatComponentType(component.type),
           value: component.currentMileage,
           hint: component.name,
         }))

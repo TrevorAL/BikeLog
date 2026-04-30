@@ -46,6 +46,10 @@ function isValidImageUrl(value: string) {
   }
 }
 
+function isValidUploadedAvatarPath(value: string) {
+  return /^\/uploads\/avatars\/[a-zA-Z0-9._-]+$/.test(value);
+}
+
 export async function PATCH(request: Request) {
   try {
     const auth = await requireApiUser(request);
@@ -84,10 +88,14 @@ export async function PATCH(request: Request) {
     }
 
     const imageInput = optionalStringOrNull(body.image);
-    if (typeof imageInput === "string" && !isValidImageUrl(imageInput)) {
+    if (
+      typeof imageInput === "string" &&
+      !isValidImageUrl(imageInput) &&
+      !isValidUploadedAvatarPath(imageInput)
+    ) {
       return NextResponse.json(
         {
-          error: "Avatar URL must be a valid http or https URL.",
+          error: "Avatar must be an uploaded image or a valid http/https URL.",
         },
         { status: 400 },
       );

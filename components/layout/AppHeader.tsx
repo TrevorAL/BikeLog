@@ -28,6 +28,22 @@ type AppHeaderProps = {
   selectedBikeId?: string;
 };
 
+function getProfileInitial(userName?: string | null, userEmail?: string | null) {
+  const firstName = userName?.trim().split(/\s+/)[0];
+  const fromName = firstName?.charAt(0);
+  const fromEmail = userEmail?.trim().charAt(0);
+  return (fromName ?? fromEmail ?? "P").toUpperCase();
+}
+
+function getCustomAvatarUrl(userImage?: string | null) {
+  const normalized = userImage?.trim();
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.startsWith("/uploads/avatars/") ? normalized : null;
+}
+
 export function AppHeader({
   title,
   description,
@@ -40,8 +56,9 @@ export function AppHeader({
 }: AppHeaderProps) {
   const pathname = usePathname();
   const primaryNavLinks = NAV_LINKS.filter((link) => link.href !== "/profile");
-  const profileInitial = (userName?.trim()?.charAt(0) ?? userEmail?.charAt(0) ?? "P").toUpperCase();
-  const profileImageUrl = userImage?.trim() ? userImage.trim() : null;
+  const profileInitial = getProfileInitial(userName, userEmail);
+  const profileImageUrl = getCustomAvatarUrl(userImage);
+  const hasCustomAvatar = Boolean(profileImageUrl);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -95,8 +112,12 @@ export function AppHeader({
                 className={cn(
                   "flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold transition",
                   pathname === "/profile"
-                    ? "border-sky-700 ring-2 ring-sky-200"
-                    : "border-slate-300 hover:border-slate-400 hover:bg-slate-100",
+                    ? hasCustomAvatar
+                      ? "border-sky-700 ring-2 ring-sky-200"
+                      : "border-sky-700 bg-sky-700 text-white ring-2 ring-sky-200"
+                    : hasCustomAvatar
+                      ? "border-slate-300 hover:border-slate-400 hover:bg-slate-100"
+                      : "border-sky-600 bg-sky-600 text-white hover:border-sky-700 hover:bg-sky-700",
                 )}
                 aria-label="Profile"
                 title="Profile"
@@ -109,7 +130,7 @@ export function AppHeader({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <span className="text-slate-700">{profileInitial}</span>
+                  <span className="leading-none">{profileInitial}</span>
                 )}
               </Link>
             ) : null}
