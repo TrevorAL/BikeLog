@@ -45,6 +45,13 @@ type MetricTarget = {
   unit: string;
 };
 
+type RiderMeasurementGuide = {
+  key: RiderEditableField;
+  label: string;
+  definition: string;
+  steps: string[];
+};
+
 const STORAGE_KEY = "bikelog-fit-range-coach-v1";
 const STORAGE_UNIT_KEY = "bikelog-fit-range-unit-v1";
 const CM_PER_INCH = 2.54;
@@ -65,6 +72,79 @@ const defaultDimensions: RiderDimensions = {
   flexibility: 3,
   posture: 3,
 };
+
+const riderMeasurementGuides: RiderMeasurementGuide[] = [
+  {
+    key: "heightCm",
+    label: "Height",
+    definition: "Overall standing body height used to scale baseline fit ranges.",
+    steps: [
+      "Stand barefoot with heels, hips, and upper back against a wall.",
+      "Keep your head neutral, eyes forward, and place a flat book level on your head.",
+      "Mark the wall at the bottom of the book and measure from floor to mark.",
+    ],
+  },
+  {
+    key: "inseamCm",
+    label: "Inseam",
+    definition: "Floor-to-pelvis length used heavily for saddle and crank recommendations.",
+    steps: [
+      "Stand barefoot with feet about shoulder width apart against a wall.",
+      "Place a hardcover book between your legs and pull it firmly upward to simulate saddle pressure.",
+      "Measure from floor to the top edge of the book (book spine side).",
+    ],
+  },
+  {
+    key: "torsoCm",
+    label: "Torso",
+    definition: "Upper-body length used for cockpit sizing targets.",
+    steps: [
+      "Stand upright with natural posture.",
+      "Find your sternal notch (the small dip between collarbones).",
+      "Measure from sternal notch straight down to crotch level.",
+    ],
+  },
+  {
+    key: "armCm",
+    label: "Arm",
+    definition: "Reach length from shoulder area to hand used in cockpit balance.",
+    steps: [
+      "Hold one arm straight out to the side, relaxed and level.",
+      "Measure from the bony shoulder point (acromion) to the center of your clenched fist.",
+      "Repeat once and average if the two attempts differ.",
+    ],
+  },
+  {
+    key: "shoulderWidthCm",
+    label: "Shoulder Width",
+    definition: "Distance across shoulders used to estimate handlebar width.",
+    steps: [
+      "Stand relaxed and find the bony shoulder points on both sides (acromion to acromion).",
+      "Measure straight across between those points.",
+      "Keep tape level; avoid wrapping around the front of shoulders.",
+    ],
+  },
+  {
+    key: "flexibility",
+    label: "Flexibility (1-5)",
+    definition: "Mobility score used to shift fit toward comfort or aggression.",
+    steps: [
+      "Use 1 if you are tight (hamstrings/hips/back) and struggle to hinge forward comfortably.",
+      "Use 3 for average recreational flexibility.",
+      "Use 5 if you are very mobile and can hold low positions comfortably.",
+    ],
+  },
+  {
+    key: "posture",
+    label: "Riding Posture (1-5)",
+    definition: "Preference score for upright vs aggressive riding position.",
+    steps: [
+      "Use 1 for endurance/upright comfort-first setup.",
+      "Use 3 for balanced all-around road position.",
+      "Use 5 for aggressive, low front-end race-oriented position.",
+    ],
+  },
+];
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -224,6 +304,7 @@ function FitRangeBar({ metric }: { metric: MetricTarget }) {
   const range = metric.max - metric.min;
   const lowEnd = ((metric.idealMin - metric.min) / range) * 100;
   const highStart = ((metric.idealMax - metric.min) / range) * 100;
+  const zoneMid = lowEnd + Math.max(0, highStart - lowEnd) / 2;
   const markerPercent =
     typeof metric.current === "number"
       ? clamp(((metric.current - metric.min) / range) * 100, 0, 100)
@@ -262,10 +343,15 @@ function FitRangeBar({ metric }: { metric: MetricTarget }) {
           ) : null}
         </div>
 
-        <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500">
-          <span>Too low</span>
-          <span className="font-medium text-emerald-700">Goldilocks zone</span>
-          <span>Too high</span>
+        <div className="relative mt-1 h-4 text-[11px] text-slate-500">
+          <span className="absolute left-0 top-0">Too low</span>
+          <span className="absolute right-0 top-0">Too high</span>
+          <span
+            className="absolute top-0 -translate-x-1/2 whitespace-nowrap font-medium text-emerald-700"
+            style={{ left: `${zoneMid}%` }}
+          >
+            Goldilocks zone
+          </span>
         </div>
       </div>
 
@@ -295,9 +381,27 @@ function FitRangeBar({ metric }: { metric: MetricTarget }) {
 export function FitRangeCoach({ current }: FitRangeCoachProps) {
   const [dimensions, setDimensions] = useState<RiderDimensions>(defaultDimensions);
   const [lengthUnit, setLengthUnit] = useState<RiderLengthUnit>("cm");
+  const [showDimensionsHelp, setShowDimensionsHelp] = useState(false);
   const [draftInputs, setDraftInputs] = useState<
     Partial<Record<RiderEditableField, string>>
   >({});
+
+  useEffect(() => {
+    if (!showDimensionsHelp) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowDimensionsHelp(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showDimensionsHelp]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dimensions));
@@ -409,9 +513,20 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
 
       <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
-            Rider dimensions
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
+              Rider dimensions
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDimensionsHelp(true)}
+              className="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 bg-white text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+              aria-label="Rider dimensions help"
+              title="Rider dimensions help"
+            >
+              i
+            </button>
+          </div>
           <label className="flex items-center gap-2 text-xs text-slate-600">
             Units
             <select
@@ -524,6 +639,62 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
           <FitRangeBar key={metric.key} metric={metric} />
         ))}
       </ul>
+
+      {showDimensionsHelp ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4"
+          onClick={() => setShowDimensionsHelp(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rider-dimensions-help-title"
+            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h4
+                  id="rider-dimensions-help-title"
+                  className="font-display text-xl font-semibold text-slate-900"
+                >
+                  Rider Dimensions Guide
+                </h4>
+                <p className="mt-1 text-sm text-slate-600">
+                  These inputs tune your target fit ranges. Expand each section for measurement
+                  instructions.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDimensionsHelp(false)}
+                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {riderMeasurementGuides.map((guide) => (
+                <details
+                  key={guide.key}
+                  className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                >
+                  <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+                    {guide.label}
+                  </summary>
+                  <p className="mt-2 text-xs text-slate-600">{guide.definition}</p>
+                  <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-slate-700">
+                    {guide.steps.map((step, index) => (
+                      <li key={`${guide.key}-${index}`}>{step}</li>
+                    ))}
+                  </ol>
+                </details>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       <p className="mt-4 text-xs text-slate-500">
         Fit ranges are guidance, not medical or professional fitting advice.
