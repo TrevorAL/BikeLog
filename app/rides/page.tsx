@@ -131,7 +131,6 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
       label,
       value,
     }));
-  const wetRidePercent = rides.length > 0 ? (rides.filter((ride) => ride.wasWet).length / rides.length) * 100 : 0;
 
   return (
     <AppShell
@@ -148,17 +147,12 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
         </section>
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-3">
+      <section className="grid gap-3 sm:grid-cols-2">
         <MetricCard title="Total miles" value={`${totalMiles.toFixed(1)} mi`} />
         <MetricCard title="Monthly miles" value={`${monthlyMiles.toFixed(1)} mi`} />
-        <MetricCard
-          title="Wet rides"
-          value={`${rides.filter((ride) => ride.wasWet).length}`}
-          subtitle="Used for chain-clean reminders"
-        />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-3">
+      <section className="mt-6 grid gap-4 xl:grid-cols-2">
         <WaveSparkline
           title="Mileage Wave"
           values={distanceWave}
@@ -172,13 +166,6 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
           valueLabel={durationWave.length > 0 ? "Timed rides" : "No durations"}
           subtitle="Minutes per ride for entries with duration."
           tone="emerald"
-        />
-        <OrbitDial
-          label="Wet Ride Ratio"
-          value={wetRidePercent}
-          suffix="%"
-          hint="Higher values increase cleaning reminders."
-          tone={wetRidePercent >= 35 ? "orange" : "sky"}
         />
       </section>
 
