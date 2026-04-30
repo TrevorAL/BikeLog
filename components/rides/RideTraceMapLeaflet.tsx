@@ -20,6 +20,8 @@ type RideTraceMapLeafletProps = {
   points: RideTracePoint[];
 };
 
+const PINCH_ZOOM_SENSITIVITY = 1.9;
+
 function buildBounds(points: RideTracePoint[]) {
   if (points.length < 2) {
     return null;
@@ -71,12 +73,13 @@ export function RideTraceMapLeaflet({ points }: RideTraceMapLeafletProps) {
         boundsOptions={{ padding: [20, 20] }}
         className="h-full w-full"
         scrollWheelZoom
+        wheelPxPerZoomLevel={32}
         touchZoom
         dragging
         doubleClickZoom
         keyboard={false}
-        zoomSnap={0.25}
-        zoomDelta={0.25}
+        zoomSnap={0.5}
+        zoomDelta={0.5}
       >
         <MapGestureCoordinator />
         <TileLayer
@@ -201,7 +204,8 @@ function MapGestureCoordinator() {
         typeof scaleCandidate === "number" && Number.isFinite(scaleCandidate) && scaleCandidate > 0
           ? scaleCandidate
           : gestureStartScale;
-      const deltaZoom = Math.log2(currentScale / gestureStartScale);
+      const deltaZoom =
+        Math.log2(currentScale / gestureStartScale) * PINCH_ZOOM_SENSITIVITY;
 
       map.setZoom(clampZoom(gestureStartZoom + deltaZoom), {
         animate: false,
