@@ -4,7 +4,6 @@ import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
-import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
@@ -160,21 +159,6 @@ export default async function BikePage({ searchParams }: BikePageProps) {
   const editBikeHref = bike
     ? `/bike?editBikeId=${encodeURIComponent(bike.id)}#bike-manager`
     : "/bike#bike-manager";
-  const rideTrendRides = bike ? [...bike.rides.slice(0, 24)].reverse() : [];
-  const rideTrendValues = rideTrendRides.map((ride) => ride.distanceMiles);
-  const rideTrendAxisLabels =
-    rideTrendRides.length > 0
-      ? {
-          left: rideTrendRides[0].date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-          }),
-          right: rideTrendRides[rideTrendRides.length - 1].date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-          }),
-        }
-      : undefined;
   const quickActions = [
     { href: editBikeHref, label: "Edit Bike" },
     { href: "/bike?openAddBike=1#bike-manager", label: "Add Bike" },
@@ -250,19 +234,6 @@ export default async function BikePage({ searchParams }: BikePageProps) {
               title="Ready to Ride"
               value={`${data.maintenance.readiness.score}%`}
               subtitle={data.maintenance.readiness.label}
-            />
-          </section>
-
-          <section className="mt-6">
-            <WaveSparkline
-              title="Ride Distance Stream"
-              values={rideTrendValues}
-              valueLabel={`${rideTrendRides.length} ride sample`}
-              subtitle="Detailed distance trend across your latest rides."
-              tone="sky"
-              size="large"
-              detailed
-              xAxisLabels={rideTrendAxisLabels}
             />
           </section>
         </>
