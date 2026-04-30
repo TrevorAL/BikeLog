@@ -82,4 +82,10 @@ jobs:
         run: npm run db:push
 
       - name: Run integration tests
-        run: node --import tsx --test tests/integration/**/*.test.ts
+        run: |
+          TEST_FILES="$(find tests/integration -type f -name '*.test.ts' -print)"
+          if [ -z "$TEST_FILES" ]; then
+            echo "No integration tests found."
+            exit 1
+          fi
+          node --import tsx --test $TEST_FILES
