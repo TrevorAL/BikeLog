@@ -259,11 +259,11 @@ export default async function DashboardPage() {
     : [];
   const quickActions = [
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
-    { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
-    { href: "/maintenance?due=chain-lube#maintenance-log-form", label: "Lube Chain" },
-    { href: "/maintenance?due=di2-charge#maintenance-log-form", label: "Charge Di2" },
+    { href: "/maintenance?open=log#maintenance-log-form", label: "Log Maintenance" },
+    { href: "/maintenance?open=log&due=chain-lube#maintenance-log-form", label: "Lube Chain" },
+    { href: "/maintenance?open=log&due=di2-charge#maintenance-log-form", label: "Charge Di2" },
     { href: "/pressure", label: "Check Pressure" },
-    { href: "/fit", label: "Update Fit" },
+    { href: "/fit?open=add#fit-measurement-form", label: "Add Fit Measurement" },
   ];
 
   return (

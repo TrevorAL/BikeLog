@@ -10,6 +10,12 @@ import { getOwnedBikeId } from "@/lib/ownership";
 
 export const dynamic = "force-dynamic";
 
+type FitPageProps = {
+  searchParams?: Promise<{
+    open?: string;
+  }>;
+};
+
 async function getFitPageData(userId: string) {
   try {
     const bikeId = await getOwnedBikeId({ userId });
@@ -46,8 +52,11 @@ async function getFitPageData(userId: string) {
   }
 }
 
-export default async function FitPage() {
+export default async function FitPage({ searchParams }: FitPageProps) {
   const user = await requireServerUser();
+  const openQuery = (await searchParams)?.open?.toLowerCase();
+  const shouldOpenAddMeasurementForm =
+    openQuery === "1" || openQuery === "true" || openQuery === "add";
   const data = await getFitPageData(user.id);
   const bike = data.bike;
 
@@ -69,6 +78,15 @@ export default async function FitPage() {
 
       {bike ? (
         <>
+          <section id="fit-measurement-form" className="mb-6 scroll-mt-40">
+            <FitMeasurementForm
+              bikeId={bike.id}
+              disabled={!data.dbConnected}
+              collapsible
+              defaultOpen={shouldOpenAddMeasurementForm}
+            />
+          </section>
+
           <section className="mb-6">
             <FitRangeCoach
               current={{
@@ -93,10 +111,6 @@ export default async function FitPage() {
             reachToHoodsMm={currentMeasurement?.reachToHoodsMm ?? undefined}
             notes={currentMeasurement?.notes ?? undefined}
           />
-
-          <section className="mt-6">
-            <FitMeasurementForm bikeId={bike.id} disabled={!data.dbConnected} />
-          </section>
 
           <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Fit history</h2>

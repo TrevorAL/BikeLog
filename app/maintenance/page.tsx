@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 type MaintenancePageProps = {
   searchParams?: Promise<{
     due?: string;
+    open?: string;
   }>;
 };
 
@@ -101,7 +102,11 @@ async function getMaintenancePageData(userId: string) {
 
 export default async function MaintenancePage({ searchParams }: MaintenancePageProps) {
   const user = await requireServerUser();
-  const dueFromQuery = (await searchParams)?.due;
+  const resolvedSearchParams = await searchParams;
+  const dueFromQuery = resolvedSearchParams?.due;
+  const openQuery = resolvedSearchParams?.open?.toLowerCase();
+  const shouldOpenLogForm =
+    openQuery === "1" || openQuery === "true" || openQuery === "log" || openQuery === "add";
   const data = await getMaintenancePageData(user.id);
   const bike = data.bike;
   const maintenance = bike ? data.maintenance : undefined;
@@ -130,6 +135,7 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
             dueSoonItems={maintenance?.maintenanceSummary.dueSoon ?? []}
             suggestions={maintenance?.maintenanceSummary.suggestions ?? []}
             initialDueKey={typeof dueFromQuery === "string" ? dueFromQuery : undefined}
+            initialShowLogForm={Boolean(shouldOpenLogForm || dueFromQuery)}
             components={bike.components.map((component) => ({
               id: component.id,
               name: component.name,

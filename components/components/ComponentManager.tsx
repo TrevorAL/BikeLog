@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ComponentCard } from "@/components/components/ComponentCard";
@@ -509,6 +509,23 @@ function EditableComponentCard({
   const inspectionMetric = getInspectionMetric(component);
   const replacementMetric = getReplacementMetric(component);
   const installedOn = toDateInputValue(component.installDate);
+
+  useEffect(() => {
+    if (!showDetails) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowDetails(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showDetails]);
 
   if (mode === "edit") {
     return (

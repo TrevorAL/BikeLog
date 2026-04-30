@@ -34,6 +34,7 @@ type MaintenanceWorkspaceProps = {
   dueSoonItems: DueItem[];
   suggestions: ConditionSuggestion[];
   initialDueKey?: string;
+  initialShowLogForm?: boolean;
   components: MaintenanceWorkspaceComponent[];
   events: MaintenanceWorkspaceEvent[];
   disabled?: boolean;
@@ -59,6 +60,7 @@ export function MaintenanceWorkspace({
   dueSoonItems,
   suggestions,
   initialDueKey,
+  initialShowLogForm = false,
   components,
   events,
   disabled = false,
@@ -67,6 +69,7 @@ export function MaintenanceWorkspace({
   const [isCompleting, setIsCompleting] = useState(false);
   const [actionStatus, setActionStatus] = useState<ActionStatus>({ type: "idle" });
   const [prefill, setPrefill] = useState<MaintenanceFormPrefill | undefined>(undefined);
+  const [showLogForm, setShowLogForm] = useState(initialShowLogForm);
   const selectedDueItem = initialDueKey
     ? [...dueNowItems, ...dueSoonItems].find((item) => item.key === initialDueKey)
     : undefined;
@@ -178,6 +181,7 @@ export function MaintenanceWorkspace({
       mileageSource: component ? "component" : "manual",
       notes: `${notePrefix}From reminder: ${item.label}`,
     });
+    setShowLogForm(true);
 
     const formElement = document.getElementById("maintenance-log-form");
     formElement?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -202,6 +206,7 @@ export function MaintenanceWorkspace({
       mileageSource: component ? "component" : "manual",
       notes: `${notePrefix}From condition suggestion: ${suggestion.label}`,
     });
+    setShowLogForm(true);
 
     setActionStatus({
       type: "success",
@@ -279,14 +284,33 @@ export function MaintenanceWorkspace({
       </section>
 
       <section id="maintenance-log-form" className="mt-6 scroll-mt-40">
-        <MaintenanceForm
-          key={prefill?.token ?? 0}
-          bikeId={bikeId}
-          bikeCurrentMileage={bikeCurrentMileage}
-          components={components}
-          disabled={disabled}
-          prefill={prefill}
-        />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
+            Log maintenance
+          </h2>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              setShowLogForm((previous) => !previous);
+              setActionStatus({ type: "idle" });
+            }}
+            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {showLogForm ? "Close" : "Log maintenance"}
+          </button>
+        </div>
+
+        {showLogForm ? (
+          <MaintenanceForm
+            key={prefill?.token ?? 0}
+            bikeId={bikeId}
+            bikeCurrentMileage={bikeCurrentMileage}
+            components={components}
+            disabled={disabled}
+            prefill={prefill}
+          />
+        ) : null}
       </section>
 
       <section className="mt-6">

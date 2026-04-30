@@ -164,7 +164,8 @@ export default async function BikePage({ searchParams }: BikePageProps) {
     { href: "/bike?openAddBike=1#bike-manager", label: "Add Bike" },
     { href: "/components?open=add#add-component-form", label: "Add Component" },
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
-    { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
+    { href: "/maintenance?open=log#maintenance-log-form", label: "Log Maintenance" },
+    { href: "/fit?open=add#fit-measurement-form", label: "Add Fit Measurement" },
   ];
 
   return (

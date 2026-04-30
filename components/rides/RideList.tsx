@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
@@ -517,7 +517,13 @@ function RideStreamChart({ streams }: { streams: RideDetailsStravaStreams }) {
       </div>
 
       <div className="mt-3 h-72 w-full rounded-lg border border-slate-200 bg-white p-2">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          minWidth={0}
+          minHeight={240}
+          initialDimension={{ width: 720, height: 240 }}
+        >
           <ComposedChart data={data} margin={{ top: 8, right: 18, left: 8, bottom: 8 }}>
             <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" />
             <XAxis
@@ -720,6 +726,23 @@ function RideDetailsModal({
 
     return [] as LatLngPoint[];
   })();
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose, open]);
 
   if (!open) {
     return null;
