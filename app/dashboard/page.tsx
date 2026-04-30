@@ -247,7 +247,7 @@ export default async function DashboardPage() {
               intervalMiles: maintenanceRule.intervalMiles,
               status: dueItem.status,
             }),
-            hint: `${component.type.replaceAll("_", " ")} · ${dueItem.detail}`,
+            hint: dueItem.detail,
           };
         })
         .filter(
@@ -455,20 +455,13 @@ export default async function DashboardPage() {
           title="Component Mileage Load"
           items={componentMileageBars}
           valueSuffix="%"
-          tone="sky"
+          tone="orange"
           maxValue={100}
           minBarPercent={0}
           scrollable
-          listMaxHeightClassName="max-h-[340px] overflow-y-auto pr-1"
-          className="h-full p-5"
-          headerAction={
-            <Link
-              href="/components"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              Open components
-            </Link>
-          }
+          listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
+          className="h-full"
+          headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
         />
       </section>
 

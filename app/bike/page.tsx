@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 type BikePageProps = {
   searchParams?: Promise<{
     editBikeId?: string;
+    openAddBike?: string;
   }>;
 };
 
@@ -142,7 +143,11 @@ async function getBikePageData(userId: string) {
 export default async function BikePage({ searchParams }: BikePageProps) {
   const user = await requireServerUser();
   const data = await getBikePageData(user.id);
-  const requestedEditBikeId = (await searchParams)?.editBikeId;
+  const resolvedSearchParams = await searchParams;
+  const requestedEditBikeId = resolvedSearchParams?.editBikeId;
+  const openAddBikeQuery = resolvedSearchParams?.openAddBike?.toLowerCase();
+  const shouldOpenAddBikeForm =
+    openAddBikeQuery === "1" || openAddBikeQuery === "true" || openAddBikeQuery === "add";
   const initialEditingBikeId =
     requestedEditBikeId &&
     data.bikes.some((candidate) => candidate.id === requestedEditBikeId && !candidate.isArchived)
@@ -172,7 +177,7 @@ export default async function BikePage({ searchParams }: BikePageProps) {
       : undefined;
   const quickActions = [
     { href: editBikeHref, label: "Edit Bike" },
-    { href: "/bike#bike-manager", label: "Add Bike" },
+    { href: "/bike?openAddBike=1#bike-manager", label: "Add Bike" },
     { href: "/components?open=add#add-component-form", label: "Add Component" },
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
     { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
@@ -270,10 +275,11 @@ export default async function BikePage({ searchParams }: BikePageProps) {
 
       <section id="bike-manager" className="mt-6 scroll-mt-40">
         <BikeManager
-          key={`${bike?.id ?? "none"}:${initialEditingBikeId ?? "none"}`}
+          key={`${bike?.id ?? "none"}:${initialEditingBikeId ?? "none"}:${shouldOpenAddBikeForm ? "open" : "closed"}`}
           bikes={data.bikes}
           selectedBikeId={bike?.id}
           initialEditingBikeId={initialEditingBikeId}
+          initialShowAddForm={shouldOpenAddBikeForm}
         />
       </section>
     </AppShell>

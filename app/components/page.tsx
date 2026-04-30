@@ -174,9 +174,9 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .sort((a, b) => b.currentMileage - a.currentMileage)
         .slice(0, 8)
         .map((component) => ({
-          label: formatComponentType(component.type),
+          label: component.name,
           value: component.currentMileage,
-          hint: component.name,
+          hint: formatComponentType(component.type),
         }))
     : [];
   const componentMileageLoadBars = bike
@@ -257,7 +257,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
               scrollable
               className="h-full"
               listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
-              headerAction={<span className="text-xs font-medium text-slate-500">miles till inspection</span>}
+              headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
             />
           </section>
 

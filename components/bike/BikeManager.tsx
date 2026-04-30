@@ -24,6 +24,7 @@ type BikeManagerProps = {
   bikes: BikeManagerBike[];
   selectedBikeId?: string;
   initialEditingBikeId?: string;
+  initialShowAddForm?: boolean;
 };
 
 type BikeFormState = {
@@ -116,6 +117,7 @@ export function BikeManager({
   bikes,
   selectedBikeId,
   initialEditingBikeId,
+  initialShowAddForm = false,
 }: BikeManagerProps) {
   const router = useRouter();
   const [createForm, setCreateForm] = useState<BikeFormState>(blankBikeForm);
@@ -123,6 +125,7 @@ export function BikeManager({
   const [stravaBikeOptions, setStravaBikeOptions] = useState<StravaBikeOption[]>([]);
   const [selectedStravaBikeId, setSelectedStravaBikeId] = useState("");
   const [selectedEditStravaBikeId, setSelectedEditStravaBikeId] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(initialShowAddForm);
   const [isCreating, setIsCreating] = useState(false);
   const [editingBikeId, setEditingBikeId] = useState<string | undefined>(initialEditingBikeId);
   const [editForm, setEditForm] = useState<BikeFormState>(() => {
@@ -201,63 +204,78 @@ export function BikeManager({
 
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Bike Garage</h2>
-      <p className="mt-1 text-sm text-slate-600">
-        Create, edit, archive, and restore bikes from one place.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Bike Garage</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Create, edit, archive, and restore bikes from one place.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setShowCreateForm((previous) => !previous);
+            setCreateStatus({ type: "idle" });
+          }}
+          className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"
+        >
+          {showCreateForm ? "Close" : "Add Bike"}
+        </button>
+      </div>
 
-      <form
-        className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          setCreateStatus({ type: "idle" });
+      {showCreateForm ? (
+        <form
+          className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setCreateStatus({ type: "idle" });
 
-          const payload = normalizePayload(createForm);
-          if (!payload.name) {
-            setCreateStatus({
-              type: "error",
-              message: "Bike name is required.",
-            });
-            return;
-          }
-
-          setIsCreating(true);
-
-          try {
-            const response = await fetch("/api/bikes", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            });
-
-            const result = (await response.json()) as { error?: string };
-            if (!response.ok) {
-              throw new Error(result.error ?? "Could not create bike.");
+            const payload = normalizePayload(createForm);
+            if (!payload.name) {
+              setCreateStatus({
+                type: "error",
+                message: "Bike name is required.",
+              });
+              return;
             }
 
-            setCreateForm(blankBikeForm());
-            setSelectedStravaBikeId("");
-            setCreateStatus({
-              type: "success",
-              message: "Bike created.",
-            });
-            router.refresh();
-          } catch (error) {
-            const message = error instanceof Error ? error.message : "Could not create bike.";
-            setCreateStatus({
-              type: "error",
-              message,
-            });
-          } finally {
-            setIsCreating(false);
-          }
-        }}
-      >
-        <h3 className="text-sm font-semibold text-slate-900">Add bike</h3>
-        {stravaBikeOptions.length > 0 ? (
-          <label className="mt-3 block text-sm text-slate-700">
+            setIsCreating(true);
+
+            try {
+              const response = await fetch("/api/bikes", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+              });
+
+              const result = (await response.json()) as { error?: string };
+              if (!response.ok) {
+                throw new Error(result.error ?? "Could not create bike.");
+              }
+
+              setCreateForm(blankBikeForm());
+              setSelectedStravaBikeId("");
+              setCreateStatus({
+                type: "success",
+                message: "Bike created.",
+              });
+              router.refresh();
+            } catch (error) {
+              const message = error instanceof Error ? error.message : "Could not create bike.";
+              setCreateStatus({
+                type: "error",
+                message,
+              });
+            } finally {
+              setIsCreating(false);
+            }
+          }}
+        >
+          <h3 className="text-sm font-semibold text-slate-900">Add bike</h3>
+          {stravaBikeOptions.length > 0 ? (
+            <label className="mt-3 block text-sm text-slate-700">
             Import name from Strava bike
             <select
               value={selectedStravaBikeId}
@@ -429,7 +447,8 @@ export function BikeManager({
             {createStatus.message}
           </p>
         ) : null}
-      </form>
+        </form>
+      ) : null}
 
       <div className="mt-6">
         <h3 className="text-sm font-semibold text-slate-900">Active bikes</h3>
