@@ -3,12 +3,11 @@ import type { ComponentType } from "@prisma/client";
 import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
-import { DueSoonList } from "@/components/maintenance/DueSoonList";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
-import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { MAINTENANCE_INTERVALS } from "@/lib/constants";
@@ -221,8 +220,10 @@ export default async function DashboardPage() {
   const bikeMileage = bike ? data.maintenance.bikeMileage : 0;
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
+  const dueNowItems = bike ? data.maintenance.maintenanceSummary.dueNow : [];
+  const dueSoonItems = bike ? data.maintenance.maintenanceSummary.dueSoon : [];
+  const readinessReasons = bike ? data.maintenance.readiness.reasons : [];
   const recentRides = bike ? bike.rides.slice(0, 5) : [];
-  const rideTrendValues = bike ? [...bike.rides.slice(0, 12)].reverse().map((ride) => ride.distanceMiles) : [];
   const dueItemMap = new Map(
     bike ? data.maintenance.maintenanceSummary.dueItems.map((item) => [item.key, item] as const) : [],
   );
@@ -256,18 +257,6 @@ export default async function DashboardPage() {
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
     : [];
-  const rideTypeMap = new Map<string, number>();
-  for (const ride of bike?.rides ?? []) {
-    const key = ride.rideType.replaceAll("_", " ");
-    rideTypeMap.set(key, (rideTypeMap.get(key) ?? 0) + 1);
-  }
-  const rideTypeBars = Array.from(rideTypeMap.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([label, value]) => ({
-      label,
-      value,
-    }));
   const quickActions = [
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
     { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
@@ -333,7 +322,7 @@ export default async function DashboardPage() {
       </section>
 
       {bike ? (
-        <section className="mt-6 grid gap-4 xl:grid-cols-3">
+        <section className="mt-6 grid gap-4 xl:grid-cols-[320px_minmax(0,_1fr)]">
           <OrbitDial
             label="Readiness Pulse"
             value={data.maintenance.readiness.score}
@@ -341,63 +330,87 @@ export default async function DashboardPage() {
             hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
             tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
           />
-          <WaveSparkline
-            title="Ride Distance Wave"
-            values={rideTrendValues}
-            valueLabel={`${rideTrendValues.length} rides`}
-            subtitle="Most recent rides trend from left to right."
-            tone="sky"
-          />
-          <PillBars
-            title="Ride Type Mix"
-            items={rideTypeBars}
-            tone="orange"
-          />
+          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Readiness reasoning</h2>
+              <Link
+                href="/maintenance"
+                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Open maintenance
+              </Link>
+            </div>
+            {readinessReasons.length > 0 ? (
+              <ul className="mt-3 space-y-2">
+                {readinessReasons.map((reason) => (
+                  <li
+                    key={reason}
+                    className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                  >
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                No readiness deductions. You are fully ready to ride.
+              </p>
+            )}
+
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              <section>
+                <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Due now / overdue</h3>
+                <div className="mt-2 space-y-2">
+                  {dueNowItems.length === 0 ? (
+                    <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Nothing pending.</p>
+                  ) : (
+                    dueNowItems.map((item) => (
+                      <Link
+                        key={item.key}
+                        href={`/maintenance?due=${encodeURIComponent(item.key)}`}
+                        className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
+                      >
+                        <article className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                            <p className="text-xs text-slate-600">{item.detail}</p>
+                          </div>
+                          <StatusBadge status={item.status} />
+                        </article>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </section>
+
+              <section>
+                <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Due soon</h3>
+                <div className="mt-2 space-y-2">
+                  {dueSoonItems.length === 0 ? (
+                    <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Nothing pending.</p>
+                  ) : (
+                    dueSoonItems.map((item) => (
+                      <Link
+                        key={item.key}
+                        href={`/maintenance?due=${encodeURIComponent(item.key)}`}
+                        className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
+                      >
+                        <article className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                            <p className="text-xs text-slate-600">{item.detail}</p>
+                          </div>
+                          <StatusBadge status={item.status} />
+                        </article>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
       ) : null}
-
-      {bike ? (
-        <section className="mt-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Readiness reasoning</h2>
-            <Link
-              href="/maintenance"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              Open maintenance
-            </Link>
-          </div>
-          {data.maintenance.readiness.reasons.length > 0 ? (
-            <ul className="mt-3 space-y-2">
-              {data.maintenance.readiness.reasons.map((reason) => (
-                <li
-                  key={reason}
-                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
-                >
-                  {reason}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-              No readiness deductions. You are fully ready to ride.
-            </p>
-          )}
-        </section>
-      ) : null}
-
-      <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <DueSoonList
-          title="Due now / overdue"
-          items={bike ? data.maintenance.maintenanceSummary.dueNow : []}
-          itemHrefBasePath="/maintenance"
-        />
-        <DueSoonList
-          title="Due soon"
-          items={bike ? data.maintenance.maintenanceSummary.dueSoon : []}
-          itemHrefBasePath="/maintenance"
-        />
-      </section>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
