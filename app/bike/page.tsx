@@ -172,6 +172,7 @@ export default async function BikePage({ searchParams }: BikePageProps) {
       : undefined;
   const quickActions = [
     { href: editBikeHref, label: "Edit Bike" },
+    { href: "/bike#bike-manager", label: "Add Bike" },
     { href: "/components?open=add#add-component-form", label: "Add Component" },
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
     { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
@@ -267,7 +268,7 @@ export default async function BikePage({ searchParams }: BikePageProps) {
         />
       )}
 
-      <section id="bike-manager" className="mt-6 scroll-mt-24">
+      <section id="bike-manager" className="mt-6 scroll-mt-40">
         <BikeManager
           key={`${bike?.id ?? "none"}:${initialEditingBikeId ?? "none"}`}
           bikes={data.bikes}

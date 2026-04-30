@@ -833,7 +833,7 @@ export function ComponentManager({
         </div>
       ) : null}
 
-      <section id="add-component-form" className="scroll-mt-24">
+      <section id="add-component-form" className="scroll-mt-40">
         {showAddForm ? (
           <AddComponentForm
             bikeId={bikeId}

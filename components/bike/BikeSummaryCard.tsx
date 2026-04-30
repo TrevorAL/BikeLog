@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Bike } from "lucide-react";
+import { Bike, ChevronDown } from "lucide-react";
 
 type BikeSummaryCardProps = {
   name: string;
@@ -21,7 +21,13 @@ export function BikeSummaryCard({ name, subtitle, children }: BikeSummaryCardPro
           <Bike className="h-5 w-5" />
         </span>
       </div>
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">{children}</div>
+      <details className="group mt-5 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
+          Bike setup details
+          <ChevronDown className="h-4 w-4 text-slate-600 transition group-open:rotate-180" />
+        </summary>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">{children}</div>
+      </details>
     </section>
   );
 }

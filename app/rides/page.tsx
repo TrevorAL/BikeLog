@@ -199,7 +199,7 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
         />
       </section>
 
-      <section id="ride-log-form" className="mt-6 scroll-mt-24">
+      <section id="ride-log-form" className="mt-6 scroll-mt-40">
         <RideForm
           bikeId={bike?.id}
           disabled={!bike || !dbConnected}
