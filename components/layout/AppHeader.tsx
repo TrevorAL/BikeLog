@@ -1,12 +1,16 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
-import { NAV_LINKS } from "@/lib/constants";
+import {
+  DesktopNavDropdown,
+  MobileNavDropdown,
+  type NavMenuGroup,
+} from "@/components/layout/NavDropdown";
 import { cn } from "@/lib/utils";
 
 type AppHeaderBike = {
@@ -27,6 +31,65 @@ type AppHeaderProps = {
   bikes?: AppHeaderBike[];
   selectedBikeId?: string;
 };
+
+const NAV_MENU_GROUPS: NavMenuGroup[] = [
+  {
+    key: "bike-garage",
+    label: "Garage",
+    activePaths: ["/bike", "/components"],
+    items: [
+      {
+        href: "/bike",
+        label: "Bike Profile",
+        description: "Bike overview, stats, and bike manager.",
+      },
+      {
+        href: "/components",
+        label: "Components",
+        description: "Component health and mileage tracking.",
+      },
+      {
+        href: "/maintenance",
+        label: "Maintenance",
+        description: "Service overview and maintenance status.",
+      },
+    ],
+  },
+  {
+    key: "rides",
+    label: "Rides",
+    activePaths: ["/rides", "/pressure"],
+    items: [
+      {
+        href: "/rides",
+        label: "Ride Log",
+        description: "Ride history and detailed ride insights.",
+      },
+      {
+        href: "/pressure",
+        label: "Pressure",
+        description: "Pressure calculator and ride-prep PSI.",
+      },
+    ],
+  },
+  {
+    key: "fit",
+    label: "Fit",
+    activePaths: ["/fit", "/fit/bike", "/fit/rider"],
+    items: [
+      {
+        href: "/fit/bike",
+        label: "Bike Fit",
+        description: "Bike setup measurements and fit history.",
+      },
+      {
+        href: "/fit/rider",
+        label: "Rider Fit",
+        description: "Rider dimensions and fit target ranges.",
+      },
+    ],
+  },
+];
 
 function getProfileInitial(userName?: string | null, userEmail?: string | null) {
   const firstName = userName?.trim().split(/\s+/)[0];
@@ -55,10 +118,38 @@ export function AppHeader({
   selectedBikeId,
 }: AppHeaderProps) {
   const pathname = usePathname();
-  const primaryNavLinks = NAV_LINKS.filter((link) => link.href !== "/profile");
+  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
+  const desktopNavRef = useRef<HTMLElement | null>(null);
   const profileInitial = getProfileInitial(userName, userEmail);
   const profileImageUrl = getCustomAvatarUrl(userImage);
   const hasCustomAvatar = Boolean(profileImageUrl);
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (desktopNavRef.current && !desktopNavRef.current.contains(target)) {
+        setOpenGroupKey(null);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenGroupKey(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -81,25 +172,23 @@ export function AppHeader({
                 Bike<span className="text-sky-700">Log</span>
               </span>
             </Link>
-            <nav className="hidden items-center gap-1 lg:flex">
-              {primaryNavLinks.map((link) => {
-                const active = pathname === link.href;
-
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "rounded-md px-3 py-1.5 text-sm font-medium transition",
-                      active
-                        ? "bg-sky-700 text-white"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+            <nav
+              ref={desktopNavRef}
+              className="hidden items-center gap-2 lg:flex"
+              aria-label="Primary navigation"
+            >
+              {NAV_MENU_GROUPS.map((group) => (
+                <DesktopNavDropdown
+                  key={group.key}
+                  group={group}
+                  pathname={pathname}
+                  open={openGroupKey === group.key}
+                  onToggle={() =>
+                    setOpenGroupKey((previous) => (previous === group.key ? null : group.key))
+                  }
+                  onNavigate={() => setOpenGroupKey(null)}
+                />
+              ))}
             </nav>
           </div>
           <div className="flex items-center gap-2">
@@ -137,25 +226,10 @@ export function AppHeader({
           </div>
         </div>
 
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-          {NAV_LINKS.map((link) => {
-            const active = pathname === link.href;
-
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "rounded-md border px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition",
-                  active
-                    ? "border-sky-700 bg-sky-700 text-white"
-                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-100",
-                )}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+        <nav className="mt-3 grid gap-2 lg:hidden" aria-label="Mobile navigation">
+          {NAV_MENU_GROUPS.map((group) => (
+            <MobileNavDropdown key={group.key} group={group} pathname={pathname} />
+          ))}
         </nav>
 
         <div className="mt-3 border-t border-slate-100 pt-3">

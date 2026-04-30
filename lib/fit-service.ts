@@ -137,3 +137,49 @@ export async function markFitMeasurementCurrent(
     });
   });
 }
+
+export async function deleteFitMeasurement(
+  measurementId: string,
+): Promise<FitMeasurement | null> {
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.fitMeasurement.findUnique({
+      where: { id: measurementId },
+      select: { id: true, bikeId: true, isCurrent: true },
+    });
+
+    if (!existing) {
+      return null;
+    }
+
+    const deleted = await tx.fitMeasurement.delete({
+      where: {
+        id: measurementId,
+      },
+    });
+
+    if (existing.isCurrent) {
+      const nextCurrent = await tx.fitMeasurement.findFirst({
+        where: {
+          bikeId: existing.bikeId,
+        },
+        orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+        select: {
+          id: true,
+        },
+      });
+
+      if (nextCurrent) {
+        await tx.fitMeasurement.update({
+          where: {
+            id: nextCurrent.id,
+          },
+          data: {
+            isCurrent: true,
+          },
+        });
+      }
+    }
+
+    return deleted;
+  });
+}

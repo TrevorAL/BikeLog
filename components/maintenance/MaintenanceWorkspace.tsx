@@ -313,7 +313,7 @@ export function MaintenanceWorkspace({
         ) : null}
       </section>
 
-      <section className="mt-6">
+      <section id="maintenance-history" className="mt-6 scroll-mt-40">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Maintenance history</h2>
         <div className="mt-3">
           {events.length > 0 ? (

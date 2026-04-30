@@ -263,7 +263,7 @@ export default async function DashboardPage() {
     { href: "/maintenance?open=log&due=chain-lube#maintenance-log-form", label: "Lube Chain" },
     { href: "/maintenance?open=log&due=di2-charge#maintenance-log-form", label: "Charge Di2" },
     { href: "/pressure", label: "Check Pressure" },
-    { href: "/fit?open=add#fit-measurement-form", label: "Add Fit Measurement" },
+    { href: "/fit/bike?open=add#fit-measurement-form", label: "Add Fit Measurement" },
   ];
 
   return (

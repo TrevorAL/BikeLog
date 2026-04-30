@@ -67,6 +67,7 @@ function EditableFitMeasurement({
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
 
   if (isEditing) {
@@ -242,7 +243,7 @@ function EditableFitMeasurement({
 
         <button
           type="submit"
-          disabled={isSubmitting || disabled}
+          disabled={isSubmitting || isDeleting || disabled}
           className="mt-3 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
@@ -269,7 +270,7 @@ function EditableFitMeasurement({
           ) : (
             <button
               type="button"
-              disabled={disabled || isSubmitting}
+              disabled={disabled || isSubmitting || isDeleting}
               onClick={async () => {
                 setIsSubmitting(true);
                 setStatus({ type: "idle" });
@@ -306,7 +307,7 @@ function EditableFitMeasurement({
 
           <button
             type="button"
-            disabled={disabled}
+            disabled={disabled || isSubmitting || isDeleting}
             onClick={() => {
               setIsEditing(true);
               setStatus({ type: "idle" });
@@ -314,6 +315,46 @@ function EditableFitMeasurement({
             className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Edit
+          </button>
+          <button
+            type="button"
+            disabled={disabled || isSubmitting || isDeleting}
+            onClick={async () => {
+              const confirmed = window.confirm(
+                `Delete fit measurement from ${new Date(measurement.date).toLocaleDateString()}?`,
+              );
+              if (!confirmed) {
+                return;
+              }
+
+              setIsDeleting(true);
+              setStatus({ type: "idle" });
+
+              try {
+                const response = await fetch(`/api/fit-measurements/${measurement.id}`, {
+                  method: "DELETE",
+                });
+                const payload = (await response.json()) as { error?: string };
+
+                if (!response.ok) {
+                  throw new Error(payload.error ?? "Could not delete fit measurement.");
+                }
+
+                onSuccess("Fit measurement deleted.");
+                router.refresh();
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : "Could not delete fit measurement right now.";
+                setStatus({ type: "error", message });
+              } finally {
+                setIsDeleting(false);
+              }
+            }}
+            className="rounded-md border border-red-300 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
           </button>
         </div>
       </div>

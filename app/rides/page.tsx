@@ -156,7 +156,7 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
         />
       </section>
 
-      <section className="mt-6">
+      <section id="strava-import" className="mt-6 scroll-mt-40">
         <StravaImportPanel
           bikeId={bike?.id}
           bikeName={bikeDisplayName}

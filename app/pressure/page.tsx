@@ -78,7 +78,7 @@ export default async function PressurePage() {
 
       <PressureCalculator bikeId={bike?.id} disabled={!bike || !data.dbConnected} />
 
-      <section className="mt-6">
+      <section id="pressure-presets" className="mt-6 scroll-mt-40">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Saved presets</h2>
         <div className="mt-3">
           <PressurePresetManager

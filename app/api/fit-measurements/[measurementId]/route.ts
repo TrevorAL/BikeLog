@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireApiUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { updateFitMeasurement } from "@/lib/fit-service";
+import { deleteFitMeasurement, updateFitMeasurement } from "@/lib/fit-service";
 
 type RouteContext = {
   params: Promise<{
@@ -98,6 +98,45 @@ export async function PATCH(request: Request, context: RouteContext) {
     console.error("Failed to update fit measurement", error);
     return NextResponse.json(
       { error: "Could not update fit measurement right now." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: Request, context: RouteContext) {
+  try {
+    const auth = await requireApiUser(request);
+    if ("response" in auth) {
+      return auth.response;
+    }
+
+    const { measurementId } = await context.params;
+    const existing = await prisma.fitMeasurement.findFirst({
+      where: {
+        id: measurementId,
+        bike: {
+          userId: auth.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Measurement not found." }, { status: 404 });
+    }
+
+    const deletedMeasurement = await deleteFitMeasurement(measurementId);
+    if (!deletedMeasurement) {
+      return NextResponse.json({ error: "Measurement not found." }, { status: 404 });
+    }
+
+    return NextResponse.json({ measurement: deletedMeasurement });
+  } catch (error) {
+    console.error("Failed to delete fit measurement", error);
+    return NextResponse.json(
+      { error: "Could not delete fit measurement right now." },
       { status: 500 },
     );
   }
