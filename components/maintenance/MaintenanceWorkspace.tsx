@@ -283,10 +283,10 @@ export function MaintenanceWorkspace({
         )}
       </section>
 
-      <section id="maintenance-log-form" className="mt-6 scroll-mt-40">
-        <div className="mb-4 flex items-center justify-between gap-3">
+      <section id="maintenance-history" className="mt-6 scroll-mt-40">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
-            Log maintenance
+            Maintenance history
           </h2>
           <button
             type="button"
@@ -301,21 +301,20 @@ export function MaintenanceWorkspace({
           </button>
         </div>
 
-        {showLogForm ? (
-          <MaintenanceForm
-            key={prefill?.token ?? 0}
-            bikeId={bikeId}
-            bikeCurrentMileage={bikeCurrentMileage}
-            components={components}
-            disabled={disabled}
-            prefill={prefill}
-          />
-        ) : null}
-      </section>
+        <div id="maintenance-log-form" className={showLogForm ? "mt-4 scroll-mt-40" : "scroll-mt-40"}>
+          {showLogForm ? (
+            <MaintenanceForm
+              key={prefill?.token ?? 0}
+              bikeId={bikeId}
+              bikeCurrentMileage={bikeCurrentMileage}
+              components={components}
+              disabled={disabled}
+              prefill={prefill}
+            />
+          ) : null}
+        </div>
 
-      <section id="maintenance-history" className="mt-6 scroll-mt-40">
-        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Maintenance history</h2>
-        <div className="mt-3">
+        <div className="mt-4">
           {events.length > 0 ? (
             <MaintenanceHistoryManager
               events={events}

@@ -36,7 +36,7 @@ const NAV_MENU_GROUPS: NavMenuGroup[] = [
   {
     key: "bike-garage",
     label: "Garage",
-    activePaths: ["/bike", "/components"],
+    activePaths: ["/bike", "/components", "/maintenance"],
     items: [
       {
         href: "/bike",
