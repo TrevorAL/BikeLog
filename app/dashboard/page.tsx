@@ -5,6 +5,7 @@ import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { DueSoonList } from "@/components/maintenance/DueSoonList";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
 import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
 import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
@@ -267,27 +268,20 @@ export default async function DashboardPage() {
       label,
       value,
     }));
+  const quickActions = [
+    { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
+    { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
+    { href: "/maintenance?due=chain-lube#maintenance-log-form", label: "Lube Chain" },
+    { href: "/maintenance?due=di2-charge#maintenance-log-form", label: "Charge Di2" },
+    { href: "/pressure", label: "Check Pressure" },
+    { href: "/fit", label: "Update Fit" },
+  ];
 
   return (
     <AppShell
       title="Dashboard"
       description="Ready-to-ride overview for your current bike."
-      actions={
-        <>
-          <Link
-            href="/rides"
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"
-          >
-            Log Ride
-          </Link>
-          <Link
-            href="/maintenance"
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-          >
-            Add Maintenance
-          </Link>
-        </>
-      }
+      actions={<QuickActionsDropdown items={quickActions} />}
     >
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
@@ -465,31 +459,6 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {[
-            { href: "/rides", label: "Log Ride" },
-            { href: "/maintenance", label: "Lube Chain" },
-            { href: "/pressure", label: "Check Pressure" },
-            { href: "/maintenance", label: "Charge Di2" },
-            { href: "/fit", label: "Update Fit" },
-          ].map((action) => (
-            <Link
-              key={action.label}
-              href={action.href}
-              className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-            >
-              {action.label}
-            </Link>
-          ))}
-        </div>
-        <p className="mt-4 text-sm text-slate-600">
-          {bike
-            ? `${bike.name} · ${bike.rides.length} rides currently logged.`
-            : "No bike data found yet."}
-        </p>
-      </section>
     </AppShell>
   );
 }

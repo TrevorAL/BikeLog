@@ -1,10 +1,9 @@
-import Link from "next/link";
-
 import { BikeManager } from "@/components/bike/BikeManager";
 import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
 import { WaveSparkline } from "@/components/ui/viz/WaveSparkline";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
@@ -171,9 +170,19 @@ export default async function BikePage({ searchParams }: BikePageProps) {
           }),
         }
       : undefined;
+  const quickActions = [
+    { href: editBikeHref, label: "Edit Bike" },
+    { href: "/components?open=add#add-component-form", label: "Add Component" },
+    { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
+    { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
+  ];
 
   return (
-    <AppShell title="Bike Profile" description="Main bike details and quick stats.">
+    <AppShell
+      title="Bike Profile"
+      description="Main bike details and quick stats."
+      actions={<QuickActionsDropdown items={quickActions} />}
+    >
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
           <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
@@ -186,26 +195,6 @@ export default async function BikePage({ searchParams }: BikePageProps) {
 
       {bike ? (
         <>
-          <section className="mb-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Quick actions</h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {[
-                { href: editBikeHref, label: "Edit Bike" },
-                { href: "/components?open=add#add-component-form", label: "Add Component" },
-                { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
-                { href: "/maintenance#maintenance-log-form", label: "Log Maintenance" },
-              ].map((action) => (
-                <Link
-                  key={action.label}
-                  href={action.href}
-                  className="rounded-md border border-slate-300 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                >
-                  {action.label}
-                </Link>
-              ))}
-            </div>
-          </section>
-
           <BikeSummaryCard
             name={`${bike.year ? `${bike.year} ` : ""}${bike.brand ?? ""} ${bike.model ?? bike.name}`.trim()}
             subtitle={`${bike.drivetrain ?? "Drivetrain not set"} · ${bike.brakeType ?? "Brake type not set"}`}
