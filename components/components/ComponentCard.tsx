@@ -12,6 +12,7 @@ type ComponentCardProps = {
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
   actions?: ReactNode;
+  onClick?: () => void;
 };
 
 export function ComponentCard({
@@ -22,9 +23,24 @@ export function ComponentCard({
   conditionStatus,
   nextMaintenance,
   actions,
+  onClick,
 }: ComponentCardProps) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <article
+      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick) {
+          return;
+        }
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-base font-semibold tracking-tight text-slate-900">{name}</h3>
@@ -51,7 +67,15 @@ export function ComponentCard({
         {nextMaintenance}
       </p>
 
-      {actions ? <div className="mt-3">{actions}</div> : null}
+      {actions ? (
+        <div
+          className="mt-3"
+          onClick={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          {actions}
+        </div>
+      ) : null}
     </article>
   );
 }

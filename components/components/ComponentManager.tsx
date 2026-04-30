@@ -57,6 +57,48 @@ type MileageRecalculationResult = {
   auditEventId?: string;
 };
 
+type RingTone = "sky" | "orange" | "emerald";
+
+type RingMetric = {
+  percent: number;
+  label: string;
+  detail: string;
+  tone: RingTone;
+};
+
+const INSPECTION_INTERVAL_MILES_BY_LABEL: Record<string, number> = {
+  "Chain lube": 120,
+  "Chain wear check": 500,
+  "Tire inspection": 400,
+  "Brake pad inspection": 600,
+  "Cleat inspection": 900,
+  "Bar tape inspection": 1800,
+  "Cassette inspection": 2000,
+  "Rotor inspection": 1500,
+};
+
+const REPLACEMENT_INTERVAL_MILES_BY_TYPE: Record<string, number> = {
+  CHAIN: 2000,
+  CASSETTE: 6000,
+  FRONT_TIRE: 3000,
+  REAR_TIRE: 2500,
+  FRONT_BRAKE_PAD: 3500,
+  REAR_BRAKE_PAD: 3500,
+  FRONT_ROTOR: 10000,
+  REAR_ROTOR: 10000,
+  CHAINRINGS: 10000,
+  CLEATS: 2500,
+  BAR_TAPE: 3000,
+  PEDALS: 12000,
+  WHEELSET: 20000,
+  CRANKSET: 20000,
+  DI2_BATTERY: 10000,
+  HANDLEBAR: 20000,
+  STEM: 20000,
+  SADDLE: 12000,
+  OTHER: 5000,
+};
+
 function parseOptionalText(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
     return undefined;
@@ -77,6 +119,206 @@ function toDateInputValue(dateInput: string | null | undefined) {
   }
 
   return date.toISOString().slice(0, 10);
+}
+
+function roundToTenth(value: number) {
+  return Math.round(value * 10) / 10;
+}
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function parseNextMaintenance(nextMaintenance: string) {
+  const separatorIndex = nextMaintenance.indexOf(":");
+  if (separatorIndex < 0) {
+    return {
+      label: "",
+      detail: nextMaintenance.trim(),
+    };
+  }
+
+  return {
+    label: nextMaintenance.slice(0, separatorIndex).trim(),
+    detail: nextMaintenance.slice(separatorIndex + 1).trim(),
+  };
+}
+
+function getPercentFromMileageDetail(detail: string, intervalMiles: number) {
+  if (detail.toLowerCase() === "due now") {
+    return 100;
+  }
+
+  const remainingMatch = detail.match(/^([0-9]+(?:\.[0-9]+)?) miles remaining$/i);
+  if (remainingMatch) {
+    const milesRemaining = Number(remainingMatch[1]);
+    return clampPercent(((intervalMiles - milesRemaining) / intervalMiles) * 100);
+  }
+
+  const overdueMatch = detail.match(/^([0-9]+(?:\.[0-9]+)?) miles overdue$/i);
+  if (overdueMatch) {
+    return 100;
+  }
+
+  return undefined;
+}
+
+function getInspectionMetric(component: ComponentListItem): RingMetric {
+  const { label, detail } = parseNextMaintenance(component.nextMaintenance);
+  const intervalMiles = INSPECTION_INTERVAL_MILES_BY_LABEL[label];
+  const parsedPercent = intervalMiles
+    ? getPercentFromMileageDetail(detail, intervalMiles)
+    : undefined;
+
+  if (typeof parsedPercent === "number") {
+    return {
+      percent: parsedPercent,
+      label: "Inspection",
+      detail,
+      tone:
+        component.conditionStatus === "DUE_NOW" || component.conditionStatus === "OVERDUE"
+          ? "orange"
+          : component.conditionStatus === "DUE_SOON"
+            ? "sky"
+            : "emerald",
+    };
+  }
+
+  if (detail.toLowerCase() === "no immediate action") {
+    return {
+      percent: 0,
+      label: "Inspection",
+      detail: "No pending inspection",
+      tone: "emerald",
+    };
+  }
+
+  const fallbackPercentByStatus: Record<MaintenanceStatus, number> = {
+    GOOD: 25,
+    DUE_SOON: 75,
+    DUE_NOW: 100,
+    OVERDUE: 100,
+  };
+
+  return {
+    percent: fallbackPercentByStatus[component.conditionStatus],
+    label: "Inspection",
+    detail: detail || "No inspection data",
+    tone:
+      component.conditionStatus === "DUE_NOW" || component.conditionStatus === "OVERDUE"
+        ? "orange"
+        : component.conditionStatus === "DUE_SOON"
+          ? "sky"
+          : "emerald",
+  };
+}
+
+function getReplacementMetric(component: ComponentListItem): RingMetric {
+  const replacementInterval = REPLACEMENT_INTERVAL_MILES_BY_TYPE[component.type];
+  if (!replacementInterval) {
+    return {
+      percent: 0,
+      label: "Replacement",
+      detail: "Replacement interval not set",
+      tone: "sky",
+    };
+  }
+
+  const milesOnComponent = Math.max(0, component.currentMileage - component.initialMileage);
+  const milesRemaining = replacementInterval - milesOnComponent;
+  const percent = clampPercent((milesOnComponent / replacementInterval) * 100);
+
+  if (milesRemaining <= 0) {
+    return {
+      percent: 100,
+      label: "Replacement",
+      detail: `${Math.abs(Math.round(milesRemaining))} miles overdue`,
+      tone: "orange",
+    };
+  }
+
+  return {
+    percent,
+    label: "Replacement",
+    detail: `${Math.round(milesRemaining)} miles remaining`,
+    tone: milesRemaining <= replacementInterval * 0.2 ? "sky" : "emerald",
+  };
+}
+
+function getRingToneClasses(tone: RingTone) {
+  if (tone === "orange") {
+    return {
+      text: "text-orange-700",
+      progress: "stroke-orange-500",
+      track: "stroke-orange-100",
+    };
+  }
+
+  if (tone === "sky") {
+    return {
+      text: "text-sky-700",
+      progress: "stroke-sky-500",
+      track: "stroke-sky-100",
+    };
+  }
+
+  return {
+    text: "text-emerald-700",
+    progress: "stroke-emerald-500",
+    track: "stroke-emerald-100",
+  };
+}
+
+function MetricRing({ metric }: { metric: RingMetric }) {
+  const size = 76;
+  const strokeWidth = 8;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - clampPercent(metric.percent) / 100);
+  const toneClasses = getRingToneClasses(metric.tone);
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+      <div className="flex items-center gap-3">
+        <div className="relative h-[76px] w-[76px] shrink-0">
+          <svg
+            viewBox={`0 0 ${size} ${size}`}
+            className="h-full w-full -rotate-90"
+            aria-hidden="true"
+          >
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+              className={toneClasses.track}
+              fill="none"
+            />
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+              className={toneClasses.progress}
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={dashOffset}
+            />
+          </svg>
+          <span
+            className={`absolute inset-0 flex items-center justify-center text-xs font-semibold ${toneClasses.text}`}
+          >
+            {Math.round(clampPercent(metric.percent))}%
+          </span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
+          <p className="text-xs text-slate-600">{metric.detail}</p>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function AddComponentForm({
@@ -263,6 +505,10 @@ function EditableComponentCard({
   const [mode, setMode] = useState<"view" | "edit" | "replace">("view");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
+  const [showDetails, setShowDetails] = useState(false);
+  const inspectionMetric = getInspectionMetric(component);
+  const replacementMetric = getReplacementMetric(component);
+  const installedOn = toDateInputValue(component.installDate);
 
   if (mode === "edit") {
     return (
@@ -274,7 +520,7 @@ function EditableComponentCard({
           const currentMileageInput = formData.get("currentMileage");
           const currentMileage =
             typeof currentMileageInput === "string" && currentMileageInput.length > 0
-              ? Number(currentMileageInput)
+              ? roundToTenth(Number(currentMileageInput))
               : undefined;
           const initialMileageInput = formData.get("initialMileage");
           const initialMileage =
@@ -406,7 +652,7 @@ function EditableComponentCard({
               type="number"
               min="0"
               step="0.1"
-              defaultValue={component.currentMileage}
+              defaultValue={roundToTenth(component.currentMileage)}
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
@@ -570,6 +816,9 @@ function EditableComponentCard({
         installDate={component.installDate ? new Date(component.installDate) : null}
         conditionStatus={component.conditionStatus}
         nextMaintenance={component.nextMaintenance}
+        onClick={() => {
+          setShowDetails(true);
+        }}
         actions={
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
             <button
@@ -597,6 +846,83 @@ function EditableComponentCard({
           </div>
         }
       />
+
+      {showDetails ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4"
+          onClick={() => setShowDetails(false)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`component-details-title-${component.id}`}
+            className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3
+                  id={`component-details-title-${component.id}`}
+                  className="font-display text-lg font-semibold text-slate-900"
+                >
+                  {component.name}
+                </h3>
+                <p className="text-sm text-slate-600">{formatComponentType(component.type)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDetails(false)}
+                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div className="rounded-lg bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">Brand / model</p>
+                <p className="font-medium text-slate-900">
+                  {`${component.brand ?? ""} ${component.model ?? ""}`.trim() || "Not set"}
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">Installed on</p>
+                <p className="font-medium text-slate-900">{installedOn || "Not set"}</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">Mileage at install</p>
+                <p className="font-medium text-slate-900">{roundToTenth(component.initialMileage)} mi</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-3 py-2">
+                <p className="text-xs text-slate-500">Current mileage</p>
+                <p className="font-medium text-slate-900">{roundToTenth(component.currentMileage)} mi</p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <MetricRing
+                metric={{
+                  ...inspectionMetric,
+                  label: "Next inspection",
+                }}
+              />
+              <MetricRing metric={replacementMetric} />
+            </div>
+
+            <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-xs text-slate-500">Next maintenance</p>
+              <p className="text-sm font-medium text-slate-900">{component.nextMaintenance}</p>
+            </div>
+
+            {component.notes ? (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
+                <p className="text-xs text-slate-500">Notes</p>
+                <p className="text-sm text-slate-700">{component.notes}</p>
+              </div>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
 
       {status.type === "error" && status.message ? (
         <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>

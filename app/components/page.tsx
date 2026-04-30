@@ -7,7 +7,7 @@ import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
-import type { MaintenanceStatus } from "@/lib/constants";
+import { MAINTENANCE_INTERVALS, type MaintenanceStatus } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
 
@@ -33,6 +33,52 @@ const maintenanceKeyByComponentType: Partial<Record<ComponentType, string>> = {
   BAR_TAPE: "bar-tape-inspect",
   DI2_BATTERY: "di2-charge",
 };
+
+const mileageIntervalByMaintenanceKey: Record<string, number> = {
+  "chain-lube": MAINTENANCE_INTERVALS.chainLube.intervalMiles,
+  "chain-wear": MAINTENANCE_INTERVALS.chainWear.intervalMiles,
+  "tire-inspect": MAINTENANCE_INTERVALS.tireInspection.intervalMiles,
+  "brake-inspect": MAINTENANCE_INTERVALS.brakePadInspection.intervalMiles,
+  "cleat-inspect": MAINTENANCE_INTERVALS.cleatInspection.intervalMiles,
+  "bar-tape-inspect": MAINTENANCE_INTERVALS.barTapeInspection.intervalMiles,
+  "cassette-inspect": MAINTENANCE_INTERVALS.cassetteInspection.intervalMiles,
+  "rotor-inspect": MAINTENANCE_INTERVALS.rotorInspection.intervalMiles,
+};
+
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function getProgressToService(input: {
+  detail: string;
+  intervalMiles: number;
+  status: "GOOD" | "DUE_SOON" | "DUE_NOW" | "OVERDUE";
+}) {
+  if (input.detail.toLowerCase() === "due now") {
+    return 100;
+  }
+
+  const remainingMatch = input.detail.match(/^([0-9]+(?:\.[0-9]+)?) miles remaining$/i);
+  if (remainingMatch) {
+    const milesRemaining = Number(remainingMatch[1]);
+    return clampPercent(((input.intervalMiles - milesRemaining) / input.intervalMiles) * 100);
+  }
+
+  const overdueMatch = input.detail.match(/^([0-9]+(?:\.[0-9]+)?) miles overdue$/i);
+  if (overdueMatch) {
+    return 100;
+  }
+
+  if (input.status === "DUE_NOW" || input.status === "OVERDUE") {
+    return 100;
+  }
+
+  if (input.status === "DUE_SOON") {
+    return 85;
+  }
+
+  return 0;
+}
 
 async function getComponentsPageData(userId: string) {
   try {
@@ -129,8 +175,39 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .map((component) => ({
           label: component.name,
           value: component.currentMileage,
-          hint: component.type.replaceAll("_", " "),
+          hint: component.name,
         }))
+    : [];
+  const componentMileageLoadBars = bike
+    ? [...bike.components]
+        .map((component) => {
+          const maintenanceKey = maintenanceKeyByComponentType[component.type];
+          if (!maintenanceKey) {
+            return null;
+          }
+
+          const dueItem = dueItemMap.get(maintenanceKey);
+          const intervalMiles = mileageIntervalByMaintenanceKey[maintenanceKey];
+          if (!dueItem || !intervalMiles) {
+            return null;
+          }
+
+          return {
+            label: component.name,
+            value: getProgressToService({
+              detail: dueItem.detail,
+              intervalMiles,
+              status: dueItem.status,
+            }),
+            hint: dueItem.detail,
+          };
+        })
+        .filter(
+          (bar): bar is { label: string; value: number; hint: string } =>
+            Boolean(bar),
+        )
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8)
     : [];
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
@@ -149,14 +226,17 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
 
       {bike ? (
         <>
-          <section className="mb-6 grid gap-4 xl:grid-cols-2">
-            <OrbitDial
-              label="Component Health"
-              value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
-              suffix="%"
-              hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
-              tone={dueNowCount > 0 ? "orange" : "emerald"}
-            />
+          <section className="mb-6 grid gap-4 xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
+            <div className="h-full">
+              <OrbitDial
+                label="Component Health"
+                value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
+                suffix="%"
+                hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
+                tone={dueNowCount > 0 ? "orange" : "emerald"}
+                size={128}
+              />
+            </div>
             <PillBars
               title="Top Mileage Components"
               items={mileageBars}
@@ -164,6 +244,19 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
               tone="sky"
               scrollable
               className="h-full"
+              listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
+            />
+            <PillBars
+              title="Component Mileage Load"
+              items={componentMileageLoadBars}
+              valueSuffix="%"
+              tone="orange"
+              maxValue={100}
+              minBarPercent={0}
+              scrollable
+              className="h-full"
+              listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
+              headerAction={<span className="text-xs font-medium text-slate-500">miles till inspection</span>}
             />
           </section>
 
