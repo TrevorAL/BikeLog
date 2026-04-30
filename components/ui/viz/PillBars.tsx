@@ -74,13 +74,22 @@ export function PillBars({
   );
 
   return (
-    <article className={cn("rounded-2xl border border-slate-200 bg-white p-4 shadow-sm", className)}>
+    <article
+      className={cn(
+        "flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
       </div>
       {filtered.length > 0 ? (
-        scrollable ? <div className={cn("mt-3", listMaxHeightClassName)}>{list}</div> : <div className="mt-3">{list}</div>
+        scrollable ? (
+          <div className={cn("mt-3 min-h-0 flex-1", listMaxHeightClassName)}>{list}</div>
+        ) : (
+          <div className="mt-3">{list}</div>
+        )
       ) : (
         <p className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
           No values to chart yet.

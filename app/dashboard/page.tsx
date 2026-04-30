@@ -459,7 +459,7 @@ export default async function DashboardPage() {
           maxValue={100}
           minBarPercent={0}
           scrollable
-          listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
+          listMaxHeightClassName="h-full overflow-y-auto pr-1"
           className="h-full"
           headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
         />
