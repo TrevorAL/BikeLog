@@ -228,16 +228,15 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
       {bike ? (
         <>
           <section className="mb-6 grid gap-4 xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
-            <div className="h-full">
-              <OrbitDial
-                label="Component Health"
-                value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
-                suffix="%"
-                hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
-                tone={dueNowCount > 0 ? "orange" : "emerald"}
-                size={128}
-              />
-            </div>
+            <OrbitDial
+              label="Component Health"
+              value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
+              suffix="%"
+              hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
+              tone={dueNowCount > 0 ? "orange" : "emerald"}
+              size={128}
+              className="h-full"
+            />
             <PillBars
               title="Top Mileage Components"
               items={mileageBars}

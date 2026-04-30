@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 type OrbitDialTone = "sky" | "orange" | "emerald" | "slate";
 
 type OrbitDialProps = {
@@ -9,6 +11,7 @@ type OrbitDialProps = {
   hint?: string;
   tone?: OrbitDialTone;
   size?: number;
+  className?: string;
 };
 
 const toneStyles: Record<OrbitDialTone, { stroke: string; glow: string; text: string }> = {
@@ -47,6 +50,7 @@ export function OrbitDial({
   hint,
   tone = "sky",
   size = 148,
+  className,
 }: OrbitDialProps) {
   const bounded = clamp(value, min, max);
   const ratio = max > min ? (bounded - min) / (max - min) : 0;
@@ -62,7 +66,12 @@ export function OrbitDial({
   const valueText = `${Number.isInteger(bounded) ? bounded : bounded.toFixed(1)}${suffix}`;
 
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article
+      className={cn(
+        "flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-semibold text-slate-700">{label}</p>
         <p className={`text-xs font-semibold ${toneStyle.text}`}>{Math.round(percent)}%</p>

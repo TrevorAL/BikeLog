@@ -19,7 +19,6 @@ export const NAV_LINKS = [
   { href: "/maintenance", label: "Maintenance" },
   { href: "/pressure", label: "Pressure" },
   { href: "/fit", label: "Fit" },
-  { href: "/checklist", label: "Checklist" },
 ] as const;
 
 export const DEFAULT_BIKE_SEED = {
