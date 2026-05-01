@@ -19,6 +19,21 @@ function optionalString(value: unknown) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function parseOptionalPositiveNumber(
+  value: unknown,
+): { value: number | undefined; error?: string } {
+  if (value === "" || value === undefined || value === null) {
+    return { value: undefined };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return { value: undefined, error: "Replacement life must be greater than 0 miles." };
+  }
+
+  return { value: parsed };
+}
+
 export async function POST(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiUser(request);
@@ -48,11 +63,19 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Install date is invalid." }, { status: 400 });
     }
 
+    const replacementIntervalMilesResult = parseOptionalPositiveNumber(
+      body.replacementIntervalMiles,
+    );
+    if (replacementIntervalMilesResult.error) {
+      return NextResponse.json({ error: replacementIntervalMilesResult.error }, { status: 400 });
+    }
+
     const result = await replaceComponent(componentId, {
       name: optionalString(body.name),
       brand: optionalString(body.brand),
       model: optionalString(body.model),
       installDate,
+      replacementIntervalMiles: replacementIntervalMilesResult.value,
       notes: optionalString(body.notes),
     });
 

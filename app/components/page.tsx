@@ -281,6 +281,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
                 installDate: component.installDate?.toISOString() ?? null,
                 initialMileage: component.initialMileage,
                 currentMileage: component.currentMileage,
+                replacementIntervalMiles: component.replacementIntervalMiles,
                 notes: component.notes,
                 conditionStatus,
                 nextMaintenance,

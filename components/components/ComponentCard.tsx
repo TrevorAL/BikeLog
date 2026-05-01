@@ -8,6 +8,7 @@ type ComponentCardProps = {
   name: string;
   brandModel: string;
   currentMileage: number;
+  mileageProgress?: string;
   installDate?: Date | null;
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
@@ -19,6 +20,7 @@ export function ComponentCard({
   name,
   brandModel,
   currentMileage,
+  mileageProgress,
   installDate,
   conditionStatus,
   nextMaintenance,
@@ -53,6 +55,9 @@ export function ComponentCard({
         <div className="rounded-lg bg-slate-50 p-2.5">
           <p className="text-xs text-slate-600">Mileage</p>
           <p className="font-semibold text-slate-900">{Math.round(currentMileage)} mi</p>
+          {mileageProgress ? (
+            <p className="mt-0.5 text-xs text-slate-500">{mileageProgress}</p>
+          ) : null}
         </div>
         <div className="rounded-lg bg-slate-50 p-2.5">
           <p className="text-xs text-slate-600">Install date</p>

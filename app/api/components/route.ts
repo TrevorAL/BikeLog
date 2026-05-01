@@ -17,6 +17,21 @@ function optionalString(value: unknown) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function parseOptionalPositiveNumber(
+  value: unknown,
+): { value: number | undefined; error?: string } {
+  if (value === "" || value === undefined || value === null) {
+    return { value: undefined };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return { value: undefined, error: "Replacement life must be greater than 0 miles." };
+  }
+
+  return { value: parsed };
+}
+
 export async function POST(request: Request) {
   try {
     const auth = await requireApiUser(request);
@@ -81,6 +96,13 @@ export async function POST(request: Request) {
       );
     }
 
+    const replacementIntervalMilesResult = parseOptionalPositiveNumber(
+      body.replacementIntervalMiles,
+    );
+    if (replacementIntervalMilesResult.error) {
+      return NextResponse.json({ error: replacementIntervalMilesResult.error }, { status: 400 });
+    }
+
     const defaultName = DEFAULT_COMPONENT_NAME_BY_TYPE[typeInput] ?? "Component";
     const name = optionalString(body.name) ?? defaultName;
 
@@ -95,6 +117,7 @@ export async function POST(request: Request) {
         : undefined,
       initialMileage,
       currentMileage,
+      replacementIntervalMiles: replacementIntervalMilesResult.value,
       notes: optionalString(body.notes),
     });
 
