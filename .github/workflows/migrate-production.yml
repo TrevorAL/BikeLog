@@ -1,0 +1,48 @@
+name: Deploy Production Migrations
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Run Prisma migrations on production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Validate required secrets
+        run: |
+          if [ -z "${DATABASE_URL}" ] || [ -z "${DIRECT_URL}" ]; then
+            echo "Missing PROD_DATABASE_URL or PROD_DIRECT_URL repository secret."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Deploy migrations
+        run: npm run db:migrate:deploy
