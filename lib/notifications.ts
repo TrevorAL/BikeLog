@@ -69,6 +69,11 @@ export type NotificationDispatchSummary = {
   errors: number;
 };
 
+export type NotificationGlobalDispatchSummary = NotificationDispatchSummary & {
+  usersEvaluated: number;
+  usersDispatched: number;
+};
+
 function buildBikeLabel(input: BikeSummary) {
   const detailed = [input.year, input.brand, input.model].filter(Boolean).join(" ").trim();
   return detailed.length > 0 ? detailed : input.name;
@@ -682,6 +687,61 @@ export async function dispatchMaintenanceNotificationsForUser(
               : null,
           errorMessage: deliveryResult.errorMessage,
         },
+      });
+    }
+  }
+
+  return summary;
+}
+
+export async function dispatchMaintenanceNotificationsForAllUsers(): Promise<NotificationGlobalDispatchSummary> {
+  const bikeOwners = await prisma.bike.findMany({
+    where: {
+      userId: {
+        not: null,
+      },
+      isArchived: false,
+    },
+    distinct: ["userId"],
+    select: {
+      userId: true,
+    },
+  });
+
+  const userIds = bikeOwners
+    .map((entry) => entry.userId)
+    .filter((userId): userId is string => typeof userId === "string" && userId.length > 0);
+
+  const summary: NotificationGlobalDispatchSummary = {
+    usersEvaluated: userIds.length,
+    usersDispatched: 0,
+    attempted: 0,
+    delivered: 0,
+    skipped: 0,
+    errors: 0,
+  };
+
+  for (const userId of userIds) {
+    try {
+      const userSummary = await dispatchMaintenanceNotificationsForUser(userId);
+      summary.attempted += userSummary.attempted;
+      summary.delivered += userSummary.delivered;
+      summary.skipped += userSummary.skipped;
+      summary.errors += userSummary.errors;
+
+      if (
+        userSummary.attempted > 0 ||
+        userSummary.delivered > 0 ||
+        userSummary.skipped > 0 ||
+        userSummary.errors > 0
+      ) {
+        summary.usersDispatched += 1;
+      }
+    } catch (error) {
+      summary.errors += 1;
+      console.error("Failed to dispatch maintenance notifications for user", {
+        userId,
+        error,
       });
     }
   }
