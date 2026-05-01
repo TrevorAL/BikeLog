@@ -50,14 +50,23 @@ Set these in `.env`:
 DATABASE_URL="postgresql://...-pooler.../neondb?sslmode=require&channel_binding=require"
 DIRECT_URL="postgresql://...without-pooler.../neondb?sslmode=require&channel_binding=require"
 AUTH_SECRET="your-random-secret"
+CRON_SECRET="your-random-cron-secret"
 AUTH_GOOGLE_ID="your-google-oauth-client-id"
 AUTH_GOOGLE_SECRET="your-google-oauth-client-secret"
+RESEND_API_KEY="your-resend-api-key"
+NOTIFICATIONS_FROM_EMAIL="alerts@yourdomain.com"
+TWILIO_ACCOUNT_SID="your-twilio-account-sid"
+TWILIO_AUTH_TOKEN="your-twilio-auth-token"
+TWILIO_FROM_PHONE="+15555550123"
 ```
 
 - `DATABASE_URL`: pooled Neon URL (for app runtime)
 - `DIRECT_URL`: non-pooled Neon URL (for Prisma migrations/CLI)
 - `AUTH_SECRET`: signs Auth.js session state
+- `CRON_SECRET`: secures scheduled cron invocations
 - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: Google OAuth credentials for Auth.js
+- `RESEND_API_KEY` / `NOTIFICATIONS_FROM_EMAIL`: email delivery for reminders
+- `TWILIO_*`: SMS delivery for reminders
 
 Generate a secret:
 
@@ -112,6 +121,23 @@ npm run dev
 ```
 
 No Docker command is required.
+
+## Background Notification Cron (Vercel)
+
+BikeLog now includes a daily cron endpoint that dispatches maintenance reminders even when no user opens the app.
+
+- Route: `/api/cron/notifications/daily`
+- Schedule: `0 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+
+Security:
+
+- Set `CRON_SECRET` in your Vercel environment variables.
+- Vercel sends `Authorization: Bearer <CRON_SECRET>` automatically to cron endpoints.
+- Unauthorized calls to the endpoint return `401`.
+
+Important:
+
+- Vercel cron jobs run only on **Production** deployments.
 
 ## Docker (Optional Local Postgres)
 
@@ -238,6 +264,12 @@ npm run db:backfill:initial-mileage
 - `PATCH /api/checklist-items/[itemId]`
 - `DELETE /api/checklist-items/[itemId]`
 - `POST /api/checklist-items/reset`
+
+### Notifications
+
+- `GET /api/notifications/state`
+- `PATCH /api/notifications/preferences`
+- `GET /api/cron/notifications/daily` (cron-secured dispatch)
 
 All write APIs require auth and enforce user ownership.
 
