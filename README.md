@@ -26,6 +26,7 @@ BikeLog is a full-stack bike maintenance tracker built with Next.js, TypeScript,
 ## Prerequisites
 
 - Node.js 18+
+  updated to test staging
 - npm 9+
 - Docker Desktop (optional, only if you want local Postgres instead of Neon)
 
