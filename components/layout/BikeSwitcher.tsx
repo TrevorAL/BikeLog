@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -27,7 +28,14 @@ export function BikeSwitcher({ bikes, selectedBikeId }: BikeSwitcherProps) {
   const [error, setError] = useState<string | undefined>(undefined);
 
   if (bikes.length === 0) {
-    return null;
+    return (
+      <Link
+        href="/bike?openAddBike=1#bike-manager"
+        className="rounded-md border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:border-sky-300 hover:bg-sky-100"
+      >
+        Add Bike
+      </Link>
+    );
   }
 
   return (
