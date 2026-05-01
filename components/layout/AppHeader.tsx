@@ -193,9 +193,7 @@ export function AppHeader({
             </nav>
           </div>
           <div className="flex items-center gap-2">
-            {userEmail && bikes.length > 0 ? (
-              <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} />
-            ) : null}
+            {userEmail ? <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} /> : null}
             {userEmail ? <NotificationBell /> : null}
             {userEmail ? (
               <Link
