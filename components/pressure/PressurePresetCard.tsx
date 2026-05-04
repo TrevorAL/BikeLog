@@ -21,8 +21,10 @@ export function PressurePresetCard({
   notes,
   actions,
 }: PressurePresetCardProps) {
+  const notesLabel = notes?.trim() || "No notes";
+
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
       <h3 className="font-display text-lg font-semibold text-slate-900">{name}</h3>
       <p className="mt-1 text-sm text-slate-600">
         {formatPressureSurface(surface)} · {formatPressurePreference(preference)}
@@ -37,8 +39,10 @@ export function PressurePresetCard({
           <p className="font-display text-xl font-bold text-slate-900">{rearPsi} PSI</p>
         </div>
       </div>
-      {notes ? <p className="mt-3 text-sm text-slate-600">Notes: {notes}</p> : null}
-      {actions ? <div className="mt-4">{actions}</div> : null}
+      <p className="mt-3 min-h-5 truncate text-sm text-slate-600" title={notesLabel}>
+        Notes: {notesLabel}
+      </p>
+      {actions ? <div className="mt-auto pt-4">{actions}</div> : null}
     </article>
   );
 }

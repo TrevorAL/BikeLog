@@ -53,6 +53,10 @@ AUTH_SECRET="your-random-secret"
 CRON_SECRET="your-random-cron-secret"
 AUTH_GOOGLE_ID="your-google-oauth-client-id"
 AUTH_GOOGLE_SECRET="your-google-oauth-client-secret"
+STRAVA_CLIENT_ID="your-strava-client-id"
+STRAVA_CLIENT_SECRET="your-strava-client-secret"
+STRAVA_REDIRECT_URI="http://localhost:3000/api/strava/callback"
+STRAVA_SCOPES="read,activity:read,profile:read_all"
 RESEND_API_KEY="your-resend-api-key"
 NOTIFICATIONS_FROM_EMAIL="alerts@yourdomain.com"
 TWILIO_ACCOUNT_SID="your-twilio-account-sid"
@@ -65,6 +69,7 @@ TWILIO_FROM_PHONE="+15555550123"
 - `AUTH_SECRET`: signs Auth.js session state
 - `CRON_SECRET`: secures scheduled cron invocations
 - `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET`: Google OAuth credentials for Auth.js
+- `STRAVA_*`: Strava OAuth + import configuration
 - `RESEND_API_KEY` / `NOTIFICATIONS_FROM_EMAIL`: email delivery for reminders
 - `TWILIO_*`: SMS delivery for reminders
 
@@ -180,7 +185,49 @@ This repo is baselined with:
 
 - `prisma/migrations/0_init/migration.sql`
 
-### Apply committed migrations
+### Running the app (no schema change)
+
+```bash
+npm install
+npm run db:generate
+npm run db:migrate:deploy
+npm run dev
+```
+
+### Exact DB change workflow (use this every time)
+
+Use `migrate dev` only against a development database you can change freely (local Postgres or dedicated Neon dev branch), not staging/prod.
+
+1. Create a feature branch from `staging`.
+2. Update `prisma/schema.prisma`.
+3. Create a migration:
+
+```bash
+npx prisma migrate dev --name your_change_name
+```
+
+4. Regenerate Prisma client and validate:
+
+```bash
+npm run db:generate
+npm run lint
+npm run typecheck
+npm run build
+```
+
+5. Commit all of these together:
+- schema changes
+- new migration folder under `prisma/migrations`
+- app code using the new schema
+
+6. Open PR to `staging` and merge after checks pass.
+7. Staging DB migrations run automatically via:
+- `.github/workflows/migrate-staging.yml`
+8. Promote `staging` to `main` with PR.
+9. Production DB migrations run automatically via:
+- `.github/workflows/migrate-production.yml`
+
+### Apply committed migrations manually (if needed)
 
 ```bash
 npm run db:migrate:deploy
@@ -200,6 +247,22 @@ npx prisma migrate dev --name your_change_name
 
 Then commit the new folder under `prisma/migrations`.
 
+### Do not do this on shared/staging/production DBs
+
+- Do not run `npm run db:push` (or `prisma db push`) against shared environments.
+- Do not run `npx prisma migrate reset` unless you explicitly want to drop all data.
+- Do not edit schema manually in Neon and then expect migration history to stay valid.
+- Do not push directly to `staging` or `main`; use PRs only.
+
+### Why drift happens
+
+Drift usually happens when database state changes outside migration history, for example:
+- schema pushed with `db push`
+- manual DB edits in Neon
+- migration files added after direct DB changes
+
+Prisma then sees: "database schema and migration history do not match."
+
 ### One-time data backfill helper
 
 ```bash
@@ -215,7 +278,7 @@ npm run db:backfill:initial-mileage
 - `npm run typecheck` - Run TypeScript checks
 - `npm run test:integration` - Run DB-backed integration tests
 - `npm run db:generate` - Generate Prisma client
-- `npm run db:push` - Push Prisma schema (prototype use)
+- `npm run db:push` - Push Prisma schema (local prototype only; avoid shared DBs)
 - `npm run db:migrate:status` - Show migration status
 - `npm run db:migrate:deploy` - Apply committed migrations
 - `npm run db:backfill:initial-mileage` - Backfill `initialMileage`
@@ -284,11 +347,42 @@ All write APIs require auth and enforce user ownership.
 npm run db:migrate:status
 ```
 
-3. Re-seed if needed:
+3. Confirm `DIRECT_URL` is the non-pooler Neon URL.
+4. Re-seed if needed (non-production only):
 
 ```bash
 npm run db:seed
 ```
+
+### Drift detected / Prisma wants reset
+
+If `npx prisma migrate dev` says drift and asks to reset, do not reset a shared DB.
+
+1. Check pending migrations:
+
+```bash
+npm run db:migrate:status
+```
+
+2. If a migration's changes are already in the DB, mark it applied:
+
+```bash
+npx prisma migrate resolve --applied <migration_folder_name>
+```
+
+3. Apply the rest:
+
+```bash
+npm run db:migrate:deploy
+```
+
+4. Re-check:
+
+```bash
+npm run db:migrate:status
+```
+
+For this project, when in doubt: ask before running `migrate reset` or `db push` on shared Neon environments.
 
 ### Port 3000 in use
 

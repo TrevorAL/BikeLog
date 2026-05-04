@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { ChevronDown } from "lucide-react";
 
 import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
 import {
@@ -120,10 +122,15 @@ export function AppHeader({
 }: AppHeaderProps) {
   const pathname = usePathname();
   const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
   const desktopNavRef = useRef<HTMLElement | null>(null);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const profileInitial = getProfileInitial(userName, userEmail);
   const profileImageUrl = getCustomAvatarUrl(userImage);
   const hasCustomAvatar = Boolean(profileImageUrl);
+  const profileSectionActive = pathname === "/profile" || pathname === "/settings";
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -135,11 +142,16 @@ export function AppHeader({
       if (desktopNavRef.current && !desktopNavRef.current.contains(target)) {
         setOpenGroupKey(null);
       }
+
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
+        setIsProfileMenuOpen(false);
+      }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpenGroupKey(null);
+        setIsProfileMenuOpen(false);
       }
     }
 
@@ -152,8 +164,62 @@ export function AppHeader({
     };
   }, []);
 
+  useEffect(() => {
+    const headerElement = headerRef.current;
+    if (!headerElement || typeof document === "undefined") {
+      return;
+    }
+
+    const root = document.documentElement;
+    const offsetPaddingPx = 16;
+
+    function updateHeaderOffset() {
+      const currentHeader = headerRef.current;
+      if (!currentHeader) {
+        return;
+      }
+
+      const height = Math.ceil(currentHeader.getBoundingClientRect().height);
+      root.style.setProperty("--app-header-height", `${height}px`);
+      root.style.setProperty("--app-header-offset", `${height + offsetPaddingPx}px`);
+    }
+
+    updateHeaderOffset();
+
+    const observer = new ResizeObserver(() => {
+      updateHeaderOffset();
+    });
+
+    observer.observe(headerElement);
+    window.addEventListener("resize", updateHeaderOffset);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeaderOffset);
+    };
+  }, [title, description]);
+
+  async function handleSignOut() {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsSigningOut(true);
+
+    try {
+      await signOut({
+        redirectTo: "/login",
+      });
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
+
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur"
+    >
       <div className="h-0.5 w-full bg-gradient-to-r from-sky-600 via-slate-200 to-orange-500" />
       <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4">
@@ -196,32 +262,110 @@ export function AppHeader({
             {userEmail ? <BikeSwitcher bikes={bikes} selectedBikeId={selectedBikeId} /> : null}
             {userEmail ? <NotificationBell /> : null}
             {userEmail ? (
-              <Link
-                href="/profile"
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border text-sm font-semibold transition",
-                  pathname === "/profile"
-                    ? hasCustomAvatar
-                      ? "border-sky-700 ring-2 ring-sky-200"
-                      : "border-sky-700 bg-sky-700 text-white ring-2 ring-sky-200"
-                    : hasCustomAvatar
-                      ? "border-slate-300 hover:border-slate-400 hover:bg-slate-100"
-                      : "border-sky-600 bg-sky-600 text-white hover:border-sky-700 hover:bg-sky-700",
-                )}
-                aria-label="Profile"
-                title="Profile"
+              <div
+                ref={profileMenuRef}
+                className="relative"
+                onMouseEnter={() => setIsProfileMenuOpen(true)}
+                onMouseLeave={() => setIsProfileMenuOpen(false)}
               >
-                {profileImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profileImageUrl}
-                    alt={userName?.trim().length ? `${userName.trim()} profile` : "Profile"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="leading-none">{profileInitial}</span>
-                )}
-              </Link>
+                <div
+                  className={cn(
+                    "flex items-center overflow-hidden rounded-full border bg-white shadow-sm",
+                    profileSectionActive
+                      ? "border-sky-700 ring-2 ring-sky-200"
+                      : "border-slate-300 hover:border-slate-400",
+                  )}
+                >
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center overflow-hidden text-sm font-semibold transition",
+                      hasCustomAvatar
+                        ? "bg-white hover:bg-slate-100"
+                        : profileSectionActive
+                          ? "bg-sky-700 text-white hover:bg-sky-700"
+                          : "bg-sky-600 text-white hover:bg-sky-700",
+                    )}
+                    aria-label="Go to profile"
+                    title="Profile"
+                  >
+                    {profileImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profileImageUrl}
+                        alt={userName?.trim().length ? `${userName.trim()} profile` : "Profile"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="leading-none">{profileInitial}</span>
+                    )}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileMenuOpen((previous) => !previous)}
+                    className={cn(
+                      "flex h-9 w-8 items-center justify-center border-l border-slate-200 text-slate-600 transition hover:bg-slate-100 hover:text-slate-800",
+                      isProfileMenuOpen ? "bg-slate-100 text-slate-800" : "",
+                    )}
+                    aria-label={isProfileMenuOpen ? "Collapse profile menu" : "Expand profile menu"}
+                    aria-expanded={isProfileMenuOpen}
+                    aria-haspopup="menu"
+                    title="Account menu"
+                  >
+                    <ChevronDown
+                      className={cn("h-4 w-4 transition-transform", isProfileMenuOpen ? "rotate-180" : "")}
+                    />
+                  </button>
+                </div>
+                {isProfileMenuOpen ? (
+                  <div className="absolute right-0 top-full z-40 pt-1.5">
+                    <div
+                      role="menu"
+                      className="dropdown-surface relative min-w-[190px] rounded-lg border shadow-lg"
+                    >
+                      <div
+                        aria-hidden
+                        className="dropdown-notch absolute -top-[7px] right-7 h-3 w-3 rotate-45 border-l border-t"
+                      />
+                      <Link
+                        href="/profile"
+                        role="menuitem"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className={cn(
+                          "relative block rounded-t-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100",
+                          pathname === "/profile" ? "dropdown-item-active" : "",
+                        )}
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        href="/settings"
+                        role="menuitem"
+                        onClick={() => setIsProfileMenuOpen(false)}
+                        className={cn(
+                          "block border-t border-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100",
+                          pathname === "/settings" ? "dropdown-item-active" : "",
+                        )}
+                      >
+                        Settings
+                      </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          void handleSignOut();
+                        }}
+                        disabled={isSigningOut}
+                        className="block w-full rounded-b-lg border-t border-slate-100 px-4 py-2.5 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isSigningOut ? "Signing out..." : "Log out"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </div>

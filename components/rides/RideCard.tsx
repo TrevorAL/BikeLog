@@ -28,10 +28,12 @@ export function RideCard({
 }: RideCardProps) {
   const normalizedDate = date instanceof Date ? date : new Date(date);
   const isInteractive = typeof onClick === "function";
+  const weatherLabel = weather?.trim() || "Weather not set";
+  const notesLabel = notes?.trim() || "No ride notes";
 
   return (
     <article
-      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
+      className={`flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
         isInteractive ? "cursor-pointer transition hover:border-sky-300 hover:shadow" : ""
       }`}
       onClick={onClick}
@@ -79,29 +81,27 @@ export function RideCard({
         </div>
       </div>
 
-      <div className="mt-3 space-y-1 text-sm text-slate-600">
-        {weather ? (
-          <p className="flex items-center gap-2">
-            <CloudDrizzle className="h-4 w-4 text-slate-600" />
-            {weather}
-          </p>
-        ) : null}
-        {notes ? (
-          <p className="flex items-start gap-2">
-            <Route className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
-            {notes}
-          </p>
-        ) : null}
-        {durationMinutes ? (
-          <p className="flex items-center gap-2">
-            <Timer className="h-4 w-4 text-slate-600" />
-            Component mileage auto-updates on save.
-          </p>
-        ) : null}
+      <div className="mt-3 min-h-[74px] space-y-1 text-sm text-slate-600">
+        <p className="flex items-center gap-2">
+          <CloudDrizzle className="h-4 w-4 shrink-0 text-slate-600" />
+          <span className="truncate" title={weatherLabel}>
+            {weatherLabel}
+          </span>
+        </p>
+        <p className="flex items-start gap-2">
+          <Route className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+          <span className="truncate" title={notesLabel}>
+            {notesLabel}
+          </span>
+        </p>
+        <p className="flex items-center gap-2">
+          <Timer className="h-4 w-4 shrink-0 text-slate-600" />
+          Component mileage auto-updates on save.
+        </p>
       </div>
 
       {actions ? (
-        <div className="mt-3" onClick={(event) => event.stopPropagation()}>
+        <div className="mt-auto pt-3" onClick={(event) => event.stopPropagation()}>
           {actions}
         </div>
       ) : null}

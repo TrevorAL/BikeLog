@@ -19,6 +19,21 @@ function optionalString(value: unknown) {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function parseOptionalPositiveNumberOrNull(
+  value: unknown,
+): { value: number | null; error?: string } {
+  if (value === "" || value === undefined || value === null) {
+    return { value: null };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return { value: null, error: "Replacement life must be greater than 0 miles." };
+  }
+
+  return { value: parsed };
+}
+
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiUser(request);
@@ -76,6 +91,13 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
+    const replacementIntervalMilesResult = parseOptionalPositiveNumberOrNull(
+      body.replacementIntervalMiles,
+    );
+    if (replacementIntervalMilesResult.error) {
+      return NextResponse.json({ error: replacementIntervalMilesResult.error }, { status: 400 });
+    }
+
     const installDateInput = optionalString(body.installDate);
     const installDate = installDateInput ? new Date(installDateInput) : undefined;
 
@@ -90,6 +112,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       installDate,
       initialMileage,
       currentMileage,
+      replacementIntervalMiles: replacementIntervalMilesResult.value,
       notes: optionalString(body.notes),
     });
 
