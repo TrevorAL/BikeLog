@@ -1,7 +1,10 @@
 name: Deploy Production Migrations
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches:
       - main
 
@@ -15,6 +18,11 @@ concurrency:
 jobs:
   migrate:
     name: Run Prisma migrations on production
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -24,6 +32,8 @@ jobs:
     steps:
       - name: Check out repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Set up Node
         uses: actions/setup-node@v4

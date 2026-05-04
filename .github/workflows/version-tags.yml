@@ -1,0 +1,56 @@
+name: Branch Version Tags
+
+on:
+  push:
+    branches:
+      - staging
+      - dev
+      - development
+
+permissions:
+  contents: write
+
+concurrency:
+  group: version-tags-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Create branch version tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build tag name
+        id: vars
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          CHANNEL="dev"
+          if [ "${BRANCH}" = "staging" ]; then
+            CHANNEL="staging"
+          fi
+
+          BASE_VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${BASE_VERSION}-${CHANNEL}.${GITHUB_RUN_NUMBER}"
+
+          echo "channel=${CHANNEL}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create and push tag
+        run: |
+          TAG="${{ steps.vars.outputs.tag }}"
+
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q "${TAG}$"; then
+            echo "Tag ${TAG} already exists. Skipping."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Automated ${{ steps.vars.outputs.channel }} version ${TAG}"
+          git push origin "refs/tags/${TAG}"
