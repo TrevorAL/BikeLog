@@ -29,7 +29,7 @@ export function ComponentCard({
 }: ComponentCardProps) {
   return (
     <article
-      className={`rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
+      className={`flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
       onClick={onClick}
       onKeyDown={(event) => {
         if (!onClick) {
@@ -67,14 +67,14 @@ export function ComponentCard({
         </div>
       </div>
 
-      <p className="mt-3 flex items-center gap-2 text-sm text-slate-600">
+      <p className="mt-3 min-h-10 flex items-start gap-2 text-sm text-slate-600">
         <Gauge className="h-4 w-4 text-slate-600" />
         {nextMaintenance}
       </p>
 
       {actions ? (
         <div
-          className="mt-3"
+          className="mt-auto pt-3"
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
