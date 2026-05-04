@@ -1,7 +1,6 @@
 import {
   NotificationChannel,
   NotificationDeliveryStatus,
-  NotificationSendPolicy,
   type BikeNotificationPreference,
 } from "@prisma/client";
 
@@ -11,6 +10,9 @@ import { prisma } from "@/lib/db";
 const DIGEST_DUE_KEY = "maintenance-digest";
 const INSTANT_DUE_KEY_PREFIX = "maintenance-instant";
 const DEFAULT_TIMEZONE = "UTC";
+const DIGEST_DAILY_POLICY = "DIGEST_DAILY";
+
+export type NotificationSendPolicyValue = "INSTANT" | "DIGEST_DAILY";
 
 type BikeSummary = {
   id: string;
@@ -43,7 +45,7 @@ export type ProfileNotificationSettings = {
   emailEnabled: boolean;
   smsEnabled: boolean;
   phoneNumber: string | null;
-  sendPolicy: NotificationSendPolicy;
+  sendPolicy: NotificationSendPolicyValue;
   digestHourLocal: number;
   quietHoursEnabled: boolean;
   quietHoursStartHour: number;
@@ -65,7 +67,7 @@ type NotificationPreferencesUpdateInput = {
   emailEnabled?: boolean;
   smsEnabled?: boolean;
   phoneNumber?: string | null;
-  sendPolicy?: NotificationSendPolicy;
+  sendPolicy?: NotificationSendPolicyValue;
   digestHourLocal?: number;
   quietHoursEnabled?: boolean;
   quietHoursStartHour?: number;
@@ -204,7 +206,7 @@ function isHourInsideWindow(hour: number, startHour: number, endHour: number) {
 }
 
 export function shouldSendNotificationNow(input: {
-  sendPolicy: NotificationSendPolicy;
+  sendPolicy: NotificationSendPolicyValue;
   digestHourLocal: number;
   quietHoursEnabled: boolean;
   quietHoursStartHour: number;
@@ -217,7 +219,7 @@ export function shouldSendNotificationNow(input: {
   const localHour = normalizeHour(input.localHour, 0);
 
   if (
-    input.sendPolicy === NotificationSendPolicy.DIGEST_DAILY &&
+    input.sendPolicy === DIGEST_DAILY_POLICY &&
     localHour !== normalizeHour(input.digestHourLocal, 9)
   ) {
     return false;
@@ -800,7 +802,7 @@ export async function dispatchMaintenanceNotificationsForUser(
     }
 
     const dueKey =
-      preferences.sendPolicy === NotificationSendPolicy.DIGEST_DAILY
+      preferences.sendPolicy === DIGEST_DAILY_POLICY
         ? DIGEST_DUE_KEY
         : buildInstantDueKey(bikeAlert.items);
 

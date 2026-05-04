@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { NotificationSendPolicy } from "@prisma/client";
 
 import { requireApiUser } from "@/lib/auth";
 import {
   getNotificationPreferencesForUser,
+  type NotificationSendPolicyValue,
   updateNotificationPreferencesForUser,
 } from "@/lib/notifications";
 
@@ -56,11 +56,11 @@ function parseOptionalSendPolicy(value: unknown) {
     return undefined;
   }
 
-  if (value !== NotificationSendPolicy.INSTANT && value !== NotificationSendPolicy.DIGEST_DAILY) {
+  if (value !== "INSTANT" && value !== "DIGEST_DAILY") {
     throw new Error("Invalid send policy.");
   }
 
-  return value;
+  return value as NotificationSendPolicyValue;
 }
 
 function parseBikePreferences(value: unknown) {

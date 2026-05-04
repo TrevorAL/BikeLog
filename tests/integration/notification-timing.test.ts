@@ -1,13 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { NotificationSendPolicy } from "@prisma/client";
-
 import { getLocalClock, shouldSendNotificationNow } from "../../lib/notifications";
 
 test("Digest policy only sends at configured local hour", () => {
   const allowed = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.DIGEST_DAILY,
+    sendPolicy: "DIGEST_DAILY",
     digestHourLocal: 9,
     quietHoursEnabled: false,
     quietHoursStartHour: 22,
@@ -18,7 +16,7 @@ test("Digest policy only sends at configured local hour", () => {
     localHour: 9,
   });
   const blocked = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.DIGEST_DAILY,
+    sendPolicy: "DIGEST_DAILY",
     digestHourLocal: 9,
     quietHoursEnabled: false,
     quietHoursStartHour: 22,
@@ -35,7 +33,7 @@ test("Digest policy only sends at configured local hour", () => {
 
 test("Instant policy ignores digest hour but respects quiet hours", () => {
   const blockedAtNight = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.INSTANT,
+    sendPolicy: "INSTANT",
     digestHourLocal: 9,
     quietHoursEnabled: true,
     quietHoursStartHour: 22,
@@ -46,7 +44,7 @@ test("Instant policy ignores digest hour but respects quiet hours", () => {
     localHour: 23,
   });
   const allowedInDay = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.INSTANT,
+    sendPolicy: "INSTANT",
     digestHourLocal: 9,
     quietHoursEnabled: true,
     quietHoursStartHour: 22,
@@ -63,7 +61,7 @@ test("Instant policy ignores digest hour but respects quiet hours", () => {
 
 test("Allowed send window blocks sends outside configured hours", () => {
   const blocked = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.INSTANT,
+    sendPolicy: "INSTANT",
     digestHourLocal: 9,
     quietHoursEnabled: false,
     quietHoursStartHour: 22,
@@ -74,7 +72,7 @@ test("Allowed send window blocks sends outside configured hours", () => {
     localHour: 7,
   });
   const allowed = shouldSendNotificationNow({
-    sendPolicy: NotificationSendPolicy.INSTANT,
+    sendPolicy: "INSTANT",
     digestHourLocal: 9,
     quietHoursEnabled: false,
     quietHoursStartHour: 22,
