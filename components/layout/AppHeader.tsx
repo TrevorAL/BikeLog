@@ -322,11 +322,11 @@ export function AppHeader({
                   <div className="absolute right-0 top-full z-40 pt-1.5">
                     <div
                       role="menu"
-                      className="relative min-w-[190px] rounded-lg border border-slate-200 bg-white shadow-lg"
+                      className="dropdown-surface relative min-w-[190px] rounded-lg border shadow-lg"
                     >
                       <div
                         aria-hidden
-                        className="absolute -top-[7px] right-7 h-3 w-3 rotate-45 border-l border-t border-slate-200 bg-white"
+                        className="dropdown-notch absolute -top-[7px] right-7 h-3 w-3 rotate-45 border-l border-t"
                       />
                       <Link
                         href="/profile"
@@ -334,7 +334,7 @@ export function AppHeader({
                         onClick={() => setIsProfileMenuOpen(false)}
                         className={cn(
                           "relative block rounded-t-lg px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100",
-                          pathname === "/profile" ? "bg-sky-50 text-sky-700" : "",
+                          pathname === "/profile" ? "dropdown-item-active" : "",
                         )}
                       >
                         Profile
@@ -345,7 +345,7 @@ export function AppHeader({
                         onClick={() => setIsProfileMenuOpen(false)}
                         className={cn(
                           "block border-t border-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100",
-                          pathname === "/settings" ? "bg-sky-50 text-sky-700" : "",
+                          pathname === "/settings" ? "dropdown-item-active" : "",
                         )}
                       >
                         Settings

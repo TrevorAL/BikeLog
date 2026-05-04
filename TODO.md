@@ -15,7 +15,8 @@ Last updated: 2026-05-03
 - [ ] Confirm only environment-scoped secrets are used (no shared values across dev/staging/prod).
 - [x] Dev / Stage / Prod separation
 - [x] Keep separate databases and env var sets for `development`, `staging`, and `production`.
-- [ ] Ensure feature branches use preview/nonprod values only.
+- [x] Ensure feature branches use preview/nonprod values only.
+  - Feature branch auto-deploys disabled; only `staging` and `main` deploy.
 - [ ] Ensure `main` deploys use production values only.
 - [ ] Document exact environment variable matrix in deployment docs.
 - [x] Prisma migration safety
