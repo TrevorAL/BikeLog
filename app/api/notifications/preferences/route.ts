@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { NotificationSendPolicy } from "@prisma/client";
 
 import { requireApiUser } from "@/lib/auth";
 import {
@@ -29,6 +30,34 @@ function parseOptionalStringOrNull(value: unknown) {
 
   if (typeof value !== "string") {
     throw new Error("Invalid text value.");
+  }
+
+  return value;
+}
+
+function parseOptionalIntegerHour(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "number" || !Number.isInteger(value)) {
+    throw new Error("Hour value must be an integer.");
+  }
+
+  if (value < 0 || value > 23) {
+    throw new Error("Hour value must be between 0 and 23.");
+  }
+
+  return value;
+}
+
+function parseOptionalSendPolicy(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value !== NotificationSendPolicy.INSTANT && value !== NotificationSendPolicy.DIGEST_DAILY) {
+    throw new Error("Invalid send policy.");
   }
 
   return value;
@@ -95,6 +124,14 @@ export async function PATCH(request: Request) {
       emailEnabled: parseOptionalBoolean(body.emailEnabled),
       smsEnabled: parseOptionalBoolean(body.smsEnabled),
       phoneNumber: parseOptionalStringOrNull(body.phoneNumber),
+      sendPolicy: parseOptionalSendPolicy(body.sendPolicy),
+      digestHourLocal: parseOptionalIntegerHour(body.digestHourLocal),
+      quietHoursEnabled: parseOptionalBoolean(body.quietHoursEnabled),
+      quietHoursStartHour: parseOptionalIntegerHour(body.quietHoursStartHour),
+      quietHoursEndHour: parseOptionalIntegerHour(body.quietHoursEndHour),
+      sendWindowEnabled: parseOptionalBoolean(body.sendWindowEnabled),
+      sendWindowStartHour: parseOptionalIntegerHour(body.sendWindowStartHour),
+      sendWindowEndHour: parseOptionalIntegerHour(body.sendWindowEndHour),
       bikePreferences: parseBikePreferences(body.bikePreferences),
     });
 

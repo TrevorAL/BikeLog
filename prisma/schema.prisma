@@ -221,6 +221,14 @@ model UserNotificationPreference {
   emailEnabled         Boolean                    @default(true)
   smsEnabled           Boolean                    @default(false)
   phoneNumber          String?
+  sendPolicy           NotificationSendPolicy     @default(DIGEST_DAILY)
+  digestHourLocal      Int                        @default(9)
+  quietHoursEnabled    Boolean                    @default(false)
+  quietHoursStartHour  Int                        @default(22)
+  quietHoursEndHour    Int                        @default(7)
+  sendWindowEnabled    Boolean                    @default(false)
+  sendWindowStartHour  Int                        @default(8)
+  sendWindowEndHour    Int                        @default(21)
   bikePreferences      BikeNotificationPreference[]
   deliveryLogs         MaintenanceNotificationLog[]
   createdAt            DateTime                   @default(now())
@@ -383,4 +391,9 @@ enum NotificationDeliveryStatus {
   DELIVERED
   SKIPPED
   ERROR
+}
+
+enum NotificationSendPolicy {
+  INSTANT
+  DIGEST_DAILY
 }

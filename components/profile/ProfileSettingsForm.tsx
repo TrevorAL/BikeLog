@@ -12,6 +12,7 @@ import {
 
 type DistanceUnit = "MI" | "KM";
 type PressureUnit = "PSI" | "BAR";
+type NotificationSendPolicy = "INSTANT" | "DIGEST_DAILY";
 
 type ProfileUser = {
   name: string | null;
@@ -54,6 +55,14 @@ type ProfileNotificationSettings = {
   emailEnabled: boolean;
   smsEnabled: boolean;
   phoneNumber: string | null;
+  sendPolicy: NotificationSendPolicy;
+  digestHourLocal: number;
+  quietHoursEnabled: boolean;
+  quietHoursStartHour: number;
+  quietHoursEndHour: number;
+  sendWindowEnabled: boolean;
+  sendWindowStartHour: number;
+  sendWindowEndHour: number;
   bikes: Array<{
     bikeId: string;
     bikeLabel: string;
@@ -119,6 +128,14 @@ type NotificationFormState = {
   emailEnabled: boolean;
   smsEnabled: boolean;
   phoneNumber: string;
+  sendPolicy: NotificationSendPolicy;
+  digestHourLocal: number;
+  quietHoursEnabled: boolean;
+  quietHoursStartHour: number;
+  quietHoursEndHour: number;
+  sendWindowEnabled: boolean;
+  sendWindowStartHour: number;
+  sendWindowEndHour: number;
   bikes: NotificationBikeFormState[];
 };
 
@@ -228,6 +245,14 @@ function toNotificationFormState(
     emailEnabled: notifications.emailEnabled,
     smsEnabled: notifications.smsEnabled,
     phoneNumber: notifications.phoneNumber ?? "",
+    sendPolicy: notifications.sendPolicy,
+    digestHourLocal: notifications.digestHourLocal,
+    quietHoursEnabled: notifications.quietHoursEnabled,
+    quietHoursStartHour: notifications.quietHoursStartHour,
+    quietHoursEndHour: notifications.quietHoursEndHour,
+    sendWindowEnabled: notifications.sendWindowEnabled,
+    sendWindowStartHour: notifications.sendWindowStartHour,
+    sendWindowEndHour: notifications.sendWindowEndHour,
     bikes: notifications.bikes.map((bike) => ({
       bikeId: bike.bikeId,
       bikeLabel: bike.bikeLabel,
@@ -237,6 +262,18 @@ function toNotificationFormState(
     })),
   };
 }
+
+function formatHourLabel(hour: number) {
+  const normalized = ((hour % 24) + 24) % 24;
+  const period = normalized >= 12 ? "PM" : "AM";
+  const displayHour = normalized % 12 === 0 ? 12 : normalized % 12;
+  return `${displayHour}:00 ${period}`;
+}
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
+  value: hour,
+  label: formatHourLabel(hour),
+}));
 
 function resolveSystemTheme() {
   if (typeof window === "undefined") {
@@ -559,6 +596,14 @@ export function ProfileSettingsForm({
           emailEnabled: notificationForm.emailEnabled,
           smsEnabled: notificationForm.smsEnabled,
           phoneNumber: notificationForm.phoneNumber.trim() || null,
+          sendPolicy: notificationForm.sendPolicy,
+          digestHourLocal: notificationForm.digestHourLocal,
+          quietHoursEnabled: notificationForm.quietHoursEnabled,
+          quietHoursStartHour: notificationForm.quietHoursStartHour,
+          quietHoursEndHour: notificationForm.quietHoursEndHour,
+          sendWindowEnabled: notificationForm.sendWindowEnabled,
+          sendWindowStartHour: notificationForm.sendWindowStartHour,
+          sendWindowEndHour: notificationForm.sendWindowEndHour,
           bikePreferences: notificationForm.bikes.map((bike) => ({
             bikeId: bike.bikeId,
             enabled: bike.enabled,
@@ -928,6 +973,166 @@ export function ProfileSettingsForm({
               />
               Text (SMS) notifications
             </label>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm text-slate-700">
+              Send policy
+              <select
+                value={notificationForm.sendPolicy}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    sendPolicy: event.target.value as NotificationSendPolicy,
+                  }))
+                }
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+              >
+                <option value="INSTANT">Instant when due</option>
+                <option value="DIGEST_DAILY">Daily digest</option>
+              </select>
+            </label>
+
+            <label className="text-sm text-slate-700">
+              Daily digest hour
+              <select
+                value={notificationForm.digestHourLocal}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    digestHourLocal: Number(event.target.value),
+                  }))
+                }
+                disabled={notificationForm.sendPolicy !== "DIGEST_DAILY"}
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-50"
+              >
+                {HOUR_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+              <input
+                type="checkbox"
+                checked={notificationForm.sendWindowEnabled}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    sendWindowEnabled: event.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+              />
+              Restrict to send window
+            </label>
+
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <label className="text-xs text-slate-700">
+                Start hour
+                <select
+                  value={notificationForm.sendWindowStartHour}
+                  onChange={(event) =>
+                    setNotificationForm((current) => ({
+                      ...current,
+                      sendWindowStartHour: Number(event.target.value),
+                    }))
+                  }
+                  disabled={!notificationForm.sendWindowEnabled}
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                >
+                  {HOUR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs text-slate-700">
+                End hour
+                <select
+                  value={notificationForm.sendWindowEndHour}
+                  onChange={(event) =>
+                    setNotificationForm((current) => ({
+                      ...current,
+                      sendWindowEndHour: Number(event.target.value),
+                    }))
+                  }
+                  disabled={!notificationForm.sendWindowEnabled}
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                >
+                  {HOUR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+              <input
+                type="checkbox"
+                checked={notificationForm.quietHoursEnabled}
+                onChange={(event) =>
+                  setNotificationForm((current) => ({
+                    ...current,
+                    quietHoursEnabled: event.target.checked,
+                  }))
+                }
+                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+              />
+              Quiet hours
+            </label>
+
+            <div className="mt-2 grid gap-3 sm:grid-cols-2">
+              <label className="text-xs text-slate-700">
+                Quiet start
+                <select
+                  value={notificationForm.quietHoursStartHour}
+                  onChange={(event) =>
+                    setNotificationForm((current) => ({
+                      ...current,
+                      quietHoursStartHour: Number(event.target.value),
+                    }))
+                  }
+                  disabled={!notificationForm.quietHoursEnabled}
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                >
+                  {HOUR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs text-slate-700">
+                Quiet end
+                <select
+                  value={notificationForm.quietHoursEndHour}
+                  onChange={(event) =>
+                    setNotificationForm((current) => ({
+                      ...current,
+                      quietHoursEndHour: Number(event.target.value),
+                    }))
+                  }
+                  disabled={!notificationForm.quietHoursEnabled}
+                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                >
+                  {HOUR_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
 
           <label className="block text-sm text-slate-700">
