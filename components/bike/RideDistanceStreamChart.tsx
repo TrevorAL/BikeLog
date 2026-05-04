@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Activity, Gauge, Route, Timer } from "lucide-react";
 import {
   Area,
@@ -134,8 +134,35 @@ function RideTooltip({ active, payload }: RideTooltipProps) {
 }
 
 export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedRange, setSelectedRange] = useState<TimeRangeKey>("1y");
   const [hiddenRideTypes, setHiddenRideTypes] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const root = document.documentElement;
+    const updateThemeState = () => {
+      setIsDarkMode(root.getAttribute("data-theme") === "dark");
+    };
+
+    updateThemeState();
+
+    const observer = new MutationObserver(() => {
+      updateThemeState();
+    });
+
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const normalizedRides = useMemo(() => {
     return rides
@@ -235,6 +262,8 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
           : null,
     };
   }, [chartData]);
+
+  const cumulativeSeriesColor = isDarkMode ? "#ffffff" : "#0f172a";
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -418,7 +447,17 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
               <Legend
                 verticalAlign="top"
                 align="right"
-                wrapperStyle={{ fontSize: "12px", color: "#334155" }}
+                wrapperStyle={{ fontSize: "12px", color: isDarkMode ? "#cbd5e1" : "#334155" }}
+                formatter={(value) => {
+                  const label = String(value);
+                  const color =
+                    label === "Cumulative Miles"
+                      ? cumulativeSeriesColor
+                      : isDarkMode
+                        ? "#cbd5e1"
+                        : "#334155";
+                  return <span style={{ color }}>{label}</span>;
+                }}
               />
               <Area
                 yAxisId="distance"
@@ -447,7 +486,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
                 type="monotone"
                 dataKey="cumulativeMiles"
                 name="Cumulative Miles"
-                stroke="#0f172a"
+                stroke={cumulativeSeriesColor}
                 strokeWidth={1.8}
                 dot={false}
                 activeDot={false}

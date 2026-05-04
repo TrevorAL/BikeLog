@@ -65,7 +65,7 @@ export function DesktopNavDropdown({
         <div
           id={`nav-menu-${group.key}`}
           role="menu"
-          className="absolute left-0 top-[calc(100%+8px)] z-40 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-lg"
+          className="dropdown-surface absolute left-0 top-[calc(100%+8px)] z-40 w-72 rounded-xl border p-2 shadow-lg"
         >
           <ul className="space-y-1">
             {group.items.map((item) => {
@@ -78,7 +78,7 @@ export function DesktopNavDropdown({
                     onClick={onNavigate}
                     className={cn(
                       "block rounded-lg px-3 py-2 transition",
-                      itemActive ? "bg-sky-50 text-sky-900" : "hover:bg-slate-100",
+                      itemActive ? "dropdown-item-active" : "hover:bg-slate-100",
                     )}
                     role="menuitem"
                   >
@@ -103,14 +103,14 @@ export function MobileNavDropdown({ group, pathname }: { group: NavMenuGroup; pa
   return (
     <details
       className={cn(
-        "rounded-lg border bg-white",
+        "dropdown-surface rounded-lg border",
         active ? "border-sky-200" : "border-slate-200",
       )}
     >
       <summary
         className={cn(
           "cursor-pointer list-none rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden",
-          active ? "bg-sky-50 text-sky-900" : "hover:bg-slate-100",
+          active ? "dropdown-item-active" : "hover:bg-slate-100",
         )}
       >
         <span className="flex items-center justify-between">
@@ -128,7 +128,7 @@ export function MobileNavDropdown({ group, pathname }: { group: NavMenuGroup; pa
                 href={item.href}
                 className={cn(
                   "block rounded-md px-2.5 py-2",
-                  itemActive ? "bg-sky-50 text-sky-900" : "hover:bg-slate-100",
+                  itemActive ? "dropdown-item-active" : "hover:bg-slate-100",
                 )}
               >
                 <p className="text-sm font-medium text-slate-900">{item.label}</p>

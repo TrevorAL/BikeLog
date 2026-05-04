@@ -71,6 +71,7 @@ model Component {
   installDate    DateTime?
   initialMileage Float           @default(0)
   currentMileage Float           @default(0)
+  replacementIntervalMiles Float?
   status         ComponentStatus @default(ACTIVE)
   notes          String?
   isActive       Boolean         @default(true)

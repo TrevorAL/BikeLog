@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 
 import { ComponentCard } from "@/components/components/ComponentCard";
 import { COMPONENT_TYPES, DEFAULT_COMPONENT_NAME_BY_TYPE, formatComponentType } from "@/lib/component-options";
-import type { MaintenanceStatus } from "@/lib/constants";
+import {
+  DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES,
+  type MaintenanceStatus,
+} from "@/lib/constants";
 
 type ComponentListItem = {
   id: string;
@@ -16,6 +19,7 @@ type ComponentListItem = {
   installDate: string | null;
   initialMileage: number;
   currentMileage: number;
+  replacementIntervalMiles: number | null;
   notes: string | null;
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
@@ -63,6 +67,7 @@ type RingMetric = {
   percent: number;
   label: string;
   detail: string;
+  progress?: string;
   tone: RingTone;
 };
 
@@ -75,28 +80,6 @@ const INSPECTION_INTERVAL_MILES_BY_LABEL: Record<string, number> = {
   "Bar tape inspection": 1800,
   "Cassette inspection": 2000,
   "Rotor inspection": 1500,
-};
-
-const REPLACEMENT_INTERVAL_MILES_BY_TYPE: Record<string, number> = {
-  CHAIN: 2000,
-  CASSETTE: 6000,
-  FRONT_TIRE: 3000,
-  REAR_TIRE: 2500,
-  FRONT_BRAKE_PAD: 3500,
-  REAR_BRAKE_PAD: 3500,
-  FRONT_ROTOR: 10000,
-  REAR_ROTOR: 10000,
-  CHAINRINGS: 10000,
-  CLEATS: 2500,
-  BAR_TAPE: 3000,
-  PEDALS: 12000,
-  WHEELSET: 20000,
-  CRANKSET: 20000,
-  DI2_BATTERY: 10000,
-  HANDLEBAR: 20000,
-  STEM: 20000,
-  SADDLE: 12000,
-  OTHER: 5000,
 };
 
 function parseOptionalText(value: FormDataEntryValue | null) {
@@ -123,6 +106,15 @@ function toDateInputValue(dateInput: string | null | undefined) {
 
 function roundToTenth(value: number) {
   return Math.round(value * 10) / 10;
+}
+
+function formatMiles(value: number) {
+  const rounded = roundToTenth(value);
+  if (Number.isInteger(rounded)) {
+    return `${rounded.toFixed(0)}`;
+  }
+
+  return rounded.toFixed(1);
 }
 
 function clampPercent(value: number) {
@@ -214,7 +206,9 @@ function getInspectionMetric(component: ComponentListItem): RingMetric {
 }
 
 function getReplacementMetric(component: ComponentListItem): RingMetric {
-  const replacementInterval = REPLACEMENT_INTERVAL_MILES_BY_TYPE[component.type];
+  const replacementInterval =
+    component.replacementIntervalMiles ??
+    DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[component.type];
   if (!replacementInterval) {
     return {
       percent: 0,
@@ -227,12 +221,14 @@ function getReplacementMetric(component: ComponentListItem): RingMetric {
   const milesOnComponent = Math.max(0, component.currentMileage - component.initialMileage);
   const milesRemaining = replacementInterval - milesOnComponent;
   const percent = clampPercent((milesOnComponent / replacementInterval) * 100);
+  const progress = `${formatMiles(milesOnComponent)} / ${formatMiles(replacementInterval)} mi`;
 
   if (milesRemaining <= 0) {
     return {
       percent: 100,
       label: "Replacement",
       detail: `${Math.abs(Math.round(milesRemaining))} miles overdue`,
+      progress,
       tone: "orange",
     };
   }
@@ -241,6 +237,7 @@ function getReplacementMetric(component: ComponentListItem): RingMetric {
     percent,
     label: "Replacement",
     detail: `${Math.round(milesRemaining)} miles remaining`,
+    progress,
     tone: milesRemaining <= replacementInterval * 0.2 ? "sky" : "emerald",
   };
 }
@@ -315,6 +312,9 @@ function MetricRing({ metric }: { metric: RingMetric }) {
         <div className="min-w-0">
           <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
           <p className="text-xs text-slate-600">{metric.detail}</p>
+          {metric.progress ? (
+            <p className="mt-0.5 text-xs text-slate-500">{metric.progress}</p>
+          ) : null}
         </div>
       </div>
     </article>
@@ -358,6 +358,11 @@ function AddComponentForm({
           typeof initialMileageInput === "string" && initialMileageInput.length > 0
             ? Number(initialMileageInput)
             : undefined;
+        const replacementIntervalInput = formData.get("replacementIntervalMiles");
+        const replacementIntervalMiles =
+          typeof replacementIntervalInput === "string" && replacementIntervalInput.length > 0
+            ? Number(replacementIntervalInput)
+            : undefined;
 
         setIsSubmitting(true);
         setStatus({ type: "idle" });
@@ -377,6 +382,7 @@ function AddComponentForm({
               installDate: parseOptionalText(formData.get("installDate")),
               initialMileage,
               currentMileage,
+              replacementIntervalMiles,
               notes: parseOptionalText(formData.get("notes")),
             }),
           });
@@ -470,6 +476,18 @@ function AddComponentForm({
             className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
+
+        <label className="text-sm text-slate-700">
+          Replacement life (miles)
+          <input
+            name="replacementIntervalMiles"
+            type="number"
+            min="1"
+            step="1"
+            placeholder={`${DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[selectedType]} (default)`}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+          />
+        </label>
       </div>
 
       <label className="mt-3 block text-sm text-slate-700">
@@ -506,6 +524,14 @@ function EditableComponentCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<FormStatus>({ type: "idle" });
   const [showDetails, setShowDetails] = useState(false);
+  const replacementIntervalMiles =
+    component.replacementIntervalMiles ??
+    DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[component.type] ??
+    0;
+  const milesOnComponent = Math.max(0, component.currentMileage - component.initialMileage);
+  const replacementProgressText = replacementIntervalMiles
+    ? `${formatMiles(milesOnComponent)} / ${formatMiles(replacementIntervalMiles)} mi`
+    : undefined;
   const inspectionMetric = getInspectionMetric(component);
   const replacementMetric = getReplacementMetric(component);
   const installedOn = toDateInputValue(component.installDate);
@@ -544,6 +570,13 @@ function EditableComponentCard({
             typeof initialMileageInput === "string" && initialMileageInput.length > 0
               ? Number(initialMileageInput)
               : undefined;
+          const replacementIntervalInput = formData.get("replacementIntervalMiles");
+          const replacementIntervalMiles =
+            typeof replacementIntervalInput === "string"
+              ? replacementIntervalInput.length > 0
+                ? Number(replacementIntervalInput)
+                : null
+              : null;
 
           setIsSubmitting(true);
           setStatus({ type: "idle" });
@@ -561,6 +594,7 @@ function EditableComponentCard({
                 installDate: parseOptionalText(formData.get("installDate")),
                 initialMileage,
                 currentMileage,
+                replacementIntervalMiles,
                 notes: parseOptionalText(formData.get("notes")),
               }),
             });
@@ -673,6 +707,19 @@ function EditableComponentCard({
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
+
+          <label className="text-sm text-slate-700">
+            Replacement life (miles)
+            <input
+              name="replacementIntervalMiles"
+              type="number"
+              min="1"
+              step="1"
+              defaultValue={component.replacementIntervalMiles ?? ""}
+              placeholder={`${DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[component.type]} (default)`}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
         </div>
 
         <label className="mt-3 block text-sm text-slate-700">
@@ -706,6 +753,12 @@ function EditableComponentCard({
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
+          const replacementIntervalInput = formData.get("replacementIntervalMiles");
+          const replacementIntervalMiles =
+            typeof replacementIntervalInput === "string" &&
+            replacementIntervalInput.length > 0
+              ? Number(replacementIntervalInput)
+              : undefined;
 
           setIsSubmitting(true);
           setStatus({ type: "idle" });
@@ -721,6 +774,7 @@ function EditableComponentCard({
                 brand: parseOptionalText(formData.get("brand")),
                 model: parseOptionalText(formData.get("model")),
                 installDate: parseOptionalText(formData.get("installDate")),
+                replacementIntervalMiles,
                 notes: parseOptionalText(formData.get("notes")),
               }),
             });
@@ -798,6 +852,18 @@ function EditableComponentCard({
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
+          <label className="text-sm text-slate-700">
+            Replacement life (miles)
+            <input
+              name="replacementIntervalMiles"
+              type="number"
+              min="1"
+              step="1"
+              defaultValue={component.replacementIntervalMiles ?? ""}
+              placeholder={`${DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[component.type]} (default)`}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
         </div>
 
         <label className="mt-3 block text-sm text-slate-700">
@@ -830,6 +896,7 @@ function EditableComponentCard({
         name={component.name}
         brandModel={`${component.brand ?? ""} ${component.model ?? ""}`.trim() || "No model set"}
         currentMileage={component.currentMileage}
+        mileageProgress={replacementProgressText}
         installDate={component.installDate ? new Date(component.installDate) : null}
         conditionStatus={component.conditionStatus}
         nextMaintenance={component.nextMaintenance}
@@ -913,6 +980,12 @@ function EditableComponentCard({
               <div className="rounded-lg bg-slate-50 px-3 py-2">
                 <p className="text-xs text-slate-500">Current mileage</p>
                 <p className="font-medium text-slate-900">{roundToTenth(component.currentMileage)} mi</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-3 py-2 sm:col-span-2">
+                <p className="text-xs text-slate-500">Life progress</p>
+                <p className="font-medium text-slate-900">
+                  {replacementProgressText ?? "Replacement interval not set"}
+                </p>
               </div>
             </div>
 

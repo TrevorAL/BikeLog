@@ -1,9 +1,8 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { ProfileSettingsForm } from "@/components/profile/ProfileSettingsForm";
+import { ProfileOverview } from "@/components/profile/ProfileOverview";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { requireServerUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getNotificationPreferencesForUser } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -16,48 +15,15 @@ type ProfilePageData = {
     timezone: string | null;
     distanceUnit: "MI" | "KM";
     pressureUnit: "PSI" | "BAR";
-    selectedBikeId: string | null;
   };
-  bikes?: Array<{
-    id: string;
-    label: string;
-  }>;
-  connections?: {
-    google: {
-      connected: boolean;
-      providerAccountId: string | null;
-    };
-    strava: {
-      scope: string;
-      expiresAt: string;
-      username: string | null;
-      firstName: string | null;
-      lastName: string | null;
-      lastSyncStatus: "CONNECTED" | "SUCCESS" | "NO_NEW_DATA" | "ERROR";
-      lastSyncAt: string | null;
-      lastSyncError: string | null;
-    } | null;
-  };
-  notifications?: {
-    notificationsEnabled: boolean;
-    emailEnabled: boolean;
-    smsEnabled: boolean;
-    phoneNumber: string | null;
-    bikes: Array<{
-      bikeId: string;
-      bikeLabel: string;
-      enabled: boolean;
-      emailEnabled: boolean;
-      smsEnabled: boolean;
-    }>;
-  };
+  selectedBikeLabel?: string;
 };
 
-function bikeLabel(input: {
+function formatBikeLabel(input: {
   name: string;
-  brand: string | null;
-  model: string | null;
-  year: number | null;
+  brand?: string | null;
+  model?: string | null;
+  year?: number | null;
 }) {
   const detailed = [input.year, input.brand, input.model].filter(Boolean).join(" ").trim();
   return detailed.length > 0 ? detailed : input.name;
@@ -65,7 +31,7 @@ function bikeLabel(input: {
 
 async function getProfilePageData(userId: string): Promise<ProfilePageData> {
   try {
-    const [user, bikes, googleAccount, stravaConnection, notifications] = await Promise.all([
+    const [user, fallbackBike] = await Promise.all([
       prisma.user.findUnique({
         where: {
           id: userId,
@@ -80,7 +46,7 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
           selectedBikeId: true,
         },
       }),
-      prisma.bike.findMany({
+      prisma.bike.findFirst({
         where: {
           userId,
           isArchived: false,
@@ -96,31 +62,6 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
           year: true,
         },
       }),
-      prisma.account.findFirst({
-        where: {
-          userId,
-          provider: "google",
-        },
-        select: {
-          providerAccountId: true,
-        },
-      }),
-      prisma.stravaConnection.findUnique({
-        where: {
-          userId,
-        },
-        select: {
-          scope: true,
-          expiresAt: true,
-          username: true,
-          firstName: true,
-          lastName: true,
-          lastSyncStatus: true,
-          lastSyncAt: true,
-          lastSyncError: true,
-        },
-      }),
-      getNotificationPreferencesForUser(userId),
     ]);
 
     if (!user) {
@@ -128,6 +69,22 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
         dbConnected: true,
       };
     }
+
+    const selectedBikeRecord = user.selectedBikeId
+      ? await prisma.bike.findFirst({
+          where: {
+            id: user.selectedBikeId,
+            userId,
+            isArchived: false,
+          },
+          select: {
+            name: true,
+            brand: true,
+            model: true,
+            year: true,
+          },
+        })
+      : null;
 
     return {
       dbConnected: true,
@@ -138,31 +95,12 @@ async function getProfilePageData(userId: string): Promise<ProfilePageData> {
         timezone: user.timezone,
         distanceUnit: user.distanceUnit,
         pressureUnit: user.pressureUnit,
-        selectedBikeId: user.selectedBikeId,
       },
-      bikes: bikes.map((bike) => ({
-        id: bike.id,
-        label: bikeLabel(bike),
-      })),
-      connections: {
-        google: {
-          connected: Boolean(googleAccount),
-          providerAccountId: googleAccount?.providerAccountId ?? null,
-        },
-        strava: stravaConnection
-          ? {
-              scope: stravaConnection.scope,
-              expiresAt: stravaConnection.expiresAt.toISOString(),
-              username: stravaConnection.username,
-              firstName: stravaConnection.firstName,
-              lastName: stravaConnection.lastName,
-              lastSyncStatus: stravaConnection.lastSyncStatus,
-              lastSyncAt: stravaConnection.lastSyncAt?.toISOString() ?? null,
-              lastSyncError: stravaConnection.lastSyncError,
-            }
-          : null,
-      },
-      notifications,
+      selectedBikeLabel: selectedBikeRecord
+        ? formatBikeLabel(selectedBikeRecord)
+        : fallbackBike
+          ? formatBikeLabel(fallbackBike)
+          : "No bike selected",
     };
   } catch {
     return {
@@ -178,7 +116,7 @@ export default async function ProfilePage() {
   return (
     <AppShell
       title="Profile"
-      description="Update your account details, preferences, and connections."
+      description="Account snapshot and quick links."
     >
       {!data.dbConnected ? (
         <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
@@ -190,12 +128,10 @@ export default async function ProfilePage() {
         </section>
       ) : null}
 
-      {data.user && data.bikes && data.connections && data.notifications ? (
-        <ProfileSettingsForm
+      {data.user ? (
+        <ProfileOverview
           user={data.user}
-          bikes={data.bikes}
-          connections={data.connections}
-          notifications={data.notifications}
+          selectedBikeLabel={data.selectedBikeLabel ?? "No bike selected"}
         />
       ) : (
         <EmptyState

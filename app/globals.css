@@ -6,6 +6,15 @@
   color-scheme: light;
 }
 
+html {
+  background-color: #f8fafc;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  background-color: #020617;
+}
+
 * {
   border-color: rgb(203 213 225 / 0.8);
 }
@@ -19,6 +28,52 @@ body {
     #f8fafc;
   color: #0f172a;
   font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+.app-shell-surface {
+  background-color: #f8fafc;
+}
+
+.dropdown-surface {
+  background-color: #ffffff;
+  border-color: rgb(226 232 240);
+}
+
+.dropdown-item-active {
+  background-color: rgb(224 242 254);
+  color: rgb(12 74 110);
+}
+
+.dropdown-notch {
+  background-color: #ffffff;
+  border-color: rgb(226 232 240);
+}
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(60rem 30rem at -5% -10%, rgba(14, 165, 233, 0.14), transparent 55%),
+    radial-gradient(56rem 28rem at 105% -8%, rgba(249, 115, 22, 0.12), transparent 52%),
+    #020617;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .app-shell-surface {
+  background-color: #020617;
+}
+
+html[data-theme="dark"] .dropdown-surface {
+  background-color: rgb(15 23 42);
+  border-color: rgb(51 65 85);
+}
+
+html[data-theme="dark"] .dropdown-item-active {
+  background-color: rgb(8 47 73);
+  color: rgb(186 230 253);
+}
+
+html[data-theme="dark"] .dropdown-notch {
+  background-color: rgb(15 23 42);
+  border-color: rgb(51 65 85);
 }
 
 h1,
@@ -48,4 +103,81 @@ textarea {
   min-height: 5.5rem;
   font-size: 0.875rem;
   line-height: 1.35rem;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: rgb(15 23 42) !important;
+}
+
+html[data-theme="dark"] .bg-white\/95 {
+  background-color: rgb(2 6 23 / 0.95) !important;
+}
+
+html[data-theme="dark"] .bg-slate-50 {
+  background-color: rgb(30 41 59) !important;
+}
+
+html[data-theme="dark"] .bg-slate-100 {
+  background-color: rgb(51 65 85) !important;
+}
+
+html[data-theme="dark"] .text-slate-900 {
+  color: rgb(241 245 249) !important;
+}
+
+html[data-theme="dark"] .text-slate-800 {
+  color: rgb(226 232 240) !important;
+}
+
+html[data-theme="dark"] .text-slate-700 {
+  color: rgb(203 213 225) !important;
+}
+
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-slate-500 {
+  color: rgb(148 163 184) !important;
+}
+
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-100,
+html[data-theme="dark"] .border-slate-300 {
+  border-color: rgb(51 65 85) !important;
+}
+
+html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea {
+  background-color: rgb(30 41 59) !important;
+  color: rgb(226 232 240) !important;
+}
+
+html[data-theme="dark"] select option,
+html[data-theme="dark"] select optgroup {
+  background-color: rgb(15 23 42);
+  color: rgb(226 232 240);
+}
+
+html[data-theme="dark"] .hover\:bg-slate-50:hover {
+  background-color: rgb(30 41 59) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-slate-100:hover {
+  background-color: rgb(51 65 85) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-sky-100:hover {
+  background-color: rgb(12 74 110) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-emerald-50:hover {
+  background-color: rgb(6 78 59) !important;
+}
+
+html[data-theme="dark"] .hover\:bg-red-50:hover {
+  background-color: rgb(127 29 29) !important;
+}
+
+html[data-theme="dark"] .hover\:text-slate-900:hover,
+html[data-theme="dark"] .hover\:text-slate-800:hover {
+  color: rgb(241 245 249) !important;
 }

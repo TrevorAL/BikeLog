@@ -25,7 +25,7 @@ export async function AppShell({ title, description, actions, children }: AppShe
     : null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="app-shell-surface min-h-screen">
       <AppHeader
         title={title}
         description={description}
