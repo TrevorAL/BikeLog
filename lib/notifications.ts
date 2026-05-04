@@ -8,6 +8,11 @@ import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 
 const DIGEST_DUE_KEY = "maintenance-digest";
+const INSTANT_DUE_KEY_PREFIX = "maintenance-instant";
+const DEFAULT_TIMEZONE = "UTC";
+const DIGEST_DAILY_POLICY = "DIGEST_DAILY";
+
+export type NotificationSendPolicyValue = "INSTANT" | "DIGEST_DAILY";
 
 type BikeSummary = {
   id: string;
@@ -40,6 +45,14 @@ export type ProfileNotificationSettings = {
   emailEnabled: boolean;
   smsEnabled: boolean;
   phoneNumber: string | null;
+  sendPolicy: NotificationSendPolicyValue;
+  digestHourLocal: number;
+  quietHoursEnabled: boolean;
+  quietHoursStartHour: number;
+  quietHoursEndHour: number;
+  sendWindowEnabled: boolean;
+  sendWindowStartHour: number;
+  sendWindowEndHour: number;
   bikes: Array<{
     bikeId: string;
     bikeLabel: string;
@@ -54,6 +67,14 @@ type NotificationPreferencesUpdateInput = {
   emailEnabled?: boolean;
   smsEnabled?: boolean;
   phoneNumber?: string | null;
+  sendPolicy?: NotificationSendPolicyValue;
+  digestHourLocal?: number;
+  quietHoursEnabled?: boolean;
+  quietHoursStartHour?: number;
+  quietHoursEndHour?: number;
+  sendWindowEnabled?: boolean;
+  sendWindowStartHour?: number;
+  sendWindowEndHour?: number;
   bikePreferences?: Array<{
     bikeId: string;
     enabled?: boolean;
@@ -92,30 +113,152 @@ function normalizePhoneNumber(value: string | null | undefined) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getDayKey(timezone: string | null | undefined) {
-  const now = new Date();
-  const safeTimezone = timezone?.trim();
+type LocalClock = {
+  dayKey: string;
+  hour: number;
+  minute: number;
+};
+
+function normalizeHour(value: number, fallback: number) {
+  if (!Number.isFinite(value)) {
+    return fallback;
+  }
+
+  const normalized = Math.trunc(value);
+  if (normalized < 0 || normalized > 23) {
+    return fallback;
+  }
+
+  return normalized;
+}
+
+function resolveTimezone(timezone: string | null | undefined) {
+  const trimmed = timezone?.trim();
+  if (!trimmed) {
+    return DEFAULT_TIMEZONE;
+  }
+
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: trimmed }).format();
+    return trimmed;
+  } catch {
+    return DEFAULT_TIMEZONE;
+  }
+}
+
+export function getLocalClock(
+  timezone: string | null | undefined,
+  referenceTime: Date = new Date(),
+): LocalClock {
+  const safeTimezone = resolveTimezone(timezone);
 
   try {
     const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: safeTimezone && safeTimezone.length > 0 ? safeTimezone : "UTC",
+      timeZone: safeTimezone,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      hourCycle: "h23",
     });
-    const parts = formatter.formatToParts(now);
+
+    const parts = formatter.formatToParts(referenceTime);
     const year = parts.find((part) => part.type === "year")?.value;
     const month = parts.find((part) => part.type === "month")?.value;
     const day = parts.find((part) => part.type === "day")?.value;
+    const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
+    const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
 
     if (year && month && day) {
-      return `${year}-${month}-${day}`;
+      return {
+        dayKey: `${year}-${month}-${day}`,
+        hour: normalizeHour(hour, referenceTime.getUTCHours()),
+        minute: Number.isFinite(minute) ? Math.max(0, Math.min(59, Math.trunc(minute))) : 0,
+      };
     }
   } catch {
-    // Ignore invalid timezone values and fall through to UTC.
+    // Fall through to UTC fallback below.
   }
 
-  return now.toISOString().slice(0, 10);
+  return {
+    dayKey: referenceTime.toISOString().slice(0, 10),
+    hour: referenceTime.getUTCHours(),
+    minute: referenceTime.getUTCMinutes(),
+  };
+}
+
+function isHourInsideWindow(hour: number, startHour: number, endHour: number) {
+  const currentHour = normalizeHour(hour, 0);
+  const start = normalizeHour(startHour, 0);
+  const end = normalizeHour(endHour, 23);
+
+  if (start === end) {
+    return true;
+  }
+
+  if (start < end) {
+    return currentHour >= start && currentHour < end;
+  }
+
+  return currentHour >= start || currentHour < end;
+}
+
+export function shouldSendNotificationNow(input: {
+  sendPolicy: NotificationSendPolicyValue;
+  digestHourLocal: number;
+  quietHoursEnabled: boolean;
+  quietHoursStartHour: number;
+  quietHoursEndHour: number;
+  sendWindowEnabled: boolean;
+  sendWindowStartHour: number;
+  sendWindowEndHour: number;
+  localHour: number;
+}) {
+  const localHour = normalizeHour(input.localHour, 0);
+
+  if (
+    input.sendPolicy === DIGEST_DAILY_POLICY &&
+    localHour !== normalizeHour(input.digestHourLocal, 9)
+  ) {
+    return false;
+  }
+
+  if (
+    input.quietHoursEnabled
+  ) {
+    const quietStart = normalizeHour(input.quietHoursStartHour, 22);
+    const quietEnd = normalizeHour(input.quietHoursEndHour, 7);
+    if (quietStart !== quietEnd && isHourInsideWindow(localHour, quietStart, quietEnd)) {
+      return false;
+    }
+  }
+
+  if (
+    input.sendWindowEnabled &&
+    !isHourInsideWindow(localHour, input.sendWindowStartHour, input.sendWindowEndHour)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function hashString(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+function buildInstantDueKey(items: DueAlertItem[]) {
+  const signature = items
+    .map((item) => `${item.key}:${item.status}`)
+    .sort()
+    .join("|");
+  return `${INSTANT_DUE_KEY_PREFIX}:${hashString(signature)}`;
 }
 
 async function ensureNotificationPreference(userId: string) {
@@ -461,6 +604,14 @@ export async function getNotificationPreferencesForUser(
     emailEnabled: preference.emailEnabled,
     smsEnabled: preference.smsEnabled,
     phoneNumber: preference.phoneNumber,
+    sendPolicy: preference.sendPolicy,
+    digestHourLocal: preference.digestHourLocal,
+    quietHoursEnabled: preference.quietHoursEnabled,
+    quietHoursStartHour: preference.quietHoursStartHour,
+    quietHoursEndHour: preference.quietHoursEndHour,
+    sendWindowEnabled: preference.sendWindowEnabled,
+    sendWindowStartHour: preference.sendWindowStartHour,
+    sendWindowEndHour: preference.sendWindowEndHour,
     bikes: preference.bikePreferences.map((entry) => ({
       bikeId: entry.bikeId,
       bikeLabel: buildBikeLabel(entry.bike),
@@ -491,6 +642,28 @@ export async function updateNotificationPreferencesForUser(
       ...(typeof input.smsEnabled === "boolean" ? { smsEnabled: input.smsEnabled } : {}),
       ...(input.phoneNumber !== undefined
         ? { phoneNumber: normalizePhoneNumber(input.phoneNumber) }
+        : {}),
+      ...(input.sendPolicy ? { sendPolicy: input.sendPolicy } : {}),
+      ...(typeof input.digestHourLocal === "number"
+        ? { digestHourLocal: normalizeHour(input.digestHourLocal, 9) }
+        : {}),
+      ...(typeof input.quietHoursEnabled === "boolean"
+        ? { quietHoursEnabled: input.quietHoursEnabled }
+        : {}),
+      ...(typeof input.quietHoursStartHour === "number"
+        ? { quietHoursStartHour: normalizeHour(input.quietHoursStartHour, 22) }
+        : {}),
+      ...(typeof input.quietHoursEndHour === "number"
+        ? { quietHoursEndHour: normalizeHour(input.quietHoursEndHour, 7) }
+        : {}),
+      ...(typeof input.sendWindowEnabled === "boolean"
+        ? { sendWindowEnabled: input.sendWindowEnabled }
+        : {}),
+      ...(typeof input.sendWindowStartHour === "number"
+        ? { sendWindowStartHour: normalizeHour(input.sendWindowStartHour, 8) }
+        : {}),
+      ...(typeof input.sendWindowEndHour === "number"
+        ? { sendWindowEndHour: normalizeHour(input.sendWindowEndHour, 21) }
         : {}),
     },
   });
@@ -586,7 +759,25 @@ export async function dispatchMaintenanceNotificationsForUser(
     return summary;
   }
 
-  const dayKey = getDayKey(user?.timezone);
+  const localClock = getLocalClock(user?.timezone);
+  const canSendNow = shouldSendNotificationNow({
+    sendPolicy: preferences.sendPolicy,
+    digestHourLocal: preferences.digestHourLocal,
+    quietHoursEnabled: preferences.quietHoursEnabled,
+    quietHoursStartHour: preferences.quietHoursStartHour,
+    quietHoursEndHour: preferences.quietHoursEndHour,
+    sendWindowEnabled: preferences.sendWindowEnabled,
+    sendWindowStartHour: preferences.sendWindowStartHour,
+    sendWindowEndHour: preferences.sendWindowEndHour,
+    localHour: localClock.hour,
+  });
+
+  if (!canSendNow) {
+    return summary;
+  }
+
+  const dayKey = localClock.dayKey;
+  const smsRecipient = normalizePhoneNumber(preferences.phoneNumber);
   const bikePreferenceByBikeId = new Map(
     preferences.bikePreferences.map((entry) => [entry.bikeId, entry] as const),
   );
@@ -602,7 +793,6 @@ export async function dispatchMaintenanceNotificationsForUser(
       channels.push(NotificationChannel.EMAIL);
     }
 
-    const smsRecipient = normalizePhoneNumber(preferences.phoneNumber);
     if (preferences.smsEnabled && bikePreference.smsEnabled && smsRecipient) {
       channels.push(NotificationChannel.SMS);
     }
@@ -611,13 +801,18 @@ export async function dispatchMaintenanceNotificationsForUser(
       continue;
     }
 
+    const dueKey =
+      preferences.sendPolicy === DIGEST_DAILY_POLICY
+        ? DIGEST_DUE_KEY
+        : buildInstantDueKey(bikeAlert.items);
+
     for (const channel of channels) {
       const existingDelivery = await prisma.maintenanceNotificationLog.findUnique({
         where: {
           userId_bikeId_dueKey_channel_dayKey: {
             userId,
             bikeId: bikeAlert.bikeId,
-            dueKey: DIGEST_DUE_KEY,
+            dueKey,
             channel,
             dayKey,
           },
@@ -639,7 +834,7 @@ export async function dispatchMaintenanceNotificationsForUser(
           userNotificationPreferenceId: preferences.id,
           userId,
           bikeId: bikeAlert.bikeId,
-          dueKey: DIGEST_DUE_KEY,
+          dueKey,
           dueStatus: bikeAlert.items.some((item) => item.status === "OVERDUE")
             ? "OVERDUE"
             : "DUE_NOW",
