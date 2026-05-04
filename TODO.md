@@ -1,64 +1,88 @@
 # BikeLog TODO
 
-Last updated: 2026-04-29
+Last updated: 2026-05-03
 
 ## Priority Key
 
-- `P0` = current build priority
-- `P1` = next release priority
-- `P2` = quality and scaling follow-ups
+- `P0` = must-do now (foundation + reliability)
+- `P1` = pre-launch hardening
+- `P2` = after domain / scale-up
 
-## P0 - Core Product Milestones
+## P0 - Foundation and Reliability
 
-- [ ] Maintenance reminder system
-  - [ ] Add scheduled reminder generation for due-soon and overdue items.
-  - [ ] Add per-bike notification preferences (in-app first, optional email next).
-  - [ ] Add "tomorrow / this week" reminder buckets.
-  - [ ] Trigger reminder emails from background Strava-updated data at the correct local send time.
-  - [ ] Ensure reminders only run for components present on that bike (no Di2/light reminders when missing).
+- [ ] Security cleanup
+- [ ] Rotate exposed Neon, Google, Strava, and notification provider secrets.
+- [ ] Confirm only environment-scoped secrets are used (no shared values across dev/staging/prod).
 
-- [ ] Strava Sync 2.0
-  - [ ] Add background scheduled sync (not only on manual actions/page open).
-  - [ ] Add configurable sync windows (last 7/30/90 days).
-  - [ ] Add conflict handling for changed/deleted Strava activities.
-  - [ ] Add manual "sync now" action with result summary.
+- [ ] Dev / Stage / Prod separation
+- [ ] Keep separate databases and env var sets for `development`, `staging`, and `production`.
+- [ ] Ensure feature branches use preview/nonprod values only.
+- [ ] Ensure `main` deploys use production values only.
+- [ ] Document exact environment variable matrix in deployment docs.
 
-- [ ] Dev / Stage / Prod environment flow
-  - [ ] Define separate env var sets and databases for development, staging, and production.
-  - [ ] Add deployment workflow (preview/staging from branches, production from main).
-  - [ ] Gate deploys with `lint`, `typecheck`, and integration tests.
-  - [ ] Document migration + seed expectations by environment.
+- [x] Prisma migration safety
+- [x] Use `migrate dev` only on local/dev DB.
+- [x] Use `migrate deploy` only for staging/prod/shared DBs.
+- [x] Avoid `db push` and `migrate reset` on shared environments.
+- [x] Add drift-recovery runbook and examples (resolve/apply flow).
 
-## P1 - UX and Account Improvements
+- [ ] GitHub rules + CI lifecycle
+- [ ] Enforce PR-only merges for `staging` and `main`.
+- [ ] Require checks for PRs and protected branch merges.
+- [x] Keep migration workflows active for staging and production.
+- [x] Keep push/PR checks for `lint`, `typecheck`, `build`, and integration tests.
 
-- [ ] Data integrity + trust
-  - [ ] Add source-of-truth mileage recalculation job from rides.
-  - [ ] Handle ride edit/delete impacts consistently across component mileage and readiness.
-  - [ ] Add Strava import/sync audit page (imported, skipped, failed, why).
+- [ ] Background jobs (cron + sync)
+- [ ] Keep daily maintenance notification cron enabled and monitored.
+- [ ] Add scheduled Strava sync cron (hourly or every few hours).
+- [ ] Add retry cron for failed Strava sync/import attempts.
+- [ ] Add token health checks and stale-connection handling.
+- [x] Add sync metadata in UI (last sync, imported count, error state).
 
-- [ ] Dashboard upgrade
-  - [ ] Add "This week" maintenance plan section.
-  - [ ] Add projected due dates for top wear-based components.
-  - [ ] Show readiness score deductions with direct fix links.
+- [ ] Notification timing + dedupe fixes
+- [ ] Make notifications timezone-aware at send time.
+- [ ] Add explicit policy for instant vs digest sends.
+- [ ] Add quiet hours / allowed send window support.
+- [x] Ensure dedupe prevents repeated sends for the same due item/day/channel.
 
-- [ ] UI enhancement pass
-  - [ ] Tighten mobile layout for nav + dense dashboard cards.
-  - [ ] Unify empty/loading/error states across all feature pages.
-  - [ ] Add lightweight success/error toast feedback for mutations.
-  - [ ] Run accessibility pass (keyboard focus, labels, contrast, hit targets).
+- [x] Core UX follow-ups
+- [x] In bike switcher, show `Add Bike` CTA when user has no bikes.
+- [x] Ensure reminders only target components present on a bike (no false Di2/lights alerts).
 
-## P2 - Reliability and Engineering
+## P1 - Launch Readiness
 
-- [ ] Mobile + PWA polish
-  - [ ] Add installable PWA support and app metadata polish.
-  - [ ] Add fast "quick log ride" mobile flow.
-  - [ ] Add offline draft logging with retry on reconnect.
-
-- [ ] Expand automated tests
-  - [ ] Add integration tests for components, maintenance, pressure presets, fit, and checklist APIs.
-  - [ ] Add edge-case tests for mileage recalculation + readiness scoring.
+- [ ] Testing expansion
+- [x] Baseline integration tests for rides/maintenance/mileage recalculation are in place.
+- [ ] Add tests for maintenance/readiness calculations.
+- [ ] Add tests for per-bike notification preferences.
+- [ ] Add tests for notification timing + dedupe behavior.
+- [ ] Add tests for Strava sync conflict/retry paths.
+- [ ] Add a small end-to-end smoke path for login -> bike -> rides -> maintenance.
 
 - [ ] Observability and operability
-  - [ ] Add structured request/error logging for API routes.
-  - [ ] Add error monitoring and basic product analytics events.
-  - [ ] Add simple backup/restore runbook for production data.
+- [ ] Add error monitoring (Sentry or equivalent) for frontend/API/cron paths.
+- [ ] Add alerting for cron failures and repeated sync failures.
+- [ ] Add structured logging for background job outcomes.
+- [ ] Add backup/restore runbook and perform one restore drill.
+
+- [ ] Launch basics
+- [ ] Add privacy policy and terms pages.
+- [ ] Add support/contact path in app footer/profile.
+- [ ] Add first-run onboarding for users with no bikes/components.
+
+## P2 - After Domain and Scale-Up
+
+- [ ] Domain + email deliverability
+- [ ] Add production domain in hosting.
+- [ ] Verify sender domain in Resend and replace `onboarding@resend.dev`.
+- [ ] Update Google OAuth authorized origins and redirect URIs.
+- [ ] Update Strava callback configuration for production domain.
+
+- [ ] Multi-account integrations
+- [ ] Add multi-Strava-account support and account-link UX.
+- [ ] Update GCP OAuth setup for expanded production account flows.
+
+- [ ] Strava sync maturity
+- [ ] Add webhook-triggered sync path where available.
+- [ ] Keep scheduled cron fallback as reliability backstop.
+- [ ] Improve bike matching + conflict resolution UX for imports.
