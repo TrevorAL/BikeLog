@@ -1,0 +1,55 @@
+name: Scheduled Notification Dispatch
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notifications-hourly-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch-prod:
+    name: Dispatch notifications (prod)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.PROD_NOTIFICATIONS_CRON_URL != '' && secrets.PROD_CRON_SECRET != '' }}
+    env:
+      TARGET_URL: ${{ secrets.PROD_NOTIFICATIONS_CRON_URL }}
+      CRON_SECRET: ${{ secrets.PROD_CRON_SECRET }}
+    steps:
+      - name: Call production cron endpoint
+        run: |
+          set -euo pipefail
+          status_code="$(curl -sS -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${TARGET_URL}")"
+          cat response.json || true
+          if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
+            echo "Production notification dispatch failed with HTTP ${status_code}"
+            exit 1
+          fi
+
+  dispatch-staging:
+    name: Dispatch notifications (staging)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.STAGING_NOTIFICATIONS_CRON_URL != '' && secrets.STAGING_CRON_SECRET != '' }}
+    env:
+      TARGET_URL: ${{ secrets.STAGING_NOTIFICATIONS_CRON_URL }}
+      CRON_SECRET: ${{ secrets.STAGING_CRON_SECRET }}
+    steps:
+      - name: Call staging cron endpoint
+        run: |
+          set -euo pipefail
+          status_code="$(curl -sS -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${TARGET_URL}")"
+          cat response.json || true
+          if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
+            echo "Staging notification dispatch failed with HTTP ${status_code}"
+            exit 1
+          fi
+

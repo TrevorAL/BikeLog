@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       ranAt: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Failed to run daily notification cron dispatch", error);
+    console.error("Failed to run scheduled notification cron dispatch", error);
     return NextResponse.json(
       { error: "Could not dispatch notifications right now." },
       { status: 500 },

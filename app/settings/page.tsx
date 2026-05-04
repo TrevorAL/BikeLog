@@ -43,6 +43,14 @@ type SettingsPageData = {
     emailEnabled: boolean;
     smsEnabled: boolean;
     phoneNumber: string | null;
+    sendPolicy: "INSTANT" | "DIGEST_DAILY";
+    digestHourLocal: number;
+    quietHoursEnabled: boolean;
+    quietHoursStartHour: number;
+    quietHoursEndHour: number;
+    sendWindowEnabled: boolean;
+    sendWindowStartHour: number;
+    sendWindowEndHour: number;
     bikes: Array<{
       bikeId: string;
       bikeLabel: string;
