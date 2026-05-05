@@ -1,6 +1,6 @@
 # BikeLog TODO
 
-Last updated: 2026-05-03
+Last updated: 2026-05-05
 
 ## Priority Key
 
@@ -35,10 +35,10 @@ Last updated: 2026-05-03
 - [ ] Add retry cron for failed Strava sync/import attempts.
 - [ ] Add token health checks and stale-connection handling.
 - [x] Add sync metadata in UI (last sync, imported count, error state).
-- [ ] Notification timing + dedupe fixes
-- [ ] Make notifications timezone-aware at send time.
-- [ ] Add explicit policy for instant vs digest sends.
-- [ ] Add quiet hours / allowed send window support.
+- [x] Notification timing + dedupe fixes
+- [x] Make notifications timezone-aware at send time.
+- [x] Add explicit policy for instant vs digest sends.
+- [x] Add quiet hours / allowed send window support.
 - [x] Ensure dedupe prevents repeated sends for the same due item/day/channel.
 - [x] Core UX follow-ups
 - [x] In bike switcher, show `Add Bike` CTA when user has no bikes.
@@ -51,6 +51,7 @@ Last updated: 2026-05-03
 - [ ] Add tests for maintenance/readiness calculations.
 - [ ] Add tests for per-bike notification preferences.
 - [ ] Add tests for notification timing + dedupe behavior.
+  - Notification timing integration tests are in place; dedupe path still needs explicit test coverage.
 - [ ] Add tests for Strava sync conflict/retry paths.
 - [ ] Add a small end-to-end smoke path for login -> bike -> rides -> maintenance.
 - [ ] Observability and operability
