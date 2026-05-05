@@ -1,0 +1,140 @@
+name: Deploy to Stage
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to deploy (example: 1.8.0-stage.1)"
+        required: true
+        type: string
+      previous_version:
+        description: "Previous stage version (example: 1.7.5-stage.2)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-stage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to stage
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: stage
+    env:
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.STAGING_DIRECT_URL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate inputs and secrets
+        id: validate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="${{ inputs.version }}"
+          PREVIOUS_VERSION="${{ inputs.previous_version }}"
+          VERSION="${VERSION#v}"
+          PREVIOUS_VERSION="${PREVIOUS_VERSION#v}"
+          VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'
+
+          if [[ ! "${VERSION}" =~ ${VERSION_PATTERN} ]]; then
+            echo "Invalid version: ${VERSION}. Use semver-like values (for example 1.8.0 or 1.8.0-stage.1)."
+            exit 1
+          fi
+
+          if [[ ! "${PREVIOUS_VERSION}" =~ ${VERSION_PATTERN} ]]; then
+            echo "Invalid previous_version: ${PREVIOUS_VERSION}. Use semver-like values."
+            exit 1
+          fi
+
+          if [ -z "${DATABASE_URL}" ] || [ -z "${DIRECT_URL}" ]; then
+            echo "Missing STAGING_DATABASE_URL or STAGING_DIRECT_URL."
+            exit 1
+          fi
+
+          if [ -z "${VERCEL_TOKEN}" ] || [ -z "${VERCEL_ORG_ID}" ] || [ -z "${VERCEL_PROJECT_ID}" ]; then
+            echo "Missing Vercel secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)."
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "previous_version=${PREVIOUS_VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate application
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run build
+
+      - name: Apply stage database migrations
+        run: npm run db:migrate:deploy
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel preview environment
+        run: vercel pull --yes --environment=preview --token="${VERCEL_TOKEN}"
+
+      - name: Build Vercel artifacts for stage
+        run: vercel build --token="${VERCEL_TOKEN}"
+
+      - name: Deploy stage build
+        id: deploy
+        run: |
+          set -euo pipefail
+          DEPLOYMENT_URL="$(vercel deploy --prebuilt --token="${VERCEL_TOKEN}")"
+          echo "url=${DEPLOYMENT_URL}" >> "${GITHUB_OUTPUT}"
+
+      - name: Create and push stage version tag
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.validate.outputs.version }}"
+          TAG="stage-v${VERSION}"
+
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q "${TAG}$"; then
+            echo "Tag ${TAG} already exists."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "Stage release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
+      - name: Publish deployment summary
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          PREVIOUS_VERSION="${{ steps.validate.outputs.previous_version }}"
+          CURRENT_TAG="stage-v${VERSION}"
+          PREVIOUS_TAG="stage-v${PREVIOUS_VERSION}"
+          REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+
+          {
+            echo "## Stage Deployment Complete"
+            echo "- Version: \`${CURRENT_TAG}\`"
+            echo "- Previous version: \`${PREVIOUS_TAG}\`"
+            echo "- Deployment URL: ${{ steps.deploy.outputs.url }}"
+            echo "- Compare: ${REPO_URL}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}"
+          } >> "${GITHUB_STEP_SUMMARY}"
