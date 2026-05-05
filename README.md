@@ -129,17 +129,54 @@ No Docker command is required.
 
 ## Deployments (Main-Only + GitHub Actions)
 
-This repo now uses `main` as the only long-lived branch.
+This repo uses `main` as the only long-lived branch.
 
-- Vercel Git auto-deploys are disabled via [`vercel.json`](./vercel.json).
+- Vercel Git deployments are disabled for `main` via [`vercel.json`](./vercel.json), but previews remain enabled for other branches.
 - Deployments are run manually from GitHub Actions:
   - `.github/workflows/deploy-stage.yml`
   - `.github/workflows/deploy-prod.yml`
-- Both workflows require:
-  - `version` (new version being deployed)
-  - `previous_version` (last deployed version)
-- Stage deploy tags: `stage-v<version>`
-- Prod deploy tags: `v<version>`
+- Workflow inputs:
+  - `source_ref` (required): exact ref/tag/sha to deploy
+  - `previous_version` (optional): prior released version for compare links
+- Tag flow:
+  - `Main` workflow creates `build-v<version>`
+  - `Deploy to Stage` consumes `build-v<version>` and creates `stage-v<version>`
+  - `Deploy to Prod` consumes `stage-v<version>` and creates `v<version>`
+
+### Manual deployment operator flow
+
+1. Merge PR to `main`.
+2. Wait for `Main` workflow and copy `build-v...` from "Version Summary".
+3. Run "Deploy to Stage":
+  - `source_ref=build-v...`
+  - `previous_version` blank (or prior stage version).
+4. Validate stage.
+5. Run "Deploy to Prod":
+  - `source_ref=stage-v...`
+  - `previous_version` blank (or prior prod version).
+
+### Vercel dashboard settings you still need
+
+If Vercel still auto-builds production from Git on `main`, set this in Project Settings -> Git -> Ignored Build Step:
+
+```bash
+if [ "$VERCEL_ENV" = "production" ]; then exit 0; else exit 1; fi
+```
+
+This keeps PR/branch previews but blocks auto-production builds.
+
+If you see "There is a problem with the server configuration" in production, verify Vercel Production env vars are set:
+
+- `DATABASE_URL`
+- `DIRECT_URL`
+- `AUTH_SECRET`
+- `AUTH_GOOGLE_ID`
+- `AUTH_GOOGLE_SECRET`
+- `STRAVA_CLIENT_ID`
+- `STRAVA_CLIENT_SECRET`
+- `CRON_SECRET`
+- `RESEND_API_KEY`
+- `NOTIFICATIONS_FROM_EMAIL`
 
 Required GitHub repository secrets:
 
