@@ -1,5 +1,8 @@
 name: Main
 
+permissions:
+  contents: write
+
 on:
   pull_request:
   push:
@@ -136,6 +139,25 @@ jobs:
           COMMITS_B64="$(printf '%s' "${COMMIT_LINES}" | base64 | tr -d '\n')"
           echo "commits_b64=${COMMITS_B64}" >> "${GITHUB_OUTPUT}"
 
+      - name: Create build version tag
+        id: build_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.value }}"
+          TAG="build-${VERSION}"
+
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q "${TAG}$"; then
+            echo "Build tag ${TAG} already exists."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "Build ${VERSION}"
+            git push origin "refs/tags/${TAG}"
+          fi
+
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+
       - name: Publish version summary
         shell: bash
         run: |
@@ -143,6 +165,7 @@ jobs:
           LAST_PROD_TAG="${{ steps.version.outputs.last_prod_tag }}"
           LAST_STAGE_TAG="${{ steps.version.outputs.last_stage_tag }}"
           COMMIT_LINES="$(printf '%s' '${{ steps.version.outputs.commits_b64 }}' | base64 --decode)"
+          BUILD_TAG="${{ steps.build_tag.outputs.tag }}"
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
           {
@@ -152,6 +175,7 @@ jobs:
             echo ""
             echo "- Latest prod tag: \`${LAST_PROD_TAG}\`"
             echo "- Latest stage tag: \`${LAST_STAGE_TAG}\`"
+            echo "- Build tag (deploy source ref): \`${BUILD_TAG}\`"
             echo ""
             echo "<details>"
             echo "<summary>Commits</summary>"

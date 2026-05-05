@@ -7,9 +7,15 @@ on:
         description: "Version to deploy (example: 1.8.0-stage.1)"
         required: true
         type: string
+      source_ref:
+        description: "Git ref to deploy (tag/branch/SHA). Leave blank to use build-v<version>."
+        required: false
+        default: ""
+        type: string
       previous_version:
-        description: "Previous stage version (example: 1.7.5-stage.2)"
-        required: true
+        description: "Previous stage version (optional, example: 1.7.5-stage.2)"
+        required: false
+        default: ""
         type: string
 
 permissions:
@@ -45,9 +51,10 @@ jobs:
           set -euo pipefail
 
           VERSION="${{ inputs.version }}"
+          SOURCE_REF_INPUT="${{ inputs.source_ref }}"
           PREVIOUS_VERSION="${{ inputs.previous_version }}"
+
           VERSION="${VERSION#v}"
-          PREVIOUS_VERSION="${PREVIOUS_VERSION#v}"
           VERSION_PATTERN='^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$'
 
           if [[ ! "${VERSION}" =~ ${VERSION_PATTERN} ]]; then
@@ -55,9 +62,33 @@ jobs:
             exit 1
           fi
 
-          if [[ ! "${PREVIOUS_VERSION}" =~ ${VERSION_PATTERN} ]]; then
-            echo "Invalid previous_version: ${PREVIOUS_VERSION}. Use semver-like values."
+          git fetch --tags --prune origin
+
+          if [ -n "${SOURCE_REF_INPUT}" ]; then
+            SOURCE_REF="${SOURCE_REF_INPUT}"
+          else
+            SOURCE_REF="build-v${VERSION}"
+          fi
+
+          if ! git rev-parse -q --verify "${SOURCE_REF}^{commit}" >/dev/null; then
+            echo "Unable to resolve source_ref '${SOURCE_REF}'."
+            echo "Provide a valid tag/branch/SHA in source_ref or ensure build tag exists."
             exit 1
+          fi
+
+          if [ -n "${PREVIOUS_VERSION}" ]; then
+            PREVIOUS_VERSION="${PREVIOUS_VERSION#stage-v}"
+            PREVIOUS_VERSION="${PREVIOUS_VERSION#v}"
+            if [[ ! "${PREVIOUS_VERSION}" =~ ${VERSION_PATTERN} ]]; then
+              echo "Invalid previous_version: ${PREVIOUS_VERSION}. Use semver-like values."
+              exit 1
+            fi
+            PREVIOUS_TAG="stage-v${PREVIOUS_VERSION}"
+          else
+            PREVIOUS_TAG="$(git tag --list 'stage-v*' --sort=-version:refname | head -n 1 || true)"
+            if [ -z "${PREVIOUS_TAG}" ]; then
+              PREVIOUS_TAG="none"
+            fi
           fi
 
           if [ -z "${DATABASE_URL}" ] || [ -z "${DIRECT_URL}" ]; then
@@ -71,7 +102,16 @@ jobs:
           fi
 
           echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
-          echo "previous_version=${PREVIOUS_VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "source_ref=${SOURCE_REF}" >> "${GITHUB_OUTPUT}"
+          echo "previous_tag=${PREVIOUS_TAG}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check out deploy source
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_REF="${{ steps.validate.outputs.source_ref }}"
+          git checkout --detach "${SOURCE_REF}"
+          git --no-pager show -s --oneline
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -126,15 +166,20 @@ jobs:
       - name: Publish deployment summary
         run: |
           VERSION="${{ steps.validate.outputs.version }}"
-          PREVIOUS_VERSION="${{ steps.validate.outputs.previous_version }}"
           CURRENT_TAG="stage-v${VERSION}"
-          PREVIOUS_TAG="stage-v${PREVIOUS_VERSION}"
+          PREVIOUS_TAG="${{ steps.validate.outputs.previous_tag }}"
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+          SOURCE_REF="${{ steps.validate.outputs.source_ref }}"
 
           {
             echo "## Stage Deployment Complete"
             echo "- Version: \`${CURRENT_TAG}\`"
+            echo "- Source ref: \`${SOURCE_REF}\`"
             echo "- Previous version: \`${PREVIOUS_TAG}\`"
             echo "- Deployment URL: ${{ steps.deploy.outputs.url }}"
-            echo "- Compare: ${REPO_URL}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}"
+            if [ "${PREVIOUS_TAG}" = "none" ]; then
+              echo "- Compare: n/a (first stage release)"
+            else
+              echo "- Compare: ${REPO_URL}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}"
+            fi
           } >> "${GITHUB_STEP_SUMMARY}"
