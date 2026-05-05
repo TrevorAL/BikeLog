@@ -127,12 +127,36 @@ npm run dev
 
 No Docker command is required.
 
+## Deployments (Main-Only + GitHub Actions)
+
+This repo now uses `main` as the only long-lived branch.
+
+- Vercel Git auto-deploys are disabled via [`vercel.json`](./vercel.json).
+- Deployments are run manually from GitHub Actions:
+  - `.github/workflows/deploy-stage.yml`
+  - `.github/workflows/deploy-prod.yml`
+- Both workflows require:
+  - `version` (new version being deployed)
+  - `previous_version` (last deployed version)
+- Stage deploy tags: `stage-v<version>`
+- Prod deploy tags: `v<version>`
+
+Required GitHub repository secrets:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `STAGING_DATABASE_URL`
+- `STAGING_DIRECT_URL`
+- `PROD_DATABASE_URL`
+- `PROD_DIRECT_URL`
+
 ## Background Notification Cron (Vercel)
 
 BikeLog now includes a daily cron endpoint that dispatches maintenance reminders even when no user opens the app.
 
 - Route: `/api/cron/notifications/daily`
-- Schedule: `0 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+- Schedule: `5 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
 
 Security:
 
@@ -196,9 +220,9 @@ npm run dev
 
 ### Exact DB change workflow (use this every time)
 
-Use `migrate dev` only against a development database you can change freely (local Postgres or dedicated Neon dev branch), not staging/prod.
+Use `migrate dev` only against a development database you can change freely (local Postgres or dedicated Neon dev branch), not stage/prod.
 
-1. Create a feature branch from `staging`.
+1. Create a feature branch from `main`.
 2. Update `prisma/schema.prisma`.
 3. Create a migration:
 
@@ -220,12 +244,11 @@ npm run build
 - new migration folder under `prisma/migrations`
 - app code using the new schema
 
-6. Open PR to `staging` and merge after checks pass.
-7. Staging DB migrations run automatically via:
-- `.github/workflows/migrate-staging.yml`
-8. Promote `staging` to `main` with PR.
-9. Production DB migrations run automatically via:
-- `.github/workflows/migrate-production.yml`
+6. Open PR to `main` and merge after checks pass.
+7. Run manual deploy workflows from GitHub Actions:
+- `Deploy to Stage` with inputs `version` and `previous_version`
+- `Deploy to Prod` with inputs `version` and `previous_version`
+8. Both deploy workflows run Prisma migrations against their target DB before deployment.
 
 ### Apply committed migrations manually (if needed)
 
@@ -247,12 +270,12 @@ npx prisma migrate dev --name your_change_name
 
 Then commit the new folder under `prisma/migrations`.
 
-### Do not do this on shared/staging/production DBs
+### Do not do this on shared stage/production DBs
 
 - Do not run `npm run db:push` (or `prisma db push`) against shared environments.
 - Do not run `npx prisma migrate reset` unless you explicitly want to drop all data.
 - Do not edit schema manually in Neon and then expect migration history to stay valid.
-- Do not push directly to `staging` or `main`; use PRs only.
+- Do not push directly to `main`; use PRs only.
 
 ### Why drift happens
 
