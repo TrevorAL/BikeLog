@@ -131,7 +131,7 @@ No Docker command is required.
 
 This repo uses `main` as the only long-lived branch.
 
-- Vercel Git deployments are disabled for `main` via [`vercel.json`](./vercel.json), but previews remain enabled for other branches.
+- Vercel Git deployments are disabled via [`vercel.json`](./vercel.json). Stage and production deploys happen only through GitHub Actions.
 - Deployments are run manually from GitHub Actions:
   - `.github/workflows/deploy-stage.yml`
   - `.github/workflows/deploy-prod.yml`
@@ -157,13 +157,7 @@ This repo uses `main` as the only long-lived branch.
 
 ### Vercel dashboard settings you still need
 
-If Vercel still auto-builds production from Git on `main`, set this in Project Settings -> Git -> Ignored Build Step:
-
-```bash
-if [ "$VERCEL_ENV" = "production" ]; then exit 0; else exit 1; fi
-```
-
-This keeps PR/branch previews but blocks auto-production builds.
+If Vercel still auto-builds from Git after this config is merged, check Project Settings -> Git and confirm Git deployments are disabled for this project.
 
 If you see "There is a problem with the server configuration" in production, verify Vercel Production env vars are set:
 
