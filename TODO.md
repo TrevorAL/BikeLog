@@ -16,7 +16,7 @@ Last updated: 2026-05-03
 - [x] Dev / Stage / Prod separation
 - [x] Keep separate databases and env var sets for `development`, `staging`, and `production`.
 - [x] Ensure feature branches use preview/nonprod values only.
-  - Feature branch auto-deploys disabled; only `staging` and `main` deploy.
+  - Vercel Git deployments are disabled; release deployments are run via GitHub Actions.
 - [ ] Ensure `main` deploys use production values only.
 - [ ] Document exact environment variable matrix in deployment docs.
 - [x] Prisma migration safety
