@@ -1,4 +1,4 @@
-name: CI
+name: Main
 
 on:
   pull_request:
@@ -133,11 +133,8 @@ jobs:
             COMMIT_LINES="- No commits found in merge range."
           fi
 
-          {
-            echo "commits<<EOF"
-            echo "${COMMIT_LINES}"
-            echo "EOF"
-          } >> "${GITHUB_OUTPUT}"
+          COMMITS_B64="$(printf '%s' "${COMMIT_LINES}" | base64 | tr -d '\n')"
+          echo "commits_b64=${COMMITS_B64}" >> "${GITHUB_OUTPUT}"
 
       - name: Publish version summary
         shell: bash
@@ -145,7 +142,7 @@ jobs:
           VERSION="${{ steps.version.outputs.value }}"
           LAST_PROD_TAG="${{ steps.version.outputs.last_prod_tag }}"
           LAST_STAGE_TAG="${{ steps.version.outputs.last_stage_tag }}"
-          COMMIT_LINES="${{ steps.version.outputs.commits }}"
+          COMMIT_LINES="$(printf '%s' '${{ steps.version.outputs.commits_b64 }}' | base64 --decode)"
           REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
 
           {
