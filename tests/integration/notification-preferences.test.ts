@@ -141,7 +141,7 @@ test("notification preferences create defaults and persist per-bike channel sett
   const secondary = updated.bikes.find((bike) => bike.bikeId === fixture.secondaryBikeId);
 
   assert.equal(updated.smsEnabled, true);
-  assert.equal(updated.phoneNumber, "+15555550101");
+  assert.equal(updated.phoneNumber, "(555) 555-0101");
   assert.deepEqual(primary, {
     bikeId: fixture.primaryBikeId,
     bikeLabel: `Primary Notification Bike ${scope}`,
