@@ -19,6 +19,7 @@ jobs:
     env:
       TARGET_URL: ${{ secrets.PROD_NOTIFICATIONS_CRON_URL }}
       CRON_SECRET: ${{ secrets.PROD_CRON_SECRET }}
+      VERCEL_BYPASS_SECRET: ${{ secrets.PROD_VERCEL_BYPASS_SECRET }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,9 +41,16 @@ jobs:
         if: ${{ steps.config.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
-          status_code="$(curl -sS -o response.json -w "%{http_code}" \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${TARGET_URL}")"
+          curl_args=(
+            -sS
+            -o response.json
+            -w "%{http_code}"
+            -H "Authorization: Bearer ${CRON_SECRET}"
+          )
+          if [ -n "${VERCEL_BYPASS_SECRET}" ]; then
+            curl_args+=(-H "x-vercel-protection-bypass: ${VERCEL_BYPASS_SECRET}")
+          fi
+          status_code="$(curl "${curl_args[@]}" "${TARGET_URL}")"
           cat response.json || true
           if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
             echo "Production notification dispatch failed with HTTP ${status_code}"
@@ -55,6 +63,7 @@ jobs:
     env:
       TARGET_URL: ${{ secrets.STAGING_NOTIFICATIONS_CRON_URL }}
       CRON_SECRET: ${{ secrets.STAGING_CRON_SECRET }}
+      VERCEL_BYPASS_SECRET: ${{ secrets.STAGING_VERCEL_BYPASS_SECRET }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -76,9 +85,16 @@ jobs:
         if: ${{ steps.config.outputs.skip != 'true' }}
         run: |
           set -euo pipefail
-          status_code="$(curl -sS -o response.json -w "%{http_code}" \
-            -H "Authorization: Bearer ${CRON_SECRET}" \
-            "${TARGET_URL}")"
+          curl_args=(
+            -sS
+            -o response.json
+            -w "%{http_code}"
+            -H "Authorization: Bearer ${CRON_SECRET}"
+          )
+          if [ -n "${VERCEL_BYPASS_SECRET}" ]; then
+            curl_args+=(-H "x-vercel-protection-bypass: ${VERCEL_BYPASS_SECRET}")
+          fi
+          status_code="$(curl "${curl_args[@]}" "${TARGET_URL}")"
           cat response.json || true
           if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
             echo "Stage notification dispatch failed with HTTP ${status_code}"
