@@ -171,6 +171,9 @@ If you see "There is a problem with the server configuration" in production, ver
 - `CRON_SECRET`
 - `RESEND_API_KEY`
 - `NOTIFICATIONS_FROM_EMAIL`
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_FROM_PHONE`
 
 Required GitHub repository secrets:
 
@@ -182,18 +185,53 @@ Required GitHub repository secrets:
 - `PROD_DATABASE_URL`
 - `PROD_DIRECT_URL`
 
-## Background Notification Cron (Vercel)
+### Environment variable matrix
 
-BikeLog now includes a daily cron endpoint that dispatches maintenance reminders even when no user opens the app.
+Keep each environment on its own database, OAuth app/callbacks, cron secret, and notification provider settings. Do not reuse secret values across development, staging, and production.
+
+| Variable | Local `.env` | Vercel Preview / Stage | Vercel Production | GitHub Actions |
+| --- | --- | --- | --- | --- |
+| `DATABASE_URL` | Development database | Staging database | Production database | Test DB in CI; `STAGING_DATABASE_URL` / `PROD_DATABASE_URL` for deploy workflows |
+| `DIRECT_URL` | Development direct DB URL | Staging direct DB URL | Production direct DB URL | Test DB in CI; `STAGING_DIRECT_URL` / `PROD_DIRECT_URL` for deploy workflows |
+| `AUTH_SECRET` | Local-only secret | Staging secret | Production secret | Not needed outside app runtime |
+| `AUTH_GOOGLE_ID` | Local OAuth client | Staging OAuth client | Production OAuth client | Not needed outside app runtime |
+| `AUTH_GOOGLE_SECRET` | Local OAuth secret | Staging OAuth secret | Production OAuth secret | Not needed outside app runtime |
+| `STRAVA_CLIENT_ID` | Local/dev Strava app | Staging Strava app | Production Strava app | Not needed outside app runtime |
+| `STRAVA_CLIENT_SECRET` | Local/dev Strava secret | Staging Strava secret | Production Strava secret | Not needed outside app runtime |
+| `STRAVA_REDIRECT_URI` | `http://localhost:3000/api/strava/callback` | Stage callback URL | Production callback URL | Not needed outside app runtime |
+| `STRAVA_SCOPES` | `read,activity:read,profile:read_all` | Same unless scopes change | Same unless scopes change | Not needed outside app runtime |
+| `CRON_SECRET` | Optional local cron testing secret | Staging cron secret | Production cron secret | `STAGING_CRON_SECRET` / `PROD_CRON_SECRET` for notification dispatch |
+| `RESEND_API_KEY` | Optional local email testing key | Staging Resend key | Production Resend key | Not needed outside app runtime |
+| `NOTIFICATIONS_FROM_EMAIL` | Optional local sender | Staging sender | Production sender | Not needed outside app runtime |
+| `TWILIO_ACCOUNT_SID` | Optional local SMS testing SID | Staging Twilio SID | Production Twilio SID | Not needed outside app runtime |
+| `TWILIO_AUTH_TOKEN` | Optional local SMS testing token | Staging Twilio token | Production Twilio token | Not needed outside app runtime |
+| `TWILIO_FROM_PHONE` | Optional local SMS sender | Staging sender number | Production sender number | Not needed outside app runtime |
+| `VERCEL_TOKEN` | Not needed | Not stored in Vercel | Not stored in Vercel | Required for deploy workflows |
+| `VERCEL_ORG_ID` | Not needed | Not stored in Vercel | Not stored in Vercel | Required for deploy workflows |
+| `VERCEL_PROJECT_ID` | Not needed | Not stored in Vercel | Not stored in Vercel | Required for deploy workflows |
+| `STAGING_NOTIFICATIONS_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full stage cron URL for hourly dispatch |
+| `PROD_NOTIFICATIONS_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full production cron URL for hourly dispatch |
+
+## Background Notification Dispatch
+
+BikeLog includes a cron endpoint that dispatches maintenance reminders even when no user opens the app.
 
 - Route: `/api/cron/notifications/daily`
-- Schedule: `5 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+- Production Vercel cron: `5 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+- GitHub Actions dispatcher: hourly at minute `5`, configured in [`.github/workflows/notifications-hourly.yml`](./.github/workflows/notifications-hourly.yml)
 
 Security:
 
 - Set `CRON_SECRET` in your Vercel environment variables.
 - Vercel sends `Authorization: Bearer <CRON_SECRET>` automatically to cron endpoints.
 - Unauthorized calls to the endpoint return `401`.
+
+GitHub Actions secrets:
+
+- `PROD_NOTIFICATIONS_CRON_URL`: full production URL ending in `/api/cron/notifications/daily`
+- `PROD_CRON_SECRET`: production `CRON_SECRET`
+- `STAGING_NOTIFICATIONS_CRON_URL`: full staging URL ending in `/api/cron/notifications/daily`
+- `STAGING_CRON_SECRET`: staging `CRON_SECRET`
 
 Important:
 
