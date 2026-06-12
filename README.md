@@ -230,8 +230,10 @@ GitHub Actions secrets:
 
 - `PROD_NOTIFICATIONS_CRON_URL`: full production URL ending in `/api/cron/notifications/daily`
 - `PROD_CRON_SECRET`: production `CRON_SECRET`
+- `PROD_VERCEL_BYPASS_SECRET`: optional Vercel Deployment Protection bypass secret, only needed if production is protected
 - `STAGING_NOTIFICATIONS_CRON_URL`: full staging URL ending in `/api/cron/notifications/daily`
 - `STAGING_CRON_SECRET`: staging `CRON_SECRET`
+- `STAGING_VERCEL_BYPASS_SECRET`: Vercel Deployment Protection bypass secret for protected staging dispatches
 
 Important:
 
