@@ -17,16 +17,16 @@ Last updated: 2026-05-05
 - [x] Keep separate databases and env var sets for `development`, `staging`, and `production`.
 - [x] Ensure feature branches use preview/nonprod values only.
   - Vercel Git deployments are disabled; release deployments are run via GitHub Actions.
-- [ ] Ensure `main` deploys use production values only.
-- [ ] Document exact environment variable matrix in deployment docs.
+- [x] Ensure `main` deploys use production values only.
+- [x] Document exact environment variable matrix in deployment docs.
 - [x] Prisma migration safety
 - [x] Use `migrate dev` only on local/dev DB.
 - [x] Use `migrate deploy` only for staging/prod/shared DBs.
 - [x] Avoid `db push` and `migrate reset` on shared environments.
 - [x] Add drift-recovery runbook and examples (resolve/apply flow).
-- [ ] GitHub rules + CI lifecycle
+- [x] GitHub rules + CI lifecycle
 - [x] Enforce PR-only merges for `staging` and `main`.
-- [ ] Require checks for PRs and protected branch merges.
+- [x] Require checks for PRs and protected branch merges.
 - [x] Keep migration workflows active for staging and production.
 - [x] Keep push/PR checks for `lint`, `typecheck`, `build`, and integration tests.
 - [ ] Background jobs (cron + sync)
