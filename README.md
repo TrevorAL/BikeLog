@@ -171,6 +171,9 @@ If you see "There is a problem with the server configuration" in production, ver
 - `CRON_SECRET`
 - `RESEND_API_KEY`
 - `NOTIFICATIONS_FROM_EMAIL`
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TWILIO_FROM_PHONE`
 
 Required GitHub repository secrets:
 
@@ -182,18 +185,26 @@ Required GitHub repository secrets:
 - `PROD_DATABASE_URL`
 - `PROD_DIRECT_URL`
 
-## Background Notification Cron (Vercel)
+## Background Notification Dispatch
 
-BikeLog now includes a daily cron endpoint that dispatches maintenance reminders even when no user opens the app.
+BikeLog includes a cron endpoint that dispatches maintenance reminders even when no user opens the app.
 
 - Route: `/api/cron/notifications/daily`
-- Schedule: `5 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+- Production Vercel cron: `5 13 * * *` (UTC), configured in [`vercel.json`](./vercel.json)
+- GitHub Actions dispatcher: hourly at minute `5`, configured in [`.github/workflows/notifications-hourly.yml`](./.github/workflows/notifications-hourly.yml)
 
 Security:
 
 - Set `CRON_SECRET` in your Vercel environment variables.
 - Vercel sends `Authorization: Bearer <CRON_SECRET>` automatically to cron endpoints.
 - Unauthorized calls to the endpoint return `401`.
+
+GitHub Actions secrets:
+
+- `PROD_NOTIFICATIONS_CRON_URL`: full production URL ending in `/api/cron/notifications/daily`
+- `PROD_CRON_SECRET`: production `CRON_SECRET`
+- `STAGING_NOTIFICATIONS_CRON_URL`: full staging URL ending in `/api/cron/notifications/daily`
+- `STAGING_CRON_SECRET`: staging `CRON_SECRET`
 
 Important:
 
