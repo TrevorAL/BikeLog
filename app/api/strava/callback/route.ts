@@ -134,6 +134,8 @@ export async function GET(request: Request) {
         expiresAt,
         lastSyncStatus: "CONNECTED",
         lastSyncError: null,
+        consecutiveSyncFailures: 0,
+        syncRetryAfter: null,
       },
       update: {
         stravaAthleteId: normalizedAthleteId,
@@ -147,6 +149,8 @@ export async function GET(request: Request) {
         expiresAt,
         lastSyncStatus: "CONNECTED",
         lastSyncError: null,
+        consecutiveSyncFailures: 0,
+        syncRetryAfter: null,
       },
     });
 

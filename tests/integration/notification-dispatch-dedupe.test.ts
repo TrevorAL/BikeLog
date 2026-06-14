@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import test from "node:test";
 
 import { ComponentStatus, ComponentType, NotificationChannel } from "@prisma/client";
@@ -6,6 +7,7 @@ import { ComponentStatus, ComponentType, NotificationChannel } from "@prisma/cli
 import { prisma } from "../../lib/db";
 import {
   dispatchMaintenanceNotificationsForUser,
+  getNotificationBellStateForUser,
   updateNotificationPreferencesForUser,
 } from "../../lib/notifications";
 
@@ -91,10 +93,17 @@ async function cleanupDispatchFixture(input: { userId: string; bikeId: string })
 }
 
 test("notification dispatch dedupes the same email channel for a bike and day", async (t) => {
-  const scope = `${Date.now()}-dedupe`;
+  const scope = `${Date.now()}-${randomUUID()}-dedupe`;
   const fixture = await createDispatchFixture(scope);
+  const previousResendApiKey = process.env.RESEND_API_KEY;
+  process.env.RESEND_API_KEY = "";
 
   t.after(async () => {
+    if (previousResendApiKey === undefined) {
+      delete process.env.RESEND_API_KEY;
+    } else {
+      process.env.RESEND_API_KEY = previousResendApiKey;
+    }
     await cleanupDispatchFixture(fixture);
   });
 
@@ -120,4 +129,22 @@ test("notification dispatch dedupes the same email channel for a bike and day", 
   });
 
   assert.equal(logs.length, 1);
+});
+
+test("notification bell state includes actionable maintenance links", async (t) => {
+  const scope = `${Date.now()}-${randomUUID()}-bell-state`;
+  const fixture = await createDispatchFixture(scope);
+
+  t.after(async () => {
+    await cleanupDispatchFixture(fixture);
+  });
+
+  const state = await getNotificationBellStateForUser(fixture.userId);
+
+  assert.equal(state.notificationsEnabled, true);
+  assert.equal(state.pendingCount, 1);
+  assert.equal(state.items.length, 1);
+  assert.equal(state.items[0].bikeId, fixture.bikeId);
+  assert.equal(state.items[0].label, "Chain lube");
+  assert.match(state.items[0].href, /^\/maintenance\?bikeId=.+&due=chain-lube#due-item-chain-lube$/);
 });

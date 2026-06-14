@@ -1,0 +1,102 @@
+name: Retry Failed Strava Sync
+
+on:
+  schedule:
+    - cron: "47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strava-sync-retry
+  cancel-in-progress: false
+
+jobs:
+  retry-prod:
+    name: Retry failed Strava syncs (prod)
+    runs-on: ubuntu-latest
+    env:
+      TARGET_URL: ${{ secrets.PROD_STRAVA_SYNC_CRON_URL }}
+      CRON_SECRET: ${{ secrets.PROD_CRON_SECRET }}
+      VERCEL_BYPASS_SECRET: ${{ secrets.PROD_VERCEL_BYPASS_SECRET }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check production Strava retry configuration
+        id: config
+        run: |
+          set -euo pipefail
+          if [ -z "${TARGET_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Missing PROD_STRAVA_SYNC_CRON_URL or PROD_CRON_SECRET. Skipping production retry."
+            echo "skip=true" >> "${GITHUB_OUTPUT}"
+          else
+            normalized_url="$(.github/scripts/normalize-strava-sync-cron-url.sh PROD_STRAVA_SYNC_CRON_URL "${TARGET_URL}")"
+            echo "TARGET_URL=${normalized_url}" >> "${GITHUB_ENV}"
+            echo "skip=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Call production Strava retry endpoint
+        if: ${{ steps.config.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          curl_args=(
+            -sS
+            -o response.json
+            -w "%{http_code}"
+            -H "Authorization: Bearer ${CRON_SECRET}"
+          )
+          if [ -n "${VERCEL_BYPASS_SECRET}" ]; then
+            curl_args+=(-H "x-vercel-protection-bypass: ${VERCEL_BYPASS_SECRET}")
+          fi
+          status_code="$(curl "${curl_args[@]}" "${TARGET_URL}?retryOnly=1")"
+          cat response.json || true
+          if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
+            echo "Production Strava retry failed with HTTP ${status_code}"
+            exit 1
+          fi
+
+  retry-stage:
+    name: Retry failed Strava syncs (stage)
+    runs-on: ubuntu-latest
+    env:
+      TARGET_URL: ${{ secrets.STAGING_STRAVA_SYNC_CRON_URL }}
+      CRON_SECRET: ${{ secrets.STAGING_CRON_SECRET }}
+      VERCEL_BYPASS_SECRET: ${{ secrets.STAGING_VERCEL_BYPASS_SECRET }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check stage Strava retry configuration
+        id: config
+        run: |
+          set -euo pipefail
+          if [ -z "${TARGET_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "Missing STAGING_STRAVA_SYNC_CRON_URL or STAGING_CRON_SECRET. Skipping stage retry."
+            echo "skip=true" >> "${GITHUB_OUTPUT}"
+          else
+            normalized_url="$(.github/scripts/normalize-strava-sync-cron-url.sh STAGING_STRAVA_SYNC_CRON_URL "${TARGET_URL}")"
+            echo "TARGET_URL=${normalized_url}" >> "${GITHUB_ENV}"
+            echo "skip=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Call stage Strava retry endpoint
+        if: ${{ steps.config.outputs.skip != 'true' }}
+        run: |
+          set -euo pipefail
+          curl_args=(
+            -sS
+            -o response.json
+            -w "%{http_code}"
+            -H "Authorization: Bearer ${CRON_SECRET}"
+          )
+          if [ -n "${VERCEL_BYPASS_SECRET}" ]; then
+            curl_args+=(-H "x-vercel-protection-bypass: ${VERCEL_BYPASS_SECRET}")
+          fi
+          status_code="$(curl "${curl_args[@]}" "${TARGET_URL}?retryOnly=1")"
+          cat response.json || true
+          if [ "${status_code}" -lt 200 ] || [ "${status_code}" -ge 300 ]; then
+            echo "Stage Strava retry failed with HTTP ${status_code}"
+            exit 1
+          fi

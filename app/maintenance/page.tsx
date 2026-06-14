@@ -10,15 +10,16 @@ export const dynamic = "force-dynamic";
 
 type MaintenancePageProps = {
   searchParams?: Promise<{
+    bikeId?: string;
     due?: string;
     open?: string;
   }>;
 };
 
-async function getMaintenancePageData(userId: string) {
+async function getMaintenancePageData(userId: string, bikeId?: string) {
   try {
-    const bikeId = await getOwnedBikeId({ userId });
-    if (!bikeId) {
+    const ownedBikeId = await getOwnedBikeId({ userId, bikeId });
+    if (!ownedBikeId) {
       return {
         bike: undefined,
         dbConnected: true,
@@ -27,7 +28,7 @@ async function getMaintenancePageData(userId: string) {
 
     const bike = await prisma.bike.findUnique({
       where: {
-        id: bikeId,
+        id: ownedBikeId,
       },
       select: {
         id: true,
@@ -103,11 +104,15 @@ async function getMaintenancePageData(userId: string) {
 export default async function MaintenancePage({ searchParams }: MaintenancePageProps) {
   const user = await requireServerUser();
   const resolvedSearchParams = await searchParams;
+  const bikeIdFromQuery = resolvedSearchParams?.bikeId;
   const dueFromQuery = resolvedSearchParams?.due;
   const openQuery = resolvedSearchParams?.open?.toLowerCase();
   const shouldOpenLogForm =
     openQuery === "1" || openQuery === "true" || openQuery === "log" || openQuery === "add";
-  const data = await getMaintenancePageData(user.id);
+  const data = await getMaintenancePageData(
+    user.id,
+    typeof bikeIdFromQuery === "string" ? bikeIdFromQuery : undefined,
+  );
   const bike = data.bike;
   const maintenance = bike ? data.maintenance : undefined;
 

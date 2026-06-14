@@ -188,6 +188,8 @@ model StravaConnection {
   lastSyncImportedCount Int            @default(0)
   lastSyncStatus      StravaSyncStatus @default(CONNECTED)
   lastSyncError       String?
+  consecutiveSyncFailures Int          @default(0)
+  syncRetryAfter      DateTime?
   activityImports     StravaActivityImport[]
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
