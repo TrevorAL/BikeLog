@@ -200,7 +200,7 @@ Keep each environment on its own database, OAuth app/callbacks, cron secret, and
 | `STRAVA_CLIENT_SECRET` | Local/dev Strava secret | Staging Strava secret | Production Strava secret | Not needed outside app runtime |
 | `STRAVA_REDIRECT_URI` | `http://localhost:3000/api/strava/callback` | Stage callback URL | Production callback URL | Not needed outside app runtime |
 | `STRAVA_SCOPES` | `read,activity:read,profile:read_all` | Same unless scopes change | Same unless scopes change | Not needed outside app runtime |
-| `CRON_SECRET` | Optional local cron testing secret | Staging cron secret | Production cron secret | `STAGING_CRON_SECRET` / `PROD_CRON_SECRET` for notification dispatch |
+| `CRON_SECRET` | Optional local cron testing secret | Staging cron secret | Production cron secret | `STAGING_CRON_SECRET` / `PROD_CRON_SECRET` for cron dispatch |
 | `RESEND_API_KEY` | Optional local email testing key | Staging Resend key | Production Resend key | Not needed outside app runtime |
 | `NOTIFICATIONS_FROM_EMAIL` | Optional local sender | Staging sender | Production sender | Not needed outside app runtime |
 | `TWILIO_ACCOUNT_SID` | Optional local SMS testing SID | Staging Twilio SID | Production Twilio SID | Not needed outside app runtime |
@@ -211,6 +211,8 @@ Keep each environment on its own database, OAuth app/callbacks, cron secret, and
 | `VERCEL_PROJECT_ID` | Not needed | Not stored in Vercel | Not stored in Vercel | Required for deploy workflows |
 | `STAGING_NOTIFICATIONS_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full stage cron URL for hourly dispatch |
 | `PROD_NOTIFICATIONS_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full production cron URL for hourly dispatch |
+| `STAGING_STRAVA_SYNC_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full stage cron URL for scheduled Strava sync |
+| `PROD_STRAVA_SYNC_CRON_URL` | Not needed | Not stored in Vercel | Not stored in Vercel | Full production cron URL for scheduled Strava sync |
 
 ## Background Notification Dispatch
 
@@ -238,6 +240,26 @@ GitHub Actions secrets:
 Important:
 
 - Vercel cron jobs run only on **Production** deployments.
+
+## Background Strava Sync
+
+BikeLog includes a cron endpoint that syncs connected Strava accounts without requiring a user to open the app.
+
+- Route: `/api/cron/strava/sync`
+- Scheduled sync workflow: every 3 hours at minute `17`, configured in [`.github/workflows/strava-sync.yml`](./.github/workflows/strava-sync.yml)
+- Retry workflow: hourly at minute `47`, configured in [`.github/workflows/strava-retry.yml`](./.github/workflows/strava-retry.yml)
+- Retry mode uses the same route with `?retryOnly=1`.
+
+The sync records consecutive failures and a per-connection retry time. Successful syncs clear retry state. Expiring or expired Strava tokens are refreshed during sync; refresh failures are recorded as sync errors and retried with backoff.
+
+GitHub Actions secrets:
+
+- `PROD_STRAVA_SYNC_CRON_URL`: full production URL ending in `/api/cron/strava/sync`
+- `PROD_CRON_SECRET`: production `CRON_SECRET`
+- `PROD_VERCEL_BYPASS_SECRET`: optional Vercel Deployment Protection bypass secret, only needed if production is protected
+- `STAGING_STRAVA_SYNC_CRON_URL`: full staging URL ending in `/api/cron/strava/sync`
+- `STAGING_CRON_SECRET`: staging `CRON_SECRET`
+- `STAGING_VERCEL_BYPASS_SECRET`: Vercel Deployment Protection bypass secret for protected staging dispatches
 
 ## Docker (Optional Local Postgres)
 
