@@ -276,6 +276,57 @@ const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => ({
   label: formatHourLabel(hour),
 }));
 
+const COMMON_TIMEZONES = [
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Phoenix",
+  "America/Anchorage",
+  "Pacific/Honolulu",
+  "UTC",
+];
+
+function getSupportedTimezones() {
+  try {
+    const intlWithSupportedValues = Intl as typeof Intl & {
+      supportedValuesOf?: (key: "timeZone") => string[];
+    };
+    const supportedTimezones = intlWithSupportedValues.supportedValuesOf?.("timeZone") ?? [];
+    return Array.from(new Set(["UTC", ...supportedTimezones])).sort((a, b) =>
+      a.localeCompare(b),
+    );
+  } catch {
+    return COMMON_TIMEZONES;
+  }
+}
+
+function formatTimezoneLabel(timezone: string) {
+  if (timezone === "UTC") {
+    return "UTC";
+  }
+
+  const [region, ...locationParts] = timezone.split("/");
+  const location = locationParts.join(" / ").replaceAll("_", " ");
+  return location ? `${location} (${region})` : timezone.replaceAll("_", " ");
+}
+
+function buildTimezoneOptions(currentTimezone: string, browserTimezone: string) {
+  const preferred = COMMON_TIMEZONES.filter(Boolean);
+  const allTimezones = getSupportedTimezones();
+  const optionSet = new Set([
+    ...preferred,
+    browserTimezone,
+    currentTimezone,
+    ...allTimezones,
+  ].filter((timezone) => timezone.trim().length > 0));
+
+  return Array.from(optionSet).map((timezone) => ({
+    value: timezone,
+    label: formatTimezoneLabel(timezone),
+  }));
+}
+
 function resolveSystemTheme() {
   if (typeof window === "undefined") {
     return "light" as const;
@@ -382,6 +433,10 @@ export function ProfileSettingsForm({
       return "";
     }
   }, []);
+  const timezoneOptions = useMemo(
+    () => buildTimezoneOptions(form.timezone, browserTimezone),
+    [browserTimezone, form.timezone],
+  );
 
   const stravaFlashStatus = searchParams.get("strava");
   const stravaFlashMessage = searchParams.get("stravaMessage");
@@ -399,6 +454,8 @@ export function ProfileSettingsForm({
   const hasCustomAvatar = avatarPreview.length > 0;
   const hasBikeOptions = bikes.length > 0;
   const googleConnected = connections.google.connected;
+  const selectedTimezone = form.timezone.trim();
+  const notificationTimezone = selectedTimezone || "UTC";
 
   async function saveProfile() {
     setIsSaving(true);
@@ -760,14 +817,20 @@ export function ProfileSettingsForm({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <label className="text-sm text-slate-700 sm:col-span-2 lg:col-span-1">
               Timezone
-              <input
+              <select
                 value={form.timezone}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, timezone: event.target.value }))
                 }
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                placeholder="America/New_York"
-              />
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
+              >
+                <option value="">Select timezone</option>
+                {timezoneOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => {
@@ -781,6 +844,9 @@ export function ProfileSettingsForm({
               >
                 Use browser timezone
               </button>
+              <span className="mt-1 block text-xs text-slate-500">
+                Notification digest times use this timezone.
+              </span>
             </label>
 
             <label className="text-sm text-slate-700">
@@ -1110,6 +1176,17 @@ export function ProfileSettingsForm({
                   </select>
                 </label>
               </div>
+
+              <p
+                className={`mt-2 rounded-md px-3 py-2 text-xs ${
+                  selectedTimezone
+                    ? "bg-slate-50 text-slate-600"
+                    : "bg-amber-50 text-amber-900"
+                }`}
+              >
+                Digest timing uses {notificationTimezone}. Save profile settings after changing
+                timezone.
+              </p>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <div>
