@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { BellRing, Bike, Clock3, Mail, MessageSquare, Moon, Send } from "lucide-react";
 
 import {
   publishNotificationsEnabledValue,
@@ -915,248 +916,333 @@ export function ProfileSettingsForm({
         className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
         style={settingsSectionStyle}
       >
-        <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Notifications</h2>
-        <p className="mt-1 text-sm text-slate-600">
-          Choose which bikes send maintenance alerts and whether they arrive by email, text, or both.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
+              Notifications
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Maintenance reminders, delivery channels, and quiet hours.
+            </p>
+          </div>
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+              notificationForm.notificationsEnabled
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-slate-100 text-slate-600"
+            }`}
+          >
+            {notificationForm.notificationsEnabled ? "Enabled" : "Paused"}
+          </span>
+        </div>
 
         <form
-          className="mt-4 space-y-4"
+          className="mt-5 space-y-6"
           onSubmit={async (event) => {
             event.preventDefault();
             await saveNotificationSettings();
           }}
         >
-          <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-            <input
-              type="checkbox"
-              checked={notificationForm.notificationsEnabled}
-              onChange={(event) => {
-                const enabled = event.target.checked;
-                setNotificationForm((current) => ({
-                  ...current,
-                  notificationsEnabled: enabled,
-                }));
-                publishNotificationsEnabledValue(enabled);
-              }}
-              className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
-            />
-            Enable maintenance notifications
-          </label>
+          <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between gap-4 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                  <BellRing className="h-4 w-4" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">Maintenance reminders</p>
+                  <p className="text-xs text-slate-500">
+                    {notificationForm.notificationsEnabled ? "Active" : "Paused"}
+                  </p>
+                </div>
+              </div>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  checked={notificationForm.notificationsEnabled}
+                  onChange={(event) => {
+                    const enabled = event.target.checked;
+                    setNotificationForm((current) => ({
+                      ...current,
+                      notificationsEnabled: enabled,
+                    }));
+                    publishNotificationsEnabledValue(enabled);
+                  }}
+                  className="peer sr-only"
+                  aria-label="Enable maintenance reminders"
+                />
+                <span className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-sky-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-sky-300" />
+                <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+              </label>
+            </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={notificationForm.emailEnabled}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    emailEnabled: event.target.checked,
-                  }))
-                }
-                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
-              />
-              Email notifications
-            </label>
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input
-                type="checkbox"
-                checked={notificationForm.smsEnabled}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    smsEnabled: event.target.checked,
-                  }))
-                }
-                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
-              />
-              Text (SMS) notifications
-            </label>
-          </div>
+            <div className="px-4 py-4">
+              <div className="flex items-center gap-2">
+                <Send className="h-4 w-4 text-slate-500" />
+                <p className="text-sm font-semibold text-slate-900">Account delivery methods</p>
+              </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-sm text-slate-700">
-              Send policy
-              <select
-                value={notificationForm.sendPolicy}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    sendPolicy: event.target.value as NotificationSendPolicy,
-                  }))
-                }
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2"
-              >
-                <option value="INSTANT">Instant when due</option>
-                <option value="DIGEST_DAILY">Daily digest</option>
-              </select>
-            </label>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
+                    notificationForm.emailEnabled
+                      ? "border-sky-300 bg-sky-50"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={notificationForm.emailEnabled}
+                    onChange={(event) =>
+                      setNotificationForm((current) => ({
+                        ...current,
+                        emailEnabled: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                  />
+                  <span className="flex min-w-0 gap-3">
+                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <span>
+                      <span className="block text-sm font-semibold text-slate-900">Email</span>
+                      <span className="block text-xs text-slate-500">{user.email ?? "No email set"}</span>
+                    </span>
+                  </span>
+                </label>
 
-            <label className="text-sm text-slate-700">
-              Daily digest hour
-              <select
-                value={notificationForm.digestHourLocal}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    digestHourLocal: Number(event.target.value),
-                  }))
-                }
-                disabled={notificationForm.sendPolicy !== "DIGEST_DAILY"}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-50"
-              >
-                {HOUR_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+                <label
+                  className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
+                    notificationForm.smsEnabled
+                      ? "border-sky-300 bg-sky-50"
+                      : "border-slate-200 bg-white hover:bg-slate-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={notificationForm.smsEnabled}
+                    onChange={(event) =>
+                      setNotificationForm((current) => ({
+                        ...current,
+                        smsEnabled: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                  />
+                  <span className="flex min-w-0 gap-3">
+                    <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <span>
+                      <span className="block text-sm font-semibold text-slate-900">Text message</span>
+                      <span className="block text-xs text-slate-500">
+                        {notificationForm.phoneNumber.trim() || "No phone set"}
+                      </span>
+                    </span>
+                  </span>
+                </label>
+              </div>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-              <input
-                type="checkbox"
-                checked={notificationForm.sendWindowEnabled}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    sendWindowEnabled: event.target.checked,
-                  }))
-                }
-                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
-              />
-              Restrict to send window
-            </label>
-
-            <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <label className="text-xs text-slate-700">
-                Start hour
-                <select
-                  value={notificationForm.sendWindowStartHour}
+              <label className="mt-3 block text-sm text-slate-700">
+                SMS phone number
+                <input
+                  type="tel"
+                  value={notificationForm.phoneNumber}
                   onChange={(event) =>
                     setNotificationForm((current) => ({
                       ...current,
-                      sendWindowStartHour: Number(event.target.value),
+                      phoneNumber: event.target.value,
                     }))
                   }
-                  disabled={!notificationForm.sendWindowEnabled}
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
-                >
-                  {HOUR_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                  placeholder="+1 555 555 1234"
+                />
               </label>
-              <label className="text-xs text-slate-700">
-                End hour
-                <select
-                  value={notificationForm.sendWindowEndHour}
-                  onChange={(event) =>
-                    setNotificationForm((current) => ({
-                      ...current,
-                      sendWindowEndHour: Number(event.target.value),
-                    }))
-                  }
-                  disabled={!notificationForm.sendWindowEnabled}
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
-                >
-                  {HOUR_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+            </div>
+
+            <div className="px-4 py-4">
+              <div className="flex items-center gap-2">
+                <Clock3 className="h-4 w-4 text-slate-500" />
+                <p className="text-sm font-semibold text-slate-900">Schedule</p>
+              </div>
+
+              <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,_1fr)_220px]">
+                <div className="grid grid-cols-2 rounded-lg border border-slate-200 bg-slate-50 p-1">
+                  {[
+                    { value: "DIGEST_DAILY", label: "Daily digest" },
+                    { value: "INSTANT", label: "Instant" },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() =>
+                        setNotificationForm((current) => ({
+                          ...current,
+                          sendPolicy: option.value as NotificationSendPolicy,
+                        }))
+                      }
+                      className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                        notificationForm.sendPolicy === option.value
+                          ? "bg-white text-slate-900 shadow-sm"
+                          : "text-slate-600 hover:text-slate-900"
+                      }`}
+                    >
                       {option.label}
-                    </option>
+                    </button>
                   ))}
-                </select>
-              </label>
+                </div>
+
+                <label className="text-sm text-slate-700">
+                  Digest time
+                  <select
+                    value={notificationForm.digestHourLocal}
+                    onChange={(event) =>
+                      setNotificationForm((current) => ({
+                        ...current,
+                        digestHourLocal: Number(event.target.value),
+                      }))
+                    }
+                    disabled={notificationForm.sendPolicy !== "DIGEST_DAILY"}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 disabled:cursor-not-allowed disabled:bg-slate-50"
+                  >
+                    {HOUR_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={notificationForm.sendWindowEnabled}
+                      onChange={(event) =>
+                        setNotificationForm((current) => ({
+                          ...current,
+                          sendWindowEnabled: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                    />
+                    Allowed send window
+                  </label>
+
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <label className="text-xs text-slate-700">
+                      Start
+                      <select
+                        value={notificationForm.sendWindowStartHour}
+                        onChange={(event) =>
+                          setNotificationForm((current) => ({
+                            ...current,
+                            sendWindowStartHour: Number(event.target.value),
+                          }))
+                        }
+                        disabled={!notificationForm.sendWindowEnabled}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      >
+                        {HOUR_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-slate-700">
+                      End
+                      <select
+                        value={notificationForm.sendWindowEndHour}
+                        onChange={(event) =>
+                          setNotificationForm((current) => ({
+                            ...current,
+                            sendWindowEndHour: Number(event.target.value),
+                          }))
+                        }
+                        disabled={!notificationForm.sendWindowEnabled}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      >
+                        {HOUR_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={notificationForm.quietHoursEnabled}
+                      onChange={(event) =>
+                        setNotificationForm((current) => ({
+                          ...current,
+                          quietHoursEnabled: event.target.checked,
+                        }))
+                      }
+                      className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                    />
+                    <Moon className="h-4 w-4 text-slate-500" />
+                    Quiet hours
+                  </label>
+
+                  <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                    <label className="text-xs text-slate-700">
+                      Start
+                      <select
+                        value={notificationForm.quietHoursStartHour}
+                        onChange={(event) =>
+                          setNotificationForm((current) => ({
+                            ...current,
+                            quietHoursStartHour: Number(event.target.value),
+                          }))
+                        }
+                        disabled={!notificationForm.quietHoursEnabled}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      >
+                        {HOUR_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs text-slate-700">
+                      End
+                      <select
+                        value={notificationForm.quietHoursEndHour}
+                        onChange={(event) =>
+                          setNotificationForm((current) => ({
+                            ...current,
+                            quietHoursEndHour: Number(event.target.value),
+                          }))
+                        }
+                        disabled={!notificationForm.quietHoursEnabled}
+                        className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
+                      >
+                        {HOUR_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-              <input
-                type="checkbox"
-                checked={notificationForm.quietHoursEnabled}
-                onChange={(event) =>
-                  setNotificationForm((current) => ({
-                    ...current,
-                    quietHoursEnabled: event.target.checked,
-                  }))
-                }
-                className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
-              />
-              Quiet hours
-            </label>
-
-            <div className="mt-2 grid gap-3 sm:grid-cols-2">
-              <label className="text-xs text-slate-700">
-                Quiet start
-                <select
-                  value={notificationForm.quietHoursStartHour}
-                  onChange={(event) =>
-                    setNotificationForm((current) => ({
-                      ...current,
-                      quietHoursStartHour: Number(event.target.value),
-                    }))
-                  }
-                  disabled={!notificationForm.quietHoursEnabled}
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
-                >
-                  {HOUR_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="text-xs text-slate-700">
-                Quiet end
-                <select
-                  value={notificationForm.quietHoursEndHour}
-                  onChange={(event) =>
-                    setNotificationForm((current) => ({
-                      ...current,
-                      quietHoursEndHour: Number(event.target.value),
-                    }))
-                  }
-                  disabled={!notificationForm.quietHoursEnabled}
-                  className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-50"
-                >
-                  {HOUR_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div>
+            <div className="flex items-center gap-2">
+              <Bike className="h-4 w-4 text-slate-500" />
+              <p className="text-sm font-semibold text-slate-900">Bike reminder rules</p>
             </div>
-          </div>
 
-          <label className="block text-sm text-slate-700">
-            SMS phone number
-            <input
-              type="tel"
-              value={notificationForm.phoneNumber}
-              onChange={(event) =>
-                setNotificationForm((current) => ({
-                  ...current,
-                  phoneNumber: event.target.value,
-                }))
-              }
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-              placeholder="+1 555 555 1234"
-            />
-            <span className="mt-1 block text-xs text-slate-500">
-              Required only if SMS delivery is enabled globally or for any bike.
-            </span>
-          </label>
-
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-semibold text-slate-900">Per-bike delivery</p>
-            <div className="mt-2 space-y-2">
+            <div className="mt-3 space-y-2">
               {notificationForm.bikes.map((bike, index) => {
                 const mode =
                   !bike.enabled
@@ -1172,11 +1258,24 @@ export function ProfileSettingsForm({
                 return (
                   <div
                     key={bike.bikeId}
-                    className="grid gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 sm:grid-cols-[minmax(0,_1fr)_220px]"
+                    className="grid gap-3 rounded-lg border border-slate-200 bg-white px-3 py-3 sm:grid-cols-[minmax(0,_1fr)_220px]"
                   >
-                    <p className="text-sm font-medium text-slate-900">{bike.bikeLabel}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900">
+                        {bike.bikeLabel}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        {mode === "off"
+                          ? "Muted"
+                          : mode === "both"
+                            ? "Email + text"
+                            : mode === "sms"
+                              ? "Text"
+                              : "Email"}
+                      </p>
+                    </div>
                     <label className="text-xs text-slate-700">
-                      Channel
+                      Delivery
                       <select
                         value={mode}
                         onChange={(event) => {
@@ -1212,10 +1311,10 @@ export function ProfileSettingsForm({
                         }}
                         className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900"
                       >
-                        <option value="off">Off</option>
                         <option value="email">Email</option>
                         <option value="sms">Text</option>
                         <option value="both">Email + Text</option>
+                        <option value="off">Off</option>
                       </select>
                     </label>
                   </div>

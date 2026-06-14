@@ -3,7 +3,18 @@ import test from "node:test";
 
 import { getLocalClock, shouldSendNotificationNow } from "../../lib/notifications";
 
-test("Digest policy only sends at configured local hour", () => {
+test("Digest policy sends at or after configured local hour", () => {
+  const blockedBeforeDigestHour = shouldSendNotificationNow({
+    sendPolicy: "DIGEST_DAILY",
+    digestHourLocal: 9,
+    quietHoursEnabled: false,
+    quietHoursStartHour: 22,
+    quietHoursEndHour: 7,
+    sendWindowEnabled: false,
+    sendWindowStartHour: 8,
+    sendWindowEndHour: 21,
+    localHour: 8,
+  });
   const allowed = shouldSendNotificationNow({
     sendPolicy: "DIGEST_DAILY",
     digestHourLocal: 9,
@@ -15,7 +26,7 @@ test("Digest policy only sends at configured local hour", () => {
     sendWindowEndHour: 21,
     localHour: 9,
   });
-  const blocked = shouldSendNotificationNow({
+  const allowedAfterDigestHour = shouldSendNotificationNow({
     sendPolicy: "DIGEST_DAILY",
     digestHourLocal: 9,
     quietHoursEnabled: false,
@@ -27,8 +38,9 @@ test("Digest policy only sends at configured local hour", () => {
     localHour: 10,
   });
 
+  assert.equal(blockedBeforeDigestHour, false);
   assert.equal(allowed, true);
-  assert.equal(blocked, false);
+  assert.equal(allowedAfterDigestHour, true);
 });
 
 test("Instant policy ignores digest hour but respects quiet hours", () => {

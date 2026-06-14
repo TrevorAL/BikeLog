@@ -38,6 +38,15 @@ type BikeDueAlert = {
 export type NotificationBellState = {
   notificationsEnabled: boolean;
   pendingCount: number;
+  items: Array<{
+    id: string;
+    bikeId: string;
+    bikeLabel: string;
+    label: string;
+    status: "DUE_NOW" | "OVERDUE";
+    detail: string;
+    href: string;
+  }>;
 };
 
 export type ProfileNotificationSettings = {
@@ -220,7 +229,7 @@ export function shouldSendNotificationNow(input: {
 
   if (
     input.sendPolicy === DIGEST_DAILY_POLICY &&
-    localHour !== normalizeHour(input.digestHourLocal, 9)
+    localHour < normalizeHour(input.digestHourLocal, 9)
   ) {
     return false;
   }
@@ -716,18 +725,29 @@ export async function getNotificationBellStateForUser(
     preferences.bikes.map((entry) => [entry.bikeId, entry] as const),
   );
 
-  const pendingCount = alerts.reduce((sum, alert) => {
+  const items = alerts.flatMap((alert) => {
     const bikePreference = bikePreferenceByBikeId.get(alert.bikeId);
     if (!bikePreference?.enabled) {
-      return sum;
+      return [];
     }
 
-    return sum + alert.items.length;
-  }, 0);
+    return alert.items.map((item) => ({
+      id: `${alert.bikeId}:${item.key}`,
+      bikeId: alert.bikeId,
+      bikeLabel: alert.bikeLabel,
+      label: item.label,
+      status: item.status,
+      detail: item.detail,
+      href: `/maintenance?bikeId=${encodeURIComponent(alert.bikeId)}&due=${encodeURIComponent(
+        item.key,
+      )}#due-item-${encodeURIComponent(item.key)}`,
+    }));
+  });
 
   return {
     notificationsEnabled: preferences.notificationsEnabled,
-    pendingCount,
+    pendingCount: items.length,
+    items,
   };
 }
 
