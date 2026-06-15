@@ -119,7 +119,7 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
       description="Manual ride entries with automatic component mileage updates."
     >
       {!dbConnected ? (
-        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-card">
           <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}

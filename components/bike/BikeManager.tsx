@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
+
 type BikeManagerBike = {
   id: string;
   name: string;
@@ -203,7 +205,7 @@ export function BikeManager({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Bike Garage</h2>
@@ -211,21 +213,22 @@ export function BikeManager({
             Create, edit, archive, and restore bikes from one place.
           </p>
         </div>
-        <button
+        <Button
           type="button"
           onClick={() => {
             setShowCreateForm((previous) => !previous);
             setCreateStatus({ type: "idle" });
           }}
-          className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"
+          variant="primary"
+          size="md"
         >
           {showCreateForm ? "Close" : "Add Bike"}
-        </button>
+        </Button>
       </div>
 
       {showCreateForm ? (
         <form
-          className="mt-4 rounded-lg border border-slate-100 bg-slate-50 p-4"
+          className="mt-4 surface-card-muted p-4"
           onSubmit={async (event) => {
             event.preventDefault();
             setCreateStatus({ type: "idle" });
@@ -429,13 +432,9 @@ export function BikeManager({
             className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
-        <button
-          type="submit"
-          disabled={isCreating}
-          className="mt-3 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isCreating} variant="primary" size="md" className="mt-3">
           {isCreating ? "Creating..." : "Create bike"}
-        </button>
+        </Button>
         {createStatus.type !== "idle" && createStatus.message ? (
           <p
             className={`mt-3 rounded-lg px-3 py-2 text-sm ${
@@ -469,7 +468,7 @@ export function BikeManager({
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => {
                         setEditingBikeId(bike.id);
@@ -477,10 +476,11 @@ export function BikeManager({
                         setSelectedEditStravaBikeId("");
                         setEditStatus({ type: "idle" });
                       }}
-                      className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                      variant="secondary"
+                      size="sm"
                     >
                       Edit
-                    </button>
+                    </Button>
                     <button
                       type="button"
                       disabled={isUpdatingArchive === bike.id}
@@ -692,24 +692,21 @@ export function BikeManager({
                       />
                     </label>
                     <div className="sm:col-span-2 flex flex-wrap gap-2">
-                      <button
-                        type="submit"
-                        disabled={isSavingEdit}
-                        className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
+                      <Button type="submit" disabled={isSavingEdit} variant="primary" size="md">
                         {isSavingEdit ? "Saving..." : "Save bike"}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
                         disabled={isSavingEdit}
                         onClick={() => {
                           setEditingBikeId(undefined);
                           setEditStatus({ type: "idle" });
                         }}
-                        className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                        variant="secondary"
+                        size="md"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 ) : null}

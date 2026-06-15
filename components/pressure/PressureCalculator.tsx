@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
 import type { PressurePreference, PressureSurface } from "@/lib/constants";
 import { calculatePressure } from "@/lib/pressure";
 import { PRESSURE_PREFERENCES, PRESSURE_SURFACES } from "@/lib/pressure-options";
@@ -67,7 +68,7 @@ export function PressureCalculator({ bikeId, disabled = false }: PressureCalcula
 
   return (
     <form
-      className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="surface-card p-5"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -214,11 +215,11 @@ export function PressureCalculator({ bikeId, disabled = false }: PressureCalcula
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg bg-slate-50 p-4 text-center">
+        <div className="surface-card-muted p-4 text-center">
           <p className="text-xs uppercase tracking-wide text-slate-600">Front</p>
           <p className="font-display text-3xl font-bold text-slate-900">{result.frontPsi} PSI</p>
         </div>
-        <div className="rounded-lg bg-slate-50 p-4 text-center">
+        <div className="surface-card-muted p-4 text-center">
           <p className="text-xs uppercase tracking-wide text-slate-600">Rear</p>
           <p className="font-display text-3xl font-bold text-slate-900">{result.rearPsi} PSI</p>
         </div>
@@ -247,13 +248,9 @@ export function PressureCalculator({ bikeId, disabled = false }: PressureCalcula
         </label>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting || disabled}
-        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isSubmitting || disabled} className="mt-4">
         {isSubmitting ? "Saving..." : "Save preset"}
-      </button>
+      </Button>
 
       {status.type === "success" && status.message ? (
         <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">

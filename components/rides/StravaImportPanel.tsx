@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+
+import { Button } from "@/components/ui/Button";
 
 type StravaSyncSummary = {
   status: "CONNECTED" | "SUCCESS" | "NO_NEW_DATA" | "ERROR";
@@ -506,7 +507,7 @@ export function StravaImportPanel({
 
   if (disabled) {
     return (
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="surface-card p-5">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Strava import</h2>
         <p className="mt-2 text-sm text-slate-600">
           Create a bike first to enable Strava import.
@@ -517,7 +518,7 @@ export function StravaImportPanel({
 
   if (!hasConnection) {
     return (
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="surface-card p-5">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Strava import</h2>
         <p className="mt-2 text-sm text-slate-600">
           Connect your Strava account to preview recent rides and import only what you want.
@@ -529,18 +530,15 @@ export function StravaImportPanel({
           </p>
         ) : null}
 
-        <Link
-          href="/api/strava/connect?redirectTo=/rides"
-          className="mt-4 inline-flex rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
-        >
+        <Button href="/api/strava/connect?redirectTo=/rides" variant="primary" size="md" className="mt-4">
           Connect Strava
-        </Link>
+        </Button>
       </section>
     );
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Strava import</h2>
@@ -572,29 +570,31 @@ export function StravaImportPanel({
           </select>
 
           {isPreviewOpen ? (
-            <button
+            <Button
               type="button"
               onClick={closePreview}
               disabled={isPreviewLoading || isImporting || isAutoSyncing}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              variant="secondary"
+              size="md"
             >
               Close preview
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="button"
               onClick={() => {
                 void loadPreview();
               }}
               disabled={isPreviewLoading || isImporting || isAutoSyncing}
-              className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              variant="secondary"
+              size="md"
             >
               {isAutoSyncing
                 ? "Auto-syncing..."
                 : isPreviewLoading
                   ? "Loading..."
                   : "Preview recent rides"}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -667,20 +667,12 @@ export function StravaImportPanel({
               {preview.length} {preview.length === 1 ? "activity" : "activities"} in preview
             </p>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedIds(selectableIds)}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              <Button type="button" onClick={() => setSelectedIds(selectableIds)} variant="secondary" size="sm">
                 Select all new
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedIds([])}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              </Button>
+              <Button type="button" onClick={() => setSelectedIds([])} variant="secondary" size="sm">
                 Clear
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -737,16 +729,18 @@ export function StravaImportPanel({
             })}
           </ul>
 
-          <button
+          <Button
             type="button"
             onClick={() => {
               void importSelected();
             }}
             disabled={selectedIds.length === 0 || isImporting || isPreviewLoading || isAutoSyncing}
-            className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+            variant="primary"
+            size="md"
+            className="mt-4"
           >
             {isImporting ? "Importing..." : `Import selected (${selectedIds.length})`}
-          </button>
+          </Button>
         </div>
       ) : null}
 

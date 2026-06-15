@@ -11,7 +11,7 @@ type DueSoonListProps = {
 
 export function DueSoonList({ title, items, itemHrefBasePath }: DueSoonListProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">{title}</h3>
       <div className="mt-4 space-y-2">
         {items.length === 0 ? (
@@ -32,7 +32,7 @@ export function DueSoonList({ title, items, itemHrefBasePath }: DueSoonListProps
               return (
                 <div
                   key={item.key}
-                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
+                  className="surface-card-muted px-3 py-2"
                 >
                   {content}
                 </div>
@@ -43,7 +43,7 @@ export function DueSoonList({ title, items, itemHrefBasePath }: DueSoonListProps
               <Link
                 key={item.key}
                 href={`${itemHrefBasePath}?due=${encodeURIComponent(item.key)}`}
-                className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
+                className="surface-card-muted block px-3 py-2 hover:bg-slate-100"
               >
                 {content}
               </Link>

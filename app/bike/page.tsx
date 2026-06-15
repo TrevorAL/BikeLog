@@ -175,7 +175,7 @@ export default async function BikePage({ searchParams }: BikePageProps) {
       actions={<QuickActionsDropdown items={quickActions} />}
     >
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-card">
           <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
@@ -190,22 +190,22 @@ export default async function BikePage({ searchParams }: BikePageProps) {
             name={`${bike.year ? `${bike.year} ` : ""}${bike.brand ?? ""} ${bike.model ?? bike.name}`.trim()}
             subtitle={`${bike.drivetrain ?? "Drivetrain not set"} · ${bike.brakeType ?? "Brake type not set"}`}
           >
-            <div className="rounded-lg bg-slate-50 p-4">
+            <div className="surface-card-muted p-4">
               <p className="text-xs text-slate-600">Frame</p>
               <p className="text-sm font-semibold text-slate-900">
                 {bike.frameMaterial ?? "Not set"}
                 {bike.frameSize ? ` · ${bike.frameSize}` : ""}
               </p>
             </div>
-            <div className="rounded-lg bg-slate-50 p-4">
+            <div className="surface-card-muted p-4">
               <p className="text-xs text-slate-600">Wheelset</p>
               <p className="text-sm font-semibold text-slate-900">{bike.wheelset ?? "Not set"}</p>
             </div>
-            <div className="rounded-lg bg-slate-50 p-4">
+            <div className="surface-card-muted p-4">
               <p className="text-xs text-slate-600">Tires</p>
               <p className="text-sm font-semibold text-slate-900">{bike.tireSetup ?? "Not set"}</p>
             </div>
-            <div className="rounded-lg bg-slate-50 p-4">
+            <div className="surface-card-muted p-4">
               <p className="text-xs text-slate-600">Notes</p>
               <p className="text-sm font-semibold text-slate-900">{bike.notes ?? "No notes yet"}</p>
             </div>

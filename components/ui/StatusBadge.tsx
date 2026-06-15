@@ -8,7 +8,7 @@ const badgeClasses: Record<BadgeStatus, string> = {
   DUE_SOON: "bg-amber-100 text-amber-800 border-amber-200",
   DUE_NOW: "bg-orange-100 text-orange-800 border-orange-200",
   OVERDUE: "bg-red-100 text-red-800 border-red-200",
-  ACTIVE: "bg-sky-100 text-sky-800 border-sky-200",
+  ACTIVE: "bg-brand-100 text-brand-800 border-brand-200",
   REPLACED: "bg-indigo-100 text-indigo-800 border-indigo-200",
   RETIRED: "bg-zinc-200 text-zinc-700 border-zinc-300",
 };

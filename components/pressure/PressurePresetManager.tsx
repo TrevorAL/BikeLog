@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { PressurePresetCard } from "@/components/pressure/PressurePresetCard";
+import { Button } from "@/components/ui/Button";
 import { PRESSURE_PREFERENCES, PRESSURE_SURFACES } from "@/lib/pressure-options";
 
 type PressurePresetItem = {
@@ -58,7 +59,7 @@ function EditablePressurePresetCard({
   if (isEditing) {
     return (
       <form
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="surface-card p-4"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -111,16 +112,17 @@ function EditablePressurePresetCard({
       >
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-display text-lg font-semibold text-slate-900">Edit preset</h3>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => {
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -257,13 +259,9 @@ function EditablePressurePresetCard({
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || disabled}
-          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting || disabled} className="mt-4">
           {isSubmitting ? "Saving..." : "Save changes"}
-        </button>
+        </Button>
 
         {status.type === "error" && status.message ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -283,17 +281,18 @@ function EditablePressurePresetCard({
         notes={preset.notes}
         actions={
           <div className="mt-4 flex gap-2 text-xs font-semibold">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               disabled={disabled}
               onClick={() => {
                 setIsEditing(true);
                 setStatus({ type: "idle" });
               }}
-              className="rounded-md border border-slate-300 px-3 py-1 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Edit
-            </button>
+            </Button>
             <button
               type="button"
               disabled={disabled || isSubmitting}

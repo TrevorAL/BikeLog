@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/Button";
+
 type FitRangeCoachProps = {
   current: {
     saddleHeightMm?: number;
@@ -315,7 +317,7 @@ function FitRangeBar({ metric }: { metric: MetricTarget }) {
     metric.current <= metric.idealMax;
 
   return (
-    <li className="rounded-lg border border-slate-200 bg-white p-3">
+    <li className="surface-card p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold text-slate-900">{metric.label}</p>
         <p className="text-xs text-slate-600">
@@ -489,7 +491,7 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">
@@ -499,19 +501,20 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
             Enter rider dimensions, then compare current bike fit against a target range.
           </p>
         </div>
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           onClick={() => {
             setDimensions(defaultDimensions);
             setDraftInputs({});
           }}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
         >
           Reset defaults
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div className="mt-4 surface-card-muted p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
@@ -649,7 +652,7 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="rider-dimensions-help-title"
-            className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-xl"
+            className="surface-card max-h-[85vh] w-full max-w-2xl overflow-y-auto p-5 shadow-elevated"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">
@@ -665,20 +668,16 @@ export function FitRangeCoach({ current }: FitRangeCoachProps) {
                   instructions.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowDimensionsHelp(false)}
-                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={() => setShowDimensionsHelp(false)}>
                 Close
-              </button>
+              </Button>
             </div>
 
             <div className="mt-4 space-y-2">
               {riderMeasurementGuides.map((guide) => (
                 <details
                   key={guide.key}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                  className="surface-card-muted px-3 py-2"
                 >
                   <summary className="cursor-pointer list-none text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
                     {guide.label}

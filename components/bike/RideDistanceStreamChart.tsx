@@ -266,7 +266,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
   const cumulativeSeriesColor = isDarkMode ? "#ffffff" : "#0f172a";
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
@@ -278,7 +278,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
         </div>
       </div>
 
-      <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+      <div className="mt-4 surface-card-muted p-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-700">
@@ -294,7 +294,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
                   onClick={() => setSelectedRange(option.key)}
                   className={
                     active
-                      ? "rounded-md border border-sky-700 bg-sky-700 px-2.5 py-1 text-xs font-semibold text-white"
+                      ? "rounded-md border border-brand-600 bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white"
                       : "rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                   }
                 >
@@ -357,38 +357,38 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="surface-card-muted px-3 py-2">
           <p className="text-xs uppercase tracking-wide text-slate-500">Total rides</p>
           <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-slate-900">
-            <Activity className="h-4 w-4 text-sky-700" />
+            <Activity className="h-4 w-4 text-brand-700" />
             {summary.totalRides}
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="surface-card-muted px-3 py-2">
           <p className="text-xs uppercase tracking-wide text-slate-500">Total distance</p>
           <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-slate-900">
-            <Route className="h-4 w-4 text-sky-700" />
+            <Route className="h-4 w-4 text-brand-700" />
             {summary.totalMiles.toFixed(1)} mi
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="surface-card-muted px-3 py-2">
           <p className="text-xs uppercase tracking-wide text-slate-500">Average ride</p>
           <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-slate-900">
-            <Timer className="h-4 w-4 text-sky-700" />
+            <Timer className="h-4 w-4 text-brand-700" />
             {summary.averageRideMiles.toFixed(1)} mi
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="surface-card-muted px-3 py-2">
           <p className="text-xs uppercase tracking-wide text-slate-500">Longest ride</p>
           <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-slate-900">
-            <Gauge className="h-4 w-4 text-sky-700" />
+            <Gauge className="h-4 w-4 text-brand-700" />
             {summary.longestRideMiles.toFixed(1)} mi
           </p>
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <div className="surface-card-muted px-3 py-2">
           <p className="text-xs uppercase tracking-wide text-slate-500">Average speed</p>
           <p className="mt-1 flex items-center gap-1 text-sm font-semibold text-slate-900">
-            <Gauge className="h-4 w-4 text-sky-700" />
+            <Gauge className="h-4 w-4 text-brand-700" />
             {typeof summary.averageSpeedMph === "number"
               ? `${summary.averageSpeedMph.toFixed(1)} mph`
               : "Not set"}
@@ -396,7 +396,7 @@ export function RideDistanceStreamChart({ rides }: RideDistanceStreamChartProps)
         </div>
       </div>
 
-      <div className="mt-4 h-[420px] rounded-xl border border-slate-100 bg-slate-50 p-3">
+      <div className="mt-4 h-[420px] surface-card-muted p-3">
         {chartData.length > 1 ? (
           <ResponsiveContainer
             width="100%"

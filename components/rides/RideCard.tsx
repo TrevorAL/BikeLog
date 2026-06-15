@@ -33,8 +33,8 @@ export function RideCard({
 
   return (
     <article
-      className={`flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${
-        isInteractive ? "cursor-pointer transition hover:border-sky-300 hover:shadow" : ""
+      className={`surface-card flex h-full flex-col p-3 ${
+        isInteractive ? "cursor-pointer transition hover:border-brand-300 hover:shadow-elevated" : ""
       }`}
       onClick={onClick}
       onKeyDown={(event) => {
@@ -58,7 +58,7 @@ export function RideCard({
           </h3>
         </div>
         {wasWet ? (
-          <span className="rounded-md bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800">
+          <span className="rounded-md bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800">
             Wet ride
           </span>
         ) : null}

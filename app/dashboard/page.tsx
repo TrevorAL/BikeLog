@@ -3,7 +3,9 @@ import type { ComponentType } from "@prisma/client";
 import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { Button } from "@/components/ui/Button";
 import { MetricCard } from "@/components/ui/MetricCard";
+import { ParallaxHero } from "@/components/ui/ParallaxHero";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { OrbitDial } from "@/components/ui/viz/OrbitDial";
@@ -273,7 +275,7 @@ export default async function DashboardPage() {
       actions={<QuickActionsDropdown items={quickActions} />}
     >
       {!data.dbConnected ? (
-        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800 shadow-card">
           <h2 className="font-display text-lg font-semibold tracking-tight">Database not connected</h2>
           <p className="mt-2 text-sm">
             Set <code>DATABASE_URL</code>, run <code>npm run db:push</code>, and then{" "}
@@ -282,6 +284,21 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
+      <ParallaxHero
+        eyebrow="Dashboard"
+        title={bike ? `${bike.name} is ${data.maintenance.readiness.label.toLowerCase()}` : "Welcome to BikeLog"}
+        subtitle={
+          bike
+            ? `${data.maintenance.readiness.score}% ready to ride · ${dueNowCount} due now · ${dueSoonCount} due soon`
+            : "Add your first bike to start tracking maintenance, rides, and readiness."
+        }
+        className="mb-6"
+      >
+        <Button href="/rides?open=log#ride-log-form" variant="primary">
+          Log a ride
+        </Button>
+      </ParallaxHero>
+
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Link href="/maintenance" className="block">
           <MetricCard
@@ -289,7 +306,7 @@ export default async function DashboardPage() {
             value={`${bike ? data.maintenance.readiness.score : 0}%`}
             subtitle={bike ? `${data.maintenance.readiness.label} · View maintenance` : "No bike found"}
             icon={<ShieldCheck className="h-5 w-5" />}
-            className="h-full hover:bg-slate-50"
+            className="h-full"
           />
         </Link>
         <Link href="/pressure" className="block">
@@ -298,7 +315,7 @@ export default async function DashboardPage() {
             value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
             subtitle="Front/Rear PSI"
             icon={<Gauge className="h-5 w-5" />}
-            className="h-full hover:bg-slate-50"
+            className="h-full"
           />
         </Link>
         <Link href="/rides" className="block">
@@ -307,7 +324,7 @@ export default async function DashboardPage() {
             value={`${bikeMileage.toFixed(1)} mi`}
             subtitle="From logged rides"
             icon={<Activity className="h-5 w-5" />}
-            className="h-full hover:bg-slate-50"
+            className="h-full"
           />
         </Link>
         <Link href="/maintenance" className="block">
@@ -316,7 +333,7 @@ export default async function DashboardPage() {
             value={`${dueNowCount}`}
             subtitle="Maintenance items"
             icon={<Wrench className="h-5 w-5" />}
-            className="h-full hover:bg-slate-50"
+            className="h-full"
           />
         </Link>
       </section>
@@ -330,15 +347,12 @@ export default async function DashboardPage() {
             hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
             tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
           />
-          <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="surface-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Readiness reasoning</h2>
-              <Link
-                href="/maintenance"
-                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              <Button href="/maintenance" variant="secondary" size="sm">
                 Open maintenance
-              </Link>
+              </Button>
             </div>
             {readinessReasons.length > 0 ? (
               <ul className="mt-3 space-y-2">
@@ -413,15 +427,12 @@ export default async function DashboardPage() {
       ) : null}
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="surface-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Recent rides</h2>
-            <Link
-              href="/rides"
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-            >
+            <Button href="/rides" variant="secondary" size="sm">
               Open rides
-            </Link>
+            </Button>
           </div>
           {recentRides.length > 0 ? (
             <ul className="mt-3 space-y-2">

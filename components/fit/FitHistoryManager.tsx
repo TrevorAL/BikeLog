@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
+
 type FitMeasurementItem = {
   id: string;
   date: string;
@@ -73,7 +75,7 @@ function EditableFitMeasurement({
   if (isEditing) {
     return (
       <form
-        className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-3 text-sm"
+        className="surface-card-muted px-3 py-3 text-sm"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -124,16 +126,17 @@ function EditableFitMeasurement({
       >
         <div className="flex items-center justify-between gap-2">
           <p className="font-semibold text-slate-900">Edit fit measurement</p>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => {
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -241,13 +244,15 @@ function EditableFitMeasurement({
           />
         </label>
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="sm"
           disabled={isSubmitting || isDeleting || disabled}
-          className="mt-3 rounded-md bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-3"
         >
           {isSubmitting ? "Saving..." : "Save changes"}
-        </button>
+        </Button>
 
         {status.type === "error" && status.message ? (
           <p className="mt-2 rounded-lg bg-red-50 px-2 py-1.5 text-xs text-red-800">
@@ -259,7 +264,7 @@ function EditableFitMeasurement({
   }
 
   return (
-    <article className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+    <article className="surface-card-muted px-3 py-2 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-semibold text-slate-900">{new Date(measurement.date).toLocaleDateString()}</p>
         <div className="flex flex-wrap items-center gap-2">
@@ -305,17 +310,18 @@ function EditableFitMeasurement({
             </button>
           )}
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             disabled={disabled || isSubmitting || isDeleting}
             onClick={() => {
               setIsEditing(true);
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Edit
-          </button>
+          </Button>
           <button
             type="button"
             disabled={disabled || isSubmitting || isDeleting}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ComponentCard } from "@/components/components/ComponentCard";
+import { Button } from "@/components/ui/Button";
 import { COMPONENT_TYPES, DEFAULT_COMPONENT_NAME_BY_TYPE, formatComponentType } from "@/lib/component-options";
 import {
   DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES,
@@ -61,7 +62,7 @@ type MileageRecalculationResult = {
   auditEventId?: string;
 };
 
-type RingTone = "sky" | "orange" | "emerald";
+type RingTone = "brand" | "orange" | "emerald";
 
 type RingMetric = {
   percent: number;
@@ -171,7 +172,7 @@ function getInspectionMetric(component: ComponentListItem): RingMetric {
         component.conditionStatus === "DUE_NOW" || component.conditionStatus === "OVERDUE"
           ? "orange"
           : component.conditionStatus === "DUE_SOON"
-            ? "sky"
+            ? "brand"
             : "emerald",
     };
   }
@@ -200,7 +201,7 @@ function getInspectionMetric(component: ComponentListItem): RingMetric {
       component.conditionStatus === "DUE_NOW" || component.conditionStatus === "OVERDUE"
         ? "orange"
         : component.conditionStatus === "DUE_SOON"
-          ? "sky"
+          ? "brand"
           : "emerald",
   };
 }
@@ -214,7 +215,7 @@ function getReplacementMetric(component: ComponentListItem): RingMetric {
       percent: 0,
       label: "Replacement",
       detail: "Replacement interval not set",
-      tone: "sky",
+      tone: "brand",
     };
   }
 
@@ -238,7 +239,7 @@ function getReplacementMetric(component: ComponentListItem): RingMetric {
     label: "Replacement",
     detail: `${Math.round(milesRemaining)} miles remaining`,
     progress,
-    tone: milesRemaining <= replacementInterval * 0.2 ? "sky" : "emerald",
+    tone: milesRemaining <= replacementInterval * 0.2 ? "brand" : "emerald",
   };
 }
 
@@ -251,11 +252,11 @@ function getRingToneClasses(tone: RingTone) {
     };
   }
 
-  if (tone === "sky") {
+  if (tone === "brand") {
     return {
-      text: "text-sky-700",
-      progress: "stroke-sky-500",
-      track: "stroke-sky-100",
+      text: "text-brand-700",
+      progress: "stroke-brand-500",
+      track: "stroke-brand-100",
     };
   }
 
@@ -275,7 +276,7 @@ function MetricRing({ metric }: { metric: RingMetric }) {
   const toneClasses = getRingToneClasses(metric.tone);
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <article className="surface-card-muted p-3">
       <div className="flex items-center gap-3">
         <div className="relative h-[76px] w-[76px] shrink-0">
           <svg
@@ -337,7 +338,7 @@ function AddComponentForm({
 
   return (
     <form
-      className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="surface-card mb-4 p-4"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -495,13 +496,9 @@ function AddComponentForm({
         <textarea name="notes" className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2" />
       </label>
 
-      <button
-        type="submit"
-        disabled={isSubmitting || disabled}
-        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isSubmitting || disabled} variant="primary" size="md" className="mt-4">
         {isSubmitting ? "Saving..." : "Add component"}
-      </button>
+      </Button>
 
       {status.type === "error" && status.message ? (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -556,7 +553,7 @@ function EditableComponentCard({
   if (mode === "edit") {
     return (
       <form
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="surface-card p-4"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -620,16 +617,17 @@ function EditableComponentCard({
       >
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-display text-lg font-semibold text-slate-900">Edit component</h3>
-          <button
+          <Button
             type="button"
             onClick={() => {
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            variant="secondary"
+            size="sm"
           >
             Cancel
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -731,13 +729,9 @@ function EditableComponentCard({
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || disabled}
-          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" disabled={isSubmitting || disabled} variant="primary" size="md" className="mt-4">
           {isSubmitting ? "Saving..." : "Save changes"}
-        </button>
+        </Button>
 
         {status.type === "error" && status.message ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -749,7 +743,7 @@ function EditableComponentCard({
   if (mode === "replace") {
     return (
       <form
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="surface-card p-4"
         onSubmit={async (event) => {
           event.preventDefault();
           const formData = new FormData(event.currentTarget);
@@ -800,16 +794,17 @@ function EditableComponentCard({
       >
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-display text-lg font-semibold text-slate-900">Replace component</h3>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => {
               setMode("view");
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
           >
             Cancel
-          </button>
+          </Button>
         </div>
         <p className="mt-2 text-sm text-slate-600">
           The current component will be marked replaced, and a new active one will start at 0 miles.
@@ -875,13 +870,9 @@ function EditableComponentCard({
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || disabled}
-          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" variant="primary" size="md" disabled={isSubmitting || disabled} className="mt-4">
           {isSubmitting ? "Replacing..." : "Confirm replace"}
-        </button>
+        </Button>
 
         {status.type === "error" && status.message ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -905,28 +896,30 @@ function EditableComponentCard({
         }}
         actions={
           <div className="flex flex-wrap gap-2 text-xs font-semibold">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               disabled={disabled}
               onClick={() => {
                 setMode("edit");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Edit
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               disabled={disabled}
               onClick={() => {
                 setMode("replace");
                 setStatus({ type: "idle" });
               }}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Replace
-            </button>
+            </Button>
           </div>
         }
       />
@@ -953,13 +946,9 @@ function EditableComponentCard({
                 </h3>
                 <p className="text-sm text-slate-600">{formatComponentType(component.type)}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowDetails(false)}
-                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              <Button type="button" variant="secondary" size="sm" onClick={() => setShowDetails(false)}>
                 Close
-              </button>
+              </Button>
             </div>
 
             <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -1117,16 +1106,17 @@ export function ComponentManager({
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Active components</h2>
         <div className="flex flex-wrap items-center gap-2">
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="md"
             disabled={disabled || isRecalcBusy}
             onClick={() => {
               runRecalculation(false);
             }}
-            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRecalcBusy ? "Working..." : "Preview recalc"}
-          </button>
+          </Button>
           <button
             type="button"
             disabled={disabled || isRecalcBusy || !recalcResult || driftItems.length === 0}
@@ -1144,8 +1134,10 @@ export function ComponentManager({
           >
             {isRecalcBusy ? "Working..." : "Apply recalc"}
           </button>
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="md"
             disabled={disabled}
             onClick={() => {
               const nextShowAddForm = !showAddForm;
@@ -1157,10 +1149,9 @@ export function ComponentManager({
               }
               setStatus({ type: "idle" });
             }}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {showAddForm ? "Close" : "Add component"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1177,7 +1168,7 @@ export function ComponentManager({
       ) : null}
 
       {recalcResult ? (
-        <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="surface-card mb-4 p-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="font-display text-lg font-semibold text-slate-900">
               Mileage recalculation preview
