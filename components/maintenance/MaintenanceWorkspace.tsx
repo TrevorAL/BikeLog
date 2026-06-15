@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { DueSoonActionList } from "@/components/maintenance/DueSoonActionList";
 import { MaintenanceForm, type MaintenanceFormPrefill } from "@/components/maintenance/MaintenanceForm";
 import { MaintenanceHistoryManager } from "@/components/maintenance/MaintenanceHistoryManager";
+import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getDueActionConfig } from "@/lib/maintenance-actions";
 import type { ConditionSuggestion, DueItem } from "@/lib/maintenance";
@@ -259,14 +260,14 @@ export function MaintenanceWorkspace({
         </p>
       ) : null}
 
-      <section className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="surface-card mt-6 p-5">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Condition-based suggestions</h2>
         {suggestions.length ? (
           <ul className="mt-3 space-y-2">
             {suggestions.map((suggestion) => (
               <li
                 key={suggestion.key}
-                className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                className="surface-card-muted px-3 py-2 text-sm text-slate-600"
               >
                 <button
                   type="button"
@@ -288,17 +289,18 @@ export function MaintenanceWorkspace({
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
             Maintenance history
           </h2>
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="md"
             disabled={disabled}
             onClick={() => {
               setShowLogForm((previous) => !previous);
               setActionStatus({ type: "idle" });
             }}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {showLogForm ? "Close" : "Log maintenance"}
-          </button>
+          </Button>
         </div>
 
         <div id="maintenance-log-form" className={showLogForm ? "mt-4 scroll-mt-40" : "scroll-mt-40"}>

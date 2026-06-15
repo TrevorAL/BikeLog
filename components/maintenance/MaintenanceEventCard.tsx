@@ -16,7 +16,7 @@ export function MaintenanceEventCard({
   const notesLabel = notes?.trim() || "No notes";
 
   return (
-    <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+    <article className="surface-card flex h-full flex-col p-3">
       <p className="text-xs uppercase tracking-wide text-slate-600">{date.toLocaleDateString()}</p>
       <h3 className="font-display mt-1 text-base font-semibold tracking-tight text-slate-900">
         {type.replaceAll("_", " ")}

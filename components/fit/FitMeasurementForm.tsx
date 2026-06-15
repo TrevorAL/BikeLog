@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
+
 type FitMeasurementFormProps = {
   bikeId?: string;
   disabled?: boolean;
@@ -50,23 +52,24 @@ export function FitMeasurementForm({
           <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
             Add fit measurement
           </h2>
-          <button
+          <Button
             type="button"
+            variant="primary"
+            size="md"
             disabled={disabled}
             onClick={() => {
               setIsOpen((previous) => !previous);
               setStatus({ type: "idle" });
             }}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isOpen ? "Close" : "Add fit measurement"}
-          </button>
+          </Button>
         </div>
       ) : null}
 
       {isOpen ? (
         <form
-          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="surface-card p-5"
           onSubmit={async (event) => {
             event.preventDefault();
 
@@ -241,13 +244,9 @@ export function FitMeasurementForm({
             />
           </label>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || disabled}
-            className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
+          <Button type="submit" variant="primary" size="md" disabled={isSubmitting || disabled} className="mt-4">
             {isSubmitting ? "Saving..." : "Save measurement"}
-          </button>
+          </Button>
 
           {status.type === "success" && status.message ? (
             <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">

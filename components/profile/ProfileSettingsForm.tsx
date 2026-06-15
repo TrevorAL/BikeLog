@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { BellRing, Bike, Clock3, Mail, MessageSquare, Moon, Send } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import {
   publishNotificationsEnabledValue,
   subscribeToNotificationsEnabledChange,
@@ -700,7 +700,7 @@ export function ProfileSettingsForm({
   return (
     <div className="space-y-6 lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start lg:gap-6 lg:space-y-0">
       <aside
-        className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:sticky lg:self-start lg:overflow-y-auto"
+        className="surface-card p-3 lg:sticky lg:self-start lg:overflow-y-auto"
         style={stickySidebarStyle}
       >
         <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -723,7 +723,7 @@ export function ProfileSettingsForm({
       <div className="space-y-6">
       <section
         id="settings-preferences"
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="surface-card p-5"
         style={settingsSectionStyle}
       >
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Profile settings</h2>
@@ -752,12 +752,12 @@ export function ProfileSettingsForm({
             </label>
           </div>
 
-          <section className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <section className="surface-card-muted p-3">
             <p className="text-sm font-semibold text-slate-900">Profile picture</p>
             <div className="mt-2 inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
               <div
                 aria-hidden
-                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-sky-600 text-sm font-semibold text-white"
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-brand-600 text-sm font-semibold text-white"
               >
                 {hasCustomAvatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -780,22 +780,24 @@ export function ProfileSettingsForm({
                   className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs text-slate-700"
                 />
               </label>
-              <button
+              <Button
                 type="button"
                 onClick={uploadAvatar}
                 disabled={isUploadingAvatar || isResettingAvatar}
-                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                variant="secondary"
+                size="sm"
               >
                 {isUploadingAvatar ? "Uploading..." : "Upload image"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={resetAvatarToDefault}
                 disabled={!hasCustomAvatar || isUploadingAvatar || isResettingAvatar}
-                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                variant="secondary"
+                size="sm"
               >
                 {isResettingAvatar ? "Resetting..." : "Use default"}
-              </button>
+              </Button>
             </div>
             <p className="mt-2 text-xs text-slate-600">
               JPG, PNG, WEBP, or GIF up to 5 MB.
@@ -831,7 +833,7 @@ export function ProfileSettingsForm({
                   </option>
                 ))}
               </select>
-              <button
+              <Button
                 type="button"
                 onClick={() => {
                   if (!browserTimezone) {
@@ -840,10 +842,12 @@ export function ProfileSettingsForm({
 
                   setForm((current) => ({ ...current, timezone: browserTimezone }));
                 }}
-                className="mt-2 rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                variant="secondary"
+                size="sm"
+                className="mt-2"
               >
                 Use browser timezone
-              </button>
+              </Button>
               <span className="mt-1 block text-xs text-slate-500">
                 Notification digest times use this timezone.
               </span>
@@ -903,13 +907,9 @@ export function ProfileSettingsForm({
             </select>
           </label>
 
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
+          <Button type="submit" disabled={isSaving} variant="primary" size="md">
             {isSaving ? "Saving..." : "Save profile"}
-          </button>
+          </Button>
 
           {saveStatus.type === "success" && saveStatus.message ? (
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -927,7 +927,7 @@ export function ProfileSettingsForm({
 
       <section
         id="settings-appearance"
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="surface-card p-5"
         style={settingsSectionStyle}
       >
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
@@ -943,7 +943,7 @@ export function ProfileSettingsForm({
             onClick={() => setThemeMode("light")}
             className={`rounded-lg border px-3 py-2 text-left transition ${
               themeMode === "light"
-                ? "border-sky-600 bg-sky-50 text-sky-800"
+                ? "border-brand-600 bg-brand-50 text-brand-800"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -955,7 +955,7 @@ export function ProfileSettingsForm({
             onClick={() => setThemeMode("dark")}
             className={`rounded-lg border px-3 py-2 text-left transition ${
               themeMode === "dark"
-                ? "border-sky-600 bg-sky-50 text-sky-800"
+                ? "border-brand-600 bg-brand-50 text-brand-800"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -967,7 +967,7 @@ export function ProfileSettingsForm({
             onClick={() => setThemeMode("system")}
             className={`rounded-lg border px-3 py-2 text-left transition ${
               themeMode === "system"
-                ? "border-sky-600 bg-sky-50 text-sky-800"
+                ? "border-brand-600 bg-brand-50 text-brand-800"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -979,7 +979,7 @@ export function ProfileSettingsForm({
 
       <section
         id="settings-notifications"
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="surface-card p-5"
         style={settingsSectionStyle}
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1012,7 +1012,7 @@ export function ProfileSettingsForm({
           <div className="divide-y divide-slate-100 rounded-lg border border-slate-200">
             <div className="flex items-center justify-between gap-4 px-4 py-3">
               <div className="flex items-center gap-3">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-700">
                   <BellRing className="h-4 w-4" />
                 </span>
                 <div>
@@ -1037,7 +1037,7 @@ export function ProfileSettingsForm({
                   className="peer sr-only"
                   aria-label="Enable maintenance reminders"
                 />
-                <span className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-sky-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-sky-300" />
+                <span className="h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-brand-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-brand-300" />
                 <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
               </label>
             </div>
@@ -1052,7 +1052,7 @@ export function ProfileSettingsForm({
                 <label
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
                     notificationForm.emailEnabled
-                      ? "border-sky-300 bg-sky-50"
+                      ? "border-brand-300 bg-brand-50"
                       : "border-slate-200 bg-white hover:bg-slate-50"
                   }`}
                 >
@@ -1065,13 +1065,29 @@ export function ProfileSettingsForm({
                         emailEnabled: event.target.checked,
                       }))
                     }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                   />
                   <span className="flex min-w-0 gap-3">
-                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <Mail
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${
+                        notificationForm.emailEnabled ? "text-brand-700" : "text-slate-600"
+                      }`}
+                    />
                     <span>
-                      <span className="block text-sm font-semibold text-slate-900">Email</span>
-                      <span className="block text-xs text-slate-500">{user.email ?? "No email set"}</span>
+                      <span
+                        className={`block text-sm font-semibold ${
+                          notificationForm.emailEnabled ? "text-brand-900" : "text-slate-900"
+                        }`}
+                      >
+                        Email
+                      </span>
+                      <span
+                        className={`block text-xs ${
+                          notificationForm.emailEnabled ? "text-brand-700" : "text-slate-500"
+                        }`}
+                      >
+                        {user.email ?? "No email set"}
+                      </span>
                     </span>
                   </span>
                 </label>
@@ -1079,7 +1095,7 @@ export function ProfileSettingsForm({
                 <label
                   className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ${
                     notificationForm.smsEnabled
-                      ? "border-sky-300 bg-sky-50"
+                      ? "border-brand-300 bg-brand-50"
                       : "border-slate-200 bg-white hover:bg-slate-50"
                   }`}
                 >
@@ -1092,13 +1108,27 @@ export function ProfileSettingsForm({
                         smsEnabled: event.target.checked,
                       }))
                     }
-                    className="mt-1 h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                   />
                   <span className="flex min-w-0 gap-3">
-                    <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <MessageSquare
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${
+                        notificationForm.smsEnabled ? "text-brand-700" : "text-slate-600"
+                      }`}
+                    />
                     <span>
-                      <span className="block text-sm font-semibold text-slate-900">Text message</span>
-                      <span className="block text-xs text-slate-500">
+                      <span
+                        className={`block text-sm font-semibold ${
+                          notificationForm.smsEnabled ? "text-brand-900" : "text-slate-900"
+                        }`}
+                      >
+                        Text message
+                      </span>
+                      <span
+                        className={`block text-xs ${
+                          notificationForm.smsEnabled ? "text-brand-700" : "text-slate-500"
+                        }`}
+                      >
                         {notificationForm.phoneNumber.trim() || "No phone set"}
                       </span>
                     </span>
@@ -1200,7 +1230,7 @@ export function ProfileSettingsForm({
                           sendWindowEnabled: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                      className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                     />
                     Allowed send window
                   </label>
@@ -1260,7 +1290,7 @@ export function ProfileSettingsForm({
                           quietHoursEnabled: event.target.checked,
                         }))
                       }
-                      className="h-4 w-4 rounded border-slate-300 text-sky-700 focus:ring-sky-300"
+                      className="h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                     />
                     <Moon className="h-4 w-4 text-slate-500" />
                     Quiet hours
@@ -1407,13 +1437,9 @@ export function ProfileSettingsForm({
             </p>
           ) : null}
 
-          <button
-            type="submit"
-            disabled={isSavingNotifications}
-            className="rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
+          <Button type="submit" disabled={isSavingNotifications} variant="primary" size="md">
             {isSavingNotifications ? "Saving..." : "Save notifications"}
-          </button>
+          </Button>
 
           {notificationStatus.type === "success" && notificationStatus.message ? (
             <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
@@ -1431,7 +1457,7 @@ export function ProfileSettingsForm({
 
       <section
         id="settings-connections"
-        className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="surface-card p-5"
         style={settingsSectionStyle}
       >
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Account connections</h2>
@@ -1479,8 +1505,10 @@ export function ProfileSettingsForm({
             </p>
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={async () => {
                   setIsGoogleSubmitting(true);
                   try {
@@ -1494,14 +1522,13 @@ export function ProfileSettingsForm({
                   }
                 }}
                 disabled={isGoogleSubmitting}
-                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isGoogleSubmitting
                   ? "Redirecting..."
                   : googleConnected
                     ? "Reconnect Google"
                     : "Connect Google"}
-              </button>
+              </Button>
 
               <a
                 href="https://myaccount.google.com/security"
@@ -1577,12 +1604,9 @@ export function ProfileSettingsForm({
             ) : null}
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link
-                href="/api/strava/connect?redirectTo=/settings"
-                className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-              >
+              <Button href="/api/strava/connect?redirectTo=/settings" variant="secondary" size="sm">
                 {stravaConnection ? "Reconnect Strava" : "Connect Strava"}
-              </Link>
+              </Button>
 
               {stravaConnection ? (
                 <button

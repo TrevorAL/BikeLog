@@ -51,7 +51,7 @@ export function BikeSummaryCard({ name, subtitle, children }: BikeSummaryCardPro
   }, [isOpen]);
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="surface-card p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-600">Primary bike</p>
@@ -68,7 +68,7 @@ export function BikeSummaryCard({ name, subtitle, children }: BikeSummaryCardPro
         onToggle={(event) => {
           setIsOpen(event.currentTarget.open);
         }}
-        className="group mt-5 rounded-lg border border-slate-200 bg-slate-50 p-3"
+        className="group mt-5 surface-card-muted p-3"
       >
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900 [&::-webkit-details-marker]:hidden">
           Bike setup details

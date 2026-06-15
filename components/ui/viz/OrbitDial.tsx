@@ -68,7 +68,7 @@ export function OrbitDial({
   return (
     <article
       className={cn(
-        "flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm",
+        "surface-card flex h-full flex-col p-4",
         className,
       )}
     >

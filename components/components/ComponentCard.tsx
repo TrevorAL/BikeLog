@@ -29,7 +29,7 @@ export function ComponentCard({
 }: ComponentCardProps) {
   return (
     <article
-      className={`flex h-full flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
+      className={`surface-card flex h-full flex-col p-3 ${onClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
       onClick={onClick}
       onKeyDown={(event) => {
         if (!onClick) {

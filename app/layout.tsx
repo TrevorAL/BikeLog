@@ -1,8 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Inter, Sora } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 
 import "@/app/globals.css";
+import { cn } from "@/lib/utils";
+
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "BikeLog",
@@ -22,7 +36,7 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={cn(sora.variable, inter.variable)}>
       <head>
         <script
           dangerouslySetInnerHTML={{

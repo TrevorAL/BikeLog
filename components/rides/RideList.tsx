@@ -16,6 +16,7 @@ import {
 
 import { ROAD_CONDITIONS, RIDE_TYPES } from "@/lib/ride-options";
 import { RideCard } from "@/components/rides/RideCard";
+import { Button } from "@/components/ui/Button";
 
 type RideListItem = {
   id: string;
@@ -419,7 +420,7 @@ function RideStreamTooltip({ active, payload }: RideStreamTooltipProps) {
   }
 
   return (
-    <div className="w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
+    <div className="surface-card w-64 p-3 shadow-elevated">
       <p className="text-sm font-semibold text-slate-900">Strava stream sample</p>
       <div className="mt-2 space-y-1.5 text-xs text-slate-700">
         <p>
@@ -508,7 +509,7 @@ function RideStreamChart({ streams }: { streams: RideDetailsStravaStreams }) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <section className="surface-card-muted p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-semibold text-slate-900">Strava ride stream</h4>
         <p className="text-xs text-slate-600">
@@ -677,7 +678,7 @@ function RideTraceMap({ points }: { points: LatLngPoint[] }) {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+    <section className="surface-card-muted p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-semibold text-slate-900">Route trace</h4>
         <p className="text-xs text-slate-600">{points.length} points</p>
@@ -754,7 +755,7 @@ function RideDetailsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={`ride-details-title-${ride.id}`}
-        className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-xl"
+        className="surface-card max-h-[90vh] w-full max-w-4xl overflow-y-auto p-4 shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -764,13 +765,9 @@ function RideDetailsModal({
             </h3>
             <p className="text-sm text-slate-600">{formatDateTime(ride.date)}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
-          >
+          <Button type="button" onClick={onClose} variant="secondary" size="sm">
             Close
-          </button>
+          </Button>
         </div>
 
         {loading ? (
@@ -835,7 +832,7 @@ function RideDetailsModal({
 
             {details?.strava.imported ? (
               <div className="mt-5 space-y-3">
-                <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900">
+                <div className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-sm text-brand-900">
                   Linked Strava activity: {details.strava.stravaActivityId}
                   {details.strava.error ? ` (limited: ${details.strava.error})` : ""}
                 </div>
@@ -977,7 +974,7 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
 
   return isEditing ? (
     <form
-      className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+      className="surface-card p-4"
       onSubmit={async (event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
@@ -1043,16 +1040,17 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
     >
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-display text-lg font-semibold text-slate-900">Edit ride</h3>
-        <button
+        <Button
           type="button"
           onClick={() => {
             setIsEditing(false);
             setStatus({ type: "idle" });
           }}
-          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          variant="secondary"
+          size="sm"
         >
           Cancel
-        </button>
+        </Button>
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -1146,13 +1144,9 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
         />
       </label>
 
-      <button
-        type="submit"
-        disabled={isBusy}
-        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isBusy} variant="primary" size="md" className="mt-4">
         {isBusy ? "Saving..." : "Save changes"}
-      </button>
+      </Button>
 
       {status.type === "error" && status.message ? (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -1174,17 +1168,18 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
         }}
         actions={
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setIsEditing(true);
                 setStatus({ type: "idle" });
               }}
               disabled={isBusy}
-              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+              variant="secondary"
+              size="sm"
             >
               Edit
-            </button>
+            </Button>
             <button
               type="button"
               onClick={async () => {

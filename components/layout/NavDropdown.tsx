@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export function DesktopNavDropdown({
   onNavigate: () => void;
 }) {
   const active = isNavGroupActive(group, pathname);
+  const highlighted = active || open;
 
   return (
     <div className="relative">
@@ -46,17 +48,22 @@ export function DesktopNavDropdown({
         type="button"
         onClick={onToggle}
         className={cn(
-          "inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition",
-          active || open
-            ? "bg-sky-700 text-white"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+          "relative inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium transition",
+          highlighted ? "text-white" : "text-slate-300 hover:bg-white/10 hover:text-white",
         )}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls={`nav-menu-${group.key}`}
       >
-        {group.label}
-        <span aria-hidden="true" className="text-xs">
+        {highlighted ? (
+          <motion.span
+            layoutId="desktop-nav-active"
+            className="absolute inset-0 rounded-md bg-brand-600"
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+          />
+        ) : null}
+        <span className="relative z-10">{group.label}</span>
+        <span aria-hidden="true" className="relative z-10 text-xs">
           ▾
         </span>
       </button>
@@ -104,7 +111,7 @@ export function MobileNavDropdown({ group, pathname }: { group: NavMenuGroup; pa
     <details
       className={cn(
         "dropdown-surface rounded-lg border",
-        active ? "border-sky-200" : "border-slate-200",
+        active ? "border-brand-200" : "border-slate-200",
       )}
     >
       <summary

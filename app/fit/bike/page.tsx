@@ -67,7 +67,7 @@ export default async function BikeFitPage({ searchParams }: BikeFitPageProps) {
 
           <section
             id="fit-history"
-            className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm scroll-mt-40"
+            className="surface-card mt-6 p-5 scroll-mt-40"
           >
             <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Fit history</h2>
             <div className="mt-3">

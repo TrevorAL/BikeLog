@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
 import { MAINTENANCE_EVENT_TYPES } from "@/lib/maintenance-options";
 
 type MaintenanceFormComponent = {
@@ -82,7 +83,7 @@ export function MaintenanceForm({
 
   return (
     <form
-      className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+      className="surface-card p-5"
       onSubmit={async (event) => {
         event.preventDefault();
 
@@ -276,13 +277,9 @@ export function MaintenanceForm({
         />
       </label>
 
-      <button
-        type="submit"
-        disabled={isSubmitting || disabled}
-        className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-      >
+      <Button type="submit" variant="primary" size="md" disabled={isSubmitting || disabled} className="mt-4">
         {isSubmitting ? "Saving..." : "Save event"}
-      </button>
+      </Button>
 
       {status.type === "success" && status.message ? (
         <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">

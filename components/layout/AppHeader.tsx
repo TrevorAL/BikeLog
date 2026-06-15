@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
@@ -14,6 +13,7 @@ import {
   type NavMenuGroup,
 } from "@/components/layout/NavDropdown";
 import { NotificationBell } from "@/components/layout/NotificationBell";
+import { LogoMark } from "@/components/ui/illustrations/LogoMark";
 import { cn } from "@/lib/utils";
 
 type AppHeaderBike = {
@@ -218,25 +218,16 @@ export function AppHeader({
   return (
     <header
       ref={headerRef}
-      className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur"
+      className="app-header-surface sticky top-0 z-30 border-b"
     >
-      <div className="h-0.5 w-full bg-gradient-to-r from-sky-600 via-slate-200 to-orange-500" />
-      <div className="mx-auto w-full max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+      <div className="h-1 w-full bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600" />
+      <div className="mx-auto w-full max-w-7xl px-4 py-3.5 sm:px-6 lg:px-8 lg:py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <span className="relative h-8 w-8 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
-                <Image
-                  src="/icons/app-icon.png"
-                  alt="BikeLog"
-                  fill
-                  sizes="32px"
-                  className="object-cover"
-                  priority
-                />
-              </span>
-              <span className="font-display text-lg font-semibold text-slate-900">
-                Bike<span className="text-sky-700">Log</span>
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <LogoMark className="h-8 w-8 text-brand-400" />
+              <span className="font-display text-lg font-bold text-white">
+                Bike<span className="text-brand-400">Log</span>
               </span>
             </Link>
             <nav
@@ -272,7 +263,7 @@ export function AppHeader({
                   className={cn(
                     "flex items-center overflow-hidden rounded-full border bg-white shadow-sm",
                     profileSectionActive
-                      ? "border-sky-700 ring-2 ring-sky-200"
+                      ? "border-brand-500 ring-2 ring-brand-200"
                       : "border-slate-300 hover:border-slate-400",
                   )}
                 >
@@ -284,8 +275,8 @@ export function AppHeader({
                       hasCustomAvatar
                         ? "bg-white hover:bg-slate-100"
                         : profileSectionActive
-                          ? "bg-sky-700 text-white hover:bg-sky-700"
-                          : "bg-sky-600 text-white hover:bg-sky-700",
+                          ? "bg-brand-700 text-white hover:bg-brand-700"
+                          : "bg-brand-600 text-white hover:bg-brand-700",
                     )}
                     aria-label="Go to profile"
                     title="Profile"
@@ -376,13 +367,13 @@ export function AppHeader({
           ))}
         </nav>
 
-        <div className="mt-3 border-t border-slate-100 pt-3">
+        <div className="mt-3 border-t border-white/10 pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="font-display text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+              <h1 className="font-display text-xl font-semibold tracking-tight text-white sm:text-2xl">
                 {title}
               </h1>
-              {description ? <p className="text-sm text-slate-600">{description}</p> : null}
+              {description ? <p className="text-sm text-slate-300">{description}</p> : null}
             </div>
             <div className="flex flex-wrap items-center gap-2">{actions}</div>
           </div>

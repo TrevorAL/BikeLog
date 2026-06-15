@@ -27,11 +27,39 @@ body {
     radial-gradient(56rem 28rem at 105% -8%, rgba(249, 115, 22, 0.1), transparent 52%),
     #f8fafc;
   color: #0f172a;
-  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-body), "Avenir Next", "Segoe UI", sans-serif;
 }
 
 .app-shell-surface {
   background-color: #f8fafc;
+}
+
+.surface-card {
+  background-color: #ffffff;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -12px rgba(15, 23, 42, 0.12);
+}
+
+.surface-card-muted {
+  background-color: #f8fafc;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.75rem;
+}
+
+.hero-gradient {
+  background:
+    radial-gradient(120% 100% at 0% 0%, rgba(249, 115, 22, 0.35), transparent 60%),
+    radial-gradient(120% 120% at 100% 0%, rgba(56, 189, 248, 0.22), transparent 55%),
+    linear-gradient(135deg, #0b1120 0%, #0f172a 55%, #1e293b 100%);
+}
+
+.app-header-surface {
+  background-color: rgba(11, 17, 32, 0.94);
+  backdrop-filter: blur(12px);
+  border-color: rgba(51, 65, 85, 0.7);
 }
 
 .dropdown-surface {
@@ -40,8 +68,8 @@ body {
 }
 
 .dropdown-item-active {
-  background-color: rgb(224 242 254);
-  color: rgb(12 74 110);
+  background-color: rgb(255 237 213);
+  color: rgb(154 52 18);
 }
 
 .dropdown-notch {
@@ -61,14 +89,24 @@ html[data-theme="dark"] .app-shell-surface {
   background-color: #020617;
 }
 
+html[data-theme="dark"] .surface-card {
+  background-color: rgb(15 23 42);
+  border-color: rgb(51 65 85);
+}
+
+html[data-theme="dark"] .surface-card-muted {
+  background-color: rgb(30 41 59);
+  border-color: rgb(51 65 85);
+}
+
 html[data-theme="dark"] .dropdown-surface {
   background-color: rgb(15 23 42);
   border-color: rgb(51 65 85);
 }
 
 html[data-theme="dark"] .dropdown-item-active {
-  background-color: rgb(8 47 73);
-  color: rgb(186 230 253);
+  background-color: rgb(124 45 18);
+  color: rgb(254 215 170);
 }
 
 html[data-theme="dark"] .dropdown-notch {
@@ -82,7 +120,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  font-family: var(--font-display), "Avenir Next", "Segoe UI", sans-serif;
 }
 
 button,

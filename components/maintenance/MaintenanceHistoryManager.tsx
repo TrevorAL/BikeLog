@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { Button } from "@/components/ui/Button";
 import { MAINTENANCE_EVENT_TYPES } from "@/lib/maintenance-options";
 
 type MaintenanceHistoryComponent = {
@@ -75,7 +76,7 @@ function EditableMaintenanceEvent({
   if (isEditing) {
     return (
       <form
-        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        className="surface-card p-4"
         onSubmit={async (submitEvent) => {
           submitEvent.preventDefault();
           const formData = new FormData(submitEvent.currentTarget);
@@ -131,17 +132,18 @@ function EditableMaintenanceEvent({
       >
         <div className="flex items-center justify-between gap-2">
           <h3 className="font-display text-lg font-semibold text-slate-900">Edit maintenance</h3>
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             disabled={isSubmitting}
             onClick={() => {
               setIsEditing(false);
               setStatus({ type: "idle" });
             }}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancel
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -241,13 +243,9 @@ function EditableMaintenanceEvent({
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting || disabled}
-          className="mt-4 rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        <Button type="submit" variant="primary" size="md" disabled={isSubmitting || disabled} className="mt-4">
           {isSubmitting ? "Saving..." : "Save changes"}
-        </button>
+        </Button>
 
         {status.type === "error" && status.message ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
@@ -257,7 +255,7 @@ function EditableMaintenanceEvent({
   }
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="surface-card p-4">
       <p className="text-xs uppercase tracking-wide text-slate-600">
         {new Date(event.date).toLocaleDateString()}
       </p>
@@ -272,17 +270,18 @@ function EditableMaintenanceEvent({
         {event.notes ? <p>Notes: {event.notes}</p> : null}
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
+        <Button
           type="button"
+          variant="secondary"
+          size="sm"
           disabled={disabled || isSubmitting}
           onClick={() => {
             setIsEditing(true);
             setStatus({ type: "idle" });
           }}
-          className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Edit
-        </button>
+        </Button>
         <button
           type="button"
           disabled={disabled || isSubmitting}
