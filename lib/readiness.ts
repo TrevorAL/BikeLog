@@ -88,3 +88,11 @@ export function getReadinessLabel(score: number) {
   if (score >= 50) return "Needs attention";
   return "Not ready";
 }
+
+export type ReadinessTone = "good" | "warning" | "attention";
+
+export function getReadinessTone(score: number): ReadinessTone {
+  if (score >= 90) return "good";
+  if (score >= 70) return "warning";
+  return "attention";
+}

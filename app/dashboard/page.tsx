@@ -1,14 +1,15 @@
 import Link from "next/link";
 import type { ComponentType } from "@prisma/client";
-import { Activity, Gauge, ShieldCheck, Wrench } from "lucide-react";
+import { Activity, Gauge, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { ReadinessGauge } from "@/components/dashboard/ReadinessGauge";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { ParallaxHero } from "@/components/ui/ParallaxHero";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
 import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
@@ -16,6 +17,7 @@ import { MAINTENANCE_INTERVALS } from "@/lib/constants";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
 import { calculatePressure } from "@/lib/pressure";
+import { getReadinessTone } from "@/lib/readiness";
 
 export const dynamic = "force-dynamic";
 
@@ -220,11 +222,14 @@ export default async function DashboardPage() {
   const bike = data.bike;
 
   const bikeMileage = bike ? data.maintenance.bikeMileage : 0;
+  const readinessTone = getReadinessTone(bike ? data.maintenance.readiness.score : 0);
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
   const dueNowItems = bike ? data.maintenance.maintenanceSummary.dueNow : [];
   const dueSoonItems = bike ? data.maintenance.maintenanceSummary.dueSoon : [];
-  const readinessReasons = bike ? data.maintenance.readiness.reasons : [];
+  const attentionItemsAll = [...dueNowItems, ...dueSoonItems];
+  const attentionItems = attentionItemsAll.slice(0, 6);
+  const remainingAttentionCount = attentionItemsAll.length - attentionItems.length;
   const recentRides = bike ? bike.rides.slice(0, 5) : [];
   const dueItemMap = new Map(
     bike ? data.maintenance.maintenanceSummary.dueItems.map((item) => [item.key, item] as const) : [],
@@ -286,196 +291,183 @@ export default async function DashboardPage() {
 
       <ParallaxHero
         eyebrow="Dashboard"
-        title={bike ? `${bike.name} is ${data.maintenance.readiness.label.toLowerCase()}` : "Welcome to BikeLog"}
+        title={bike ? bike.name : "Welcome to BikeLog"}
         subtitle={
           bike
-            ? `${data.maintenance.readiness.score}% ready to ride · ${dueNowCount} due now · ${dueSoonCount} due soon`
-            : "Add your first bike to start tracking maintenance, rides, and readiness."
+            ? "Your at-a-glance status — readiness, maintenance, and recent rides in one place."
+            : "Add your first bike to start tracking maintenance, rides, tire pressure, and readiness."
+        }
+        preview={
+          bike ? (
+            <ReadinessGauge
+              score={data.maintenance.readiness.score}
+              label={data.maintenance.readiness.label}
+              tone={readinessTone}
+              className="mx-auto"
+            />
+          ) : undefined
         }
         className="mb-6"
       >
-        <Button href="/rides?open=log#ride-log-form" variant="primary">
-          Log a ride
-        </Button>
-      </ParallaxHero>
-
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Link href="/maintenance" className="block">
-          <MetricCard
-            title="Ready to Ride"
-            value={`${bike ? data.maintenance.readiness.score : 0}%`}
-            subtitle={bike ? `${data.maintenance.readiness.label} · View maintenance` : "No bike found"}
-            icon={<ShieldCheck className="h-5 w-5" />}
-            className="h-full"
-          />
-        </Link>
-        <Link href="/pressure" className="block">
-          <MetricCard
-            title="Pressure Recommendation"
-            value={`${bike ? data.pressureRecommendation.frontPsi : 0}/${bike ? data.pressureRecommendation.rearPsi : 0}`}
-            subtitle="Front/Rear PSI"
-            icon={<Gauge className="h-5 w-5" />}
-            className="h-full"
-          />
-        </Link>
-        <Link href="/rides" className="block">
-          <MetricCard
-            title="Recent Miles"
-            value={`${bikeMileage.toFixed(1)} mi`}
-            subtitle="From logged rides"
-            icon={<Activity className="h-5 w-5" />}
-            className="h-full"
-          />
-        </Link>
-        <Link href="/maintenance" className="block">
-          <MetricCard
-            title="Due Now"
-            value={`${dueNowCount}`}
-            subtitle="Maintenance items"
-            icon={<Wrench className="h-5 w-5" />}
-            className="h-full"
-          />
-        </Link>
-      </section>
-
-      {bike ? (
-        <section className="mt-6 grid gap-4 xl:grid-cols-[320px_minmax(0,_1fr)]">
-          <OrbitDial
-            label="Readiness Pulse"
-            value={data.maintenance.readiness.score}
-            suffix="%"
-            hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
-            tone={data.maintenance.readiness.score >= 80 ? "emerald" : "orange"}
-          />
-          <section className="surface-card p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Readiness reasoning</h2>
-              <Button href="/maintenance" variant="secondary" size="sm">
-                Open maintenance
-              </Button>
-            </div>
-            {readinessReasons.length > 0 ? (
-              <ul className="mt-3 space-y-2">
-                {readinessReasons.map((reason) => (
-                  <li
-                    key={reason}
-                    className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
-                  >
-                    {reason}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-                No readiness deductions. You are fully ready to ride.
-              </p>
-            )}
-
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <section>
-                <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Due now / overdue</h3>
-                <div className="mt-2 space-y-2">
-                  {dueNowItems.length === 0 ? (
-                    <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Nothing pending.</p>
-                  ) : (
-                    dueNowItems.map((item) => (
-                      <Link
-                        key={item.key}
-                        href={`/maintenance?due=${encodeURIComponent(item.key)}`}
-                        className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
-                      >
-                        <article className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                            <p className="text-xs text-slate-600">{item.detail}</p>
-                          </div>
-                          <StatusBadge status={item.status} />
-                        </article>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              <section>
-                <h3 className="font-display text-lg font-semibold tracking-tight text-slate-900">Due soon</h3>
-                <div className="mt-2 space-y-2">
-                  {dueSoonItems.length === 0 ? (
-                    <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Nothing pending.</p>
-                  ) : (
-                    dueSoonItems.map((item) => (
-                      <Link
-                        key={item.key}
-                        href={`/maintenance?due=${encodeURIComponent(item.key)}`}
-                        className="block rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
-                      >
-                        <article className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">{item.label}</p>
-                            <p className="text-xs text-slate-600">{item.detail}</p>
-                          </div>
-                          <StatusBadge status={item.status} />
-                        </article>
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </section>
-            </div>
-          </section>
-        </section>
-      ) : null}
-
-      <section className="mt-6 grid gap-4 lg:grid-cols-2">
-        <section className="surface-card p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Recent rides</h2>
-            <Button href="/rides" variant="secondary" size="sm">
-              Open rides
+        {bike ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Button href="/rides?open=log#ride-log-form" variant="primary">
+              Log a ride
+            </Button>
+            <Button
+              href="/maintenance"
+              variant="secondary"
+              className="border-white/20 bg-transparent text-white hover:bg-white/10"
+            >
+              View maintenance
             </Button>
           </div>
-          {recentRides.length > 0 ? (
-            <ul className="mt-3 space-y-2">
-              {recentRides.map((ride) => (
-                <li
-                  key={ride.id}
-                  className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
-                >
-                  <p className="text-xs uppercase tracking-wide text-slate-600">
-                    {ride.date.toLocaleDateString()}
-                  </p>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {ride.distanceMiles.toFixed(1)} mi · {ride.rideType.replaceAll("_", " ")}
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    {ride.durationMinutes ? `${ride.durationMinutes} min` : "Duration not set"}
-                    {ride.roadCondition ? ` · ${ride.roadCondition}` : ""}
-                    {ride.wasWet ? " · Wet ride" : ""}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-              No rides logged yet.
-            </p>
-          )}
-        </section>
+        ) : (
+          <Button href="/bike?openAddBike=1#bike-manager" variant="primary">
+            Add your first bike
+          </Button>
+        )}
+      </ParallaxHero>
 
-        <PillBars
-          title="Component Mileage Load"
-          items={componentMileageBars}
-          valueSuffix="%"
-          tone="orange"
-          maxValue={100}
-          minBarPercent={0}
-          scrollable
-          listMaxHeightClassName="h-full overflow-y-auto pr-1"
-          className="h-full"
-          headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
+      {bike ? (
+        <>
+          <section className="grid gap-3 sm:grid-cols-3">
+            <Link href="/rides" className="block">
+              <MetricCard
+                title="Recent Miles"
+                value={`${bikeMileage.toFixed(1)} mi`}
+                subtitle="Total logged on this bike"
+                icon={<Activity className="h-5 w-5" />}
+                className="h-full"
+              />
+            </Link>
+            <Link href="/pressure" className="block">
+              <MetricCard
+                title="Tire Pressure"
+                value={`${data.pressureRecommendation.frontPsi}/${data.pressureRecommendation.rearPsi} psi`}
+                subtitle="Front / rear recommendation"
+                icon={<Gauge className="h-5 w-5" />}
+                className="h-full"
+              />
+            </Link>
+            <Link href="/maintenance" className="block">
+              <MetricCard
+                title="Due Now"
+                value={`${dueNowCount}`}
+                subtitle={`${dueSoonCount} due soon`}
+                icon={<Wrench className="h-5 w-5" />}
+                className="h-full"
+              />
+            </Link>
+          </section>
+
+          <section className="mt-6 grid gap-4 lg:grid-cols-2">
+            <section className="surface-card flex flex-col p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
+                  Needs attention
+                </h2>
+                <Button href="/maintenance" variant="secondary" size="sm">
+                  Open maintenance
+                </Button>
+              </div>
+              {attentionItems.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                  {attentionItems.map((item) => (
+                    <li key={item.key}>
+                      <Link
+                        href={`/maintenance?due=${encodeURIComponent(item.key)}`}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:bg-slate-100"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                          <p className="text-xs text-slate-600">{item.detail}</p>
+                        </div>
+                        <StatusBadge status={item.status} />
+                      </Link>
+                    </li>
+                  ))}
+                  {remainingAttentionCount > 0 ? (
+                    <li>
+                      <Link
+                        href="/maintenance"
+                        className="block rounded-lg px-3 py-2 text-center text-xs font-semibold text-brand-600 hover:text-brand-700"
+                      >
+                        +{remainingAttentionCount} more in Maintenance
+                      </Link>
+                    </li>
+                  ) : null}
+                </ul>
+              ) : (
+                <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                  Nothing needs attention. You are fully ready to ride.
+                </p>
+              )}
+            </section>
+
+            <section className="surface-card flex flex-col p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Recent rides</h2>
+                <Button href="/rides" variant="secondary" size="sm">
+                  Open rides
+                </Button>
+              </div>
+              {recentRides.length > 0 ? (
+                <ul className="mt-3 space-y-2">
+                  {recentRides.map((ride) => (
+                    <li
+                      key={ride.id}
+                      className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
+                    >
+                      <p className="text-xs uppercase tracking-wide text-slate-600">
+                        {ride.date.toLocaleDateString()}
+                      </p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {ride.distanceMiles.toFixed(1)} mi · {ride.rideType.replaceAll("_", " ")}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        {ride.durationMinutes ? `${ride.durationMinutes} min` : "Duration not set"}
+                        {ride.roadCondition ? ` · ${ride.roadCondition}` : ""}
+                        {ride.wasWet ? " · Wet ride" : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 rounded-lg border border-dashed border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  No rides logged yet.
+                </p>
+              )}
+            </section>
+          </section>
+
+          <PillBars
+            title="Component Health"
+            items={componentMileageBars}
+            valueSuffix="%"
+            tone="orange"
+            maxValue={100}
+            minBarPercent={0}
+            className="mt-6"
+            headerAction={
+              <Link href="/components" className="text-xs font-semibold text-brand-600 hover:text-brand-700">
+                View components &rarr;
+              </Link>
+            }
+          />
+        </>
+      ) : (
+        <EmptyState
+          title="No bike yet"
+          description="Add your bike to start tracking readiness, maintenance, rides, and tire pressure — all in one place."
+          action={
+            <Button href="/bike?openAddBike=1#bike-manager" variant="primary">
+              Add your first bike
+            </Button>
+          }
+          className="mt-6"
         />
-      </section>
-
+      )}
     </AppShell>
   );
 }

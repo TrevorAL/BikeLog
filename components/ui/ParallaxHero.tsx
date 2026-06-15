@@ -11,11 +11,21 @@ type ParallaxHeroProps = {
   eyebrow?: string;
   title: string;
   subtitle?: string;
+  badge?: ReactNode;
   children?: ReactNode;
+  preview?: ReactNode;
   className?: string;
 };
 
-export function ParallaxHero({ eyebrow, title, subtitle, children, className }: ParallaxHeroProps) {
+export function ParallaxHero({
+  eyebrow,
+  title,
+  subtitle,
+  badge,
+  children,
+  preview,
+  className,
+}: ParallaxHeroProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -53,20 +63,24 @@ export function ParallaxHero({ eyebrow, title, subtitle, children, className }: 
 
       <motion.div
         style={{ y: contentY }}
-        className="relative px-6 py-10 sm:px-10 sm:py-14 lg:max-w-xl"
+        className="relative flex flex-col gap-8 px-6 py-10 sm:px-10 sm:py-14 lg:flex-row lg:items-center lg:justify-between"
       >
-        {eyebrow ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-400">
-            {eyebrow}
-          </p>
-        ) : null}
-        <h1 className="font-display mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-          {title}
-        </h1>
-        {subtitle ? (
-          <p className="mt-3 text-sm text-slate-300 sm:text-base">{subtitle}</p>
-        ) : null}
-        {children ? <div className="mt-6">{children}</div> : null}
+        <div className="lg:max-w-xl">
+          {eyebrow ? (
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-400">
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1 className="font-display mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            {title}
+          </h1>
+          {badge ? <div className="mt-3">{badge}</div> : null}
+          {subtitle ? (
+            <p className="mt-3 text-sm text-slate-300 sm:text-base">{subtitle}</p>
+          ) : null}
+          {children ? <div className="mt-6">{children}</div> : null}
+        </div>
+        {preview ? <div className="w-full lg:max-w-sm">{preview}</div> : null}
       </motion.div>
     </section>
   );

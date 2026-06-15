@@ -1068,10 +1068,26 @@ export function ProfileSettingsForm({
                     className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                   />
                   <span className="flex min-w-0 gap-3">
-                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <Mail
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${
+                        notificationForm.emailEnabled ? "text-brand-700" : "text-slate-600"
+                      }`}
+                    />
                     <span>
-                      <span className="block text-sm font-semibold text-slate-900">Email</span>
-                      <span className="block text-xs text-slate-500">{user.email ?? "No email set"}</span>
+                      <span
+                        className={`block text-sm font-semibold ${
+                          notificationForm.emailEnabled ? "text-brand-900" : "text-slate-900"
+                        }`}
+                      >
+                        Email
+                      </span>
+                      <span
+                        className={`block text-xs ${
+                          notificationForm.emailEnabled ? "text-brand-700" : "text-slate-500"
+                        }`}
+                      >
+                        {user.email ?? "No email set"}
+                      </span>
                     </span>
                   </span>
                 </label>
@@ -1095,10 +1111,24 @@ export function ProfileSettingsForm({
                     className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-700 focus:ring-brand-300"
                   />
                   <span className="flex min-w-0 gap-3">
-                    <MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-slate-600" />
+                    <MessageSquare
+                      className={`mt-0.5 h-4 w-4 shrink-0 ${
+                        notificationForm.smsEnabled ? "text-brand-700" : "text-slate-600"
+                      }`}
+                    />
                     <span>
-                      <span className="block text-sm font-semibold text-slate-900">Text message</span>
-                      <span className="block text-xs text-slate-500">
+                      <span
+                        className={`block text-sm font-semibold ${
+                          notificationForm.smsEnabled ? "text-brand-900" : "text-slate-900"
+                        }`}
+                      >
+                        Text message
+                      </span>
+                      <span
+                        className={`block text-xs ${
+                          notificationForm.smsEnabled ? "text-brand-700" : "text-slate-500"
+                        }`}
+                      >
                         {notificationForm.phoneNumber.trim() || "No phone set"}
                       </span>
                     </span>

@@ -12,64 +12,64 @@ export function BikeSilhouette({ className }: BikeSilhouetteProps) {
       aria-hidden="true"
     >
       {/* Rear wheel */}
-      <circle cx="150" cy="220" r="68" stroke="currentColor" strokeWidth="8" />
-      <circle cx="150" cy="220" r="10" stroke="currentColor" strokeWidth="6" />
-      {[0, 45, 90, 135].map((angle) => (
+      <circle cx="150" cy="224" r="76" stroke="currentColor" strokeWidth="8" />
+      <circle cx="150" cy="224" r="10" stroke="currentColor" strokeWidth="6" />
+      {[20, 80, 140, 200, 260, 320].map((angle) => (
         <line
           key={`rear-spoke-${angle}`}
           x1="150"
-          y1="220"
-          x2={150 + 62 * Math.cos((angle * Math.PI) / 180)}
-          y2={220 + 62 * Math.sin((angle * Math.PI) / 180)}
+          y1="224"
+          x2={150 + 70 * Math.cos((angle * Math.PI) / 180)}
+          y2={224 + 70 * Math.sin((angle * Math.PI) / 180)}
           stroke="currentColor"
           strokeWidth="3"
-          opacity="0.5"
+          opacity="0.45"
         />
       ))}
 
       {/* Front wheel */}
-      <circle cx="450" cy="220" r="68" stroke="currentColor" strokeWidth="8" />
-      <circle cx="450" cy="220" r="10" stroke="currentColor" strokeWidth="6" />
-      {[0, 45, 90, 135].map((angle) => (
+      <circle cx="404" cy="224" r="76" stroke="currentColor" strokeWidth="8" />
+      <circle cx="404" cy="224" r="10" stroke="currentColor" strokeWidth="6" />
+      {[20, 80, 140, 200, 260, 320].map((angle) => (
         <line
           key={`front-spoke-${angle}`}
-          x1="450"
-          y1="220"
-          x2={450 + 62 * Math.cos((angle * Math.PI) / 180)}
-          y2={220 + 62 * Math.sin((angle * Math.PI) / 180)}
+          x1="404"
+          y1="224"
+          x2={404 + 70 * Math.cos((angle * Math.PI) / 180)}
+          y2={224 + 70 * Math.sin((angle * Math.PI) / 180)}
           stroke="currentColor"
           strokeWidth="3"
-          opacity="0.5"
+          opacity="0.45"
         />
       ))}
 
-      {/* Frame */}
+      {/* Frame: rear triangle, front triangle, fork */}
       <path
-        d="M150 220 L262 220 M150 220 L242 100 M262 220 L242 100 M242 100 L400 112 M262 220 L400 112 M400 112 L450 220"
+        d="M150 224 L248 208 L224 96 L150 224 M248 208 L366 146 L358 92 L224 96 M366 146 L404 224"
         stroke="currentColor"
         strokeWidth="9"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
-      {/* Seat post + saddle */}
-      <path d="M242 100 L250 78" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
-      <path d="M225 76 L268 72" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
+      {/* Saddle */}
+      <path d="M224 96 L210 84" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+      <path d="M194 82 L238 78" stroke="currentColor" strokeWidth="10" strokeLinecap="round" />
 
-      {/* Stem + handlebar */}
-      <path d="M400 112 L418 82" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
+      {/* Stem + drop handlebar */}
+      <path d="M358 92 L382 70" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
       <path
-        d="M396 84 C408 78, 432 78, 436 92 C438 100, 430 104, 422 100"
+        d="M366 64 C390 56, 414 64, 412 84 C410 98, 394 100, 390 92"
         stroke="currentColor"
         strokeWidth="7"
         strokeLinecap="round"
         fill="none"
       />
 
-      {/* Crank + pedal */}
-      <circle cx="262" cy="220" r="16" stroke="currentColor" strokeWidth="6" />
-      <path d="M262 220 L300 244" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
-      <path d="M262 220 L226 198" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
+      {/* Crank + pedals */}
+      <circle cx="248" cy="208" r="18" stroke="currentColor" strokeWidth="6" />
+      <path d="M248 208 L292 234" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
+      <path d="M248 208 L204 182" stroke="currentColor" strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -34,6 +34,13 @@ export function LoginForm() {
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<"login" | "signup" | null>(null);
 
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+
   const nextPath = useMemo(() => {
     const candidate = searchParams.get("next");
     if (!candidate || !candidate.startsWith("/")) {
@@ -56,6 +63,43 @@ export function LoginForm() {
     } finally {
       setSubmitting(false);
       setMode(null);
+    }
+  }
+
+  async function handleEmailSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+    setEmailSubmitting(true);
+
+    try {
+      if (authMode === "signup") {
+        const response = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
+        });
+
+        if (!response.ok) {
+          const data = (await response.json().catch(() => null)) as { error?: string } | null;
+          setFormError(data?.error ?? "Could not create your account. Please try again.");
+          return;
+        }
+      }
+
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setFormError("Invalid email or password.");
+        return;
+      }
+
+      window.location.href = nextPath;
+    } finally {
+      setEmailSubmitting(false);
     }
   }
 
@@ -105,6 +149,89 @@ export function LoginForm() {
       <p className="mt-2 text-xs text-slate-500">
         BikeLog always asks Google to show account selection so you can choose a different
         account after sign out.
+      </p>
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 border-t border-slate-200" />
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          or continue with email
+        </span>
+        <div className="h-px flex-1 border-t border-slate-200" />
+      </div>
+
+      <form onSubmit={handleEmailSubmit} className="space-y-3">
+        {authMode === "signup" ? (
+          <label className="block text-sm text-slate-700">
+            Name
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              autoComplete="name"
+            />
+          </label>
+        ) : null}
+
+        <label className="block text-sm text-slate-700">
+          Email
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            autoComplete="email"
+            required
+          />
+        </label>
+
+        <label className="block text-sm text-slate-700">
+          Password
+          <input
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            autoComplete={authMode === "signup" ? "new-password" : "current-password"}
+            minLength={authMode === "signup" ? 8 : undefined}
+            required
+          />
+        </label>
+
+        {formError ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+            {formError}
+          </p>
+        ) : null}
+
+        <Button
+          type="submit"
+          disabled={emailSubmitting}
+          variant="primary"
+          className="w-full py-2.5 text-sm"
+        >
+          {emailSubmitting
+            ? authMode === "signup"
+              ? "Creating account..."
+              : "Logging in..."
+            : authMode === "signup"
+              ? "Create account"
+              : "Log in"}
+        </Button>
+      </form>
+
+      <p className="mt-4 text-center text-sm text-slate-600">
+        {authMode === "signup" ? "Already have an account?" : "Need an account?"}{" "}
+        <button
+          type="button"
+          onClick={() => {
+            setAuthMode(authMode === "signup" ? "login" : "signup");
+            setFormError(null);
+          }}
+          className="font-semibold text-brand-700 hover:text-brand-800"
+        >
+          {authMode === "signup" ? "Log in" : "Sign up"}
+        </button>
       </p>
     </div>
   );

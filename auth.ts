@@ -1,4 +1,6 @@
+import bcrypt from "bcryptjs";
 import NextAuth from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 
@@ -43,14 +45,58 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Needed for migration from pre-OAuth users that already exist by email.
       allowDangerousEmailAccountLinking: true,
     }),
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email;
+        const password = credentials?.password;
+
+        if (typeof email !== "string" || typeof password !== "string") {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: email.toLowerCase().trim() },
+        });
+
+        if (!user?.passwordHash) {
+          return null;
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+        if (!isValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
   ],
   pages: {
     signIn: "/login",
   },
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   trustHost: true,
+  logger: {
+    error(error) {
+      // Stale cookies from the previous database-session strategy fail JWE
+      // decryption; the session callback already handles this as "logged out".
+      if (error.name === "JWTSessionError") {
+        return;
+      }
+      console.error(error);
+    },
+  },
   events: {
     async createUser({ user }) {
       await ensureBikeForAuthUser({
@@ -69,9 +115,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async signIn() {
       return true;
     },
-    async session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
       }
 
       return session;
