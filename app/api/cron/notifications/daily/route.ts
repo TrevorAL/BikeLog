@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { dispatchMaintenanceNotificationsForAllUsers } from "@/lib/notifications";
 
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Failed to run scheduled notification cron dispatch", error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: "Could not dispatch notifications right now." },
       { status: 500 },

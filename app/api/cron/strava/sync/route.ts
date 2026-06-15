@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 import { dispatchStravaSyncForConnectedUsers } from "@/lib/strava-auto-sync";
 
@@ -43,6 +44,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Failed to run scheduled Strava sync", error);
+    Sentry.captureException(error);
     return NextResponse.json(
       { error: "Could not dispatch Strava sync right now." },
       { status: 500 },
