@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, Bell, Gauge, Ruler, Settings2, Wrench } from "lucide-react";
+import { Activity, Bell, Gauge, Ruler, Settings2, Share2, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 type Feature = {
@@ -46,6 +46,12 @@ const FEATURES: Feature[] = [
     title: "Smart reminders",
     description:
       "Get notified before maintenance is due so small issues never turn into expensive ones.",
+  },
+  {
+    icon: Share2,
+    title: "Shareable service history",
+    description:
+      "Generate a public link to share your bike's full service record — specs, components, and maintenance log — with no login required. Perfect for selling a bike.",
   },
 ];
 
