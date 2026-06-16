@@ -14,11 +14,12 @@ test("readiness scoring applies maintenance, Di2, and wet-ride deductions", () =
     di2StatusKnown: false,
   });
 
-  assert.equal(readiness.score, 35);
+  // DUE_SOON no longer affects the score — only OVERDUE (-20), DUE_NOW (-15),
+  // unknown Di2 (-10), and wet ride without chain clean (-10) are deducted.
+  assert.equal(readiness.score, 45);
   assert.deepEqual(readiness.deductions, [
     { points: 20, reason: "1 overdue maintenance item" },
     { points: 15, reason: "1 maintenance item due now" },
-    { points: 10, reason: "1 maintenance item due soon" },
     { points: 10, reason: "Shifting battery charge status is unknown" },
     { points: 10, reason: "Recent wet ride without a follow-up chain clean/lube" },
   ]);
