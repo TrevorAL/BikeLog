@@ -227,7 +227,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
 
       {bike ? (
         <>
-          <section className="mb-6 grid gap-4 xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
+          <section className="mb-6 grid gap-4 xl:auto-rows-[260px] xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
             <OrbitDial
               label="Component Health"
               value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}

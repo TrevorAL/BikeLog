@@ -74,8 +74,7 @@ export function PillBars({
   return (
     <article
       className={cn(
-        "surface-card p-4",
-        !scrollable && "flex h-full flex-col",
+        "surface-card flex h-full flex-col p-4",
         className,
       )}
     >
@@ -85,7 +84,7 @@ export function PillBars({
       </div>
       {filtered.length > 0 ? (
         scrollable ? (
-          <div className="mt-3 max-h-[260px] overflow-y-auto pr-1">{list}</div>
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">{list}</div>
         ) : (
           <div className="mt-3">{list}</div>
         )
