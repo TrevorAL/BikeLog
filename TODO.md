@@ -1,6 +1,6 @@
 # BikeLog TODO
 
-Last updated: 2026-06-15
+Last updated: 2026-06-16
 
 ## Priority Key
 
@@ -61,7 +61,7 @@ Last updated: 2026-06-15
 - [ ] Add structured logging for background job outcomes.
 - [ ] Add backup/restore runbook and perform one restore drill.
 - [ ] Auth hardening
-- [ ] Password reset flow for email/password accounts (forgot-password path).
+- [x] Password reset flow for email/password accounts (forgot-password path).
 - [ ] Email verification for email/password signups.
 - [ ] Launch basics
 - [ ] Add privacy policy and terms pages.

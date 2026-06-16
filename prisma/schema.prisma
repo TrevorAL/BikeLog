@@ -18,8 +18,10 @@ model User {
   pressureUnit   PressureUnit @default(PSI)
   emailVerified  DateTime?
   image          String?
-  passwordHash   String?
-  selectedBikeId String?
+  passwordHash        String?
+  passwordResetToken  String?   @unique
+  passwordResetExpiry DateTime?
+  selectedBikeId      String?
   bikes          Bike[]    @relation("UserOwnedBikes")
   selectedBike   Bike?     @relation("UserSelectedBike", fields: [selectedBikeId], references: [id], onDelete: SetNull)
   stravaConnection StravaConnection?

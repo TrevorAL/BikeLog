@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -185,8 +186,18 @@ export function LoginForm() {
           />
         </label>
 
-        <label className="block text-sm text-slate-700">
-          Password
+        <div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-700">Password</span>
+            {authMode === "login" && (
+              <Link
+                href="/forgot-password"
+                className="text-xs font-medium text-brand-700 hover:text-brand-800"
+              >
+                Forgot password?
+              </Link>
+            )}
+          </div>
           <input
             type="password"
             value={password}
@@ -196,7 +207,7 @@ export function LoginForm() {
             minLength={authMode === "signup" ? 8 : undefined}
             required
           />
-        </label>
+        </div>
 
         {formError ? (
           <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
