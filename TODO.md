@@ -19,6 +19,7 @@ Last updated: 2026-06-16
   - Vercel Git deployments are disabled; release deployments are run via GitHub Actions.
 - [x] Ensure `main` deploys use production values only.
 - [x] Document exact environment variable matrix in deployment docs.
+- [x] Set NEXT_PUBLIC_APP_URL in Vercel environment variables (production + preview).
 - [x] Prisma migration safety
 - [x] Use `migrate dev` only on local/dev DB.
 - [x] Use `migrate deploy` only for staging/prod/shared DBs.
@@ -66,7 +67,7 @@ Last updated: 2026-06-16
 - [ ] Launch basics
 - [ ] Add privacy policy and terms pages.
 - [ ] Add support/contact path in app footer/profile.
-- [ ] Add first-run onboarding for users with no bikes/components.
+- [x] Add first-run onboarding for users with no bikes/components.
 
 ## Product Ideas (Future)
 
