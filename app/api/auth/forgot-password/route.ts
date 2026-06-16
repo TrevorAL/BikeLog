@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       data: { passwordResetToken: token, passwordResetExpiry: expiry },
     });
 
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://bikelog.app").replace(/\/$/, "");
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://bike-log.vercel.app").replace(/\/$/, "");
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
     await sendTransactionalEmail({
