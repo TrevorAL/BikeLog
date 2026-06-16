@@ -156,9 +156,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
         aria-label={`${pendingCount} maintenance notification${pendingCount === 1 ? "" : "s"}`}
         title="Notifications"
       >
-        {isLoading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : notificationsEnabled ? (
+        {notificationsEnabled ? (
           <Bell className="h-4 w-4" />
         ) : (
           <BellOff className="h-4 w-4" />

@@ -243,7 +243,6 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
               valueSuffix=" mi"
               tone="sky"
               scrollable
-              className="h-full"
               listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
             />
             <PillBars
@@ -254,7 +253,6 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
               maxValue={100}
               minBarPercent={0}
               scrollable
-              className="h-full"
               listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
               headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
             />

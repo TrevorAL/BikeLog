@@ -76,7 +76,8 @@ export function PillBars({
   return (
     <article
       className={cn(
-        "surface-card flex h-full flex-col p-4",
+        "surface-card flex flex-col p-4",
+        !scrollable && "h-full",
         className,
       )}
     >
