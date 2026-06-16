@@ -829,7 +829,7 @@ export async function dispatchMaintenanceNotificationsForUser(
     for (const channel of channels) {
       const existingDelivery = await prisma.maintenanceNotificationLog.findUnique({
         where: {
-          userId_bikeId_dueKey_channel_dayKey: {
+          notif_log_dedup_key: {
             userId,
             bikeId: bikeAlert.bikeId,
             dueKey,

@@ -47,6 +47,8 @@ model Bike {
   tireSetup       String?
   notes           String?
   isArchived      Boolean  @default(false)
+  shareToken      String?  @unique
+  isShared        Boolean  @default(false)
 
   components        Component[]
   rides             Ride[]
@@ -275,7 +277,7 @@ model MaintenanceNotificationLog {
   createdAt                    DateTime                   @default(now())
   updatedAt                    DateTime                   @updatedAt
 
-  @@unique([userId, bikeId, dueKey, channel, dayKey])
+  @@unique([userId, bikeId, dueKey, channel, dayKey], name: "notif_log_dedup_key")
   @@index([bikeId, dayKey])
 }
 
