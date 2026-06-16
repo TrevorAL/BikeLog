@@ -3,9 +3,9 @@ import type { ComponentType } from "@prisma/client";
 import { Activity, Gauge, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
+import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
 import { ReadinessGauge } from "@/components/dashboard/ReadinessGauge";
 import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { ParallaxHero } from "@/components/ui/ParallaxHero";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
@@ -264,6 +264,31 @@ export default async function DashboardPage() {
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
     : [];
+  const onboardingSteps = [
+    {
+      title: "Add your bike",
+      description: "Tell BikeLog about your ride — make, model, year, and frame details.",
+      href: "/bike?openAddBike=1#bike-manager",
+      cta: "Add bike",
+      done: !!bike,
+    },
+    {
+      title: "Add a component",
+      description: "Track your drivetrain, brakes, tires, and more so BikeLog can monitor wear.",
+      href: "/components",
+      cta: "Add component",
+      done: !!(bike && bike.components.length > 0),
+    },
+    {
+      title: "Log your first ride",
+      description: "Connect Strava or log a ride manually to start building your history.",
+      href: "/rides?open=log#ride-log-form",
+      cta: "Log ride",
+      done: !!(bike && bike.rides.length > 0),
+    },
+  ];
+  const showOnboarding = onboardingSteps.some((s) => !s.done);
+
   const quickActions = [
     { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
     { href: "/maintenance?open=log#maintenance-log-form", label: "Log Maintenance" },
@@ -329,9 +354,13 @@ export default async function DashboardPage() {
         )}
       </ParallaxHero>
 
+      {bike && showOnboarding && (
+        <OnboardingChecklist steps={onboardingSteps} />
+      )}
+
       {bike ? (
         <>
-          <section className="grid gap-3 sm:grid-cols-3">
+          <section className={`grid gap-3 sm:grid-cols-3 ${showOnboarding ? "mt-6" : ""}`}>
             <Link href="/rides" className="block">
               <MetricCard
                 title="Recent Miles"
@@ -457,16 +486,7 @@ export default async function DashboardPage() {
           />
         </>
       ) : (
-        <EmptyState
-          title="No bike yet"
-          description="Add your bike to start tracking readiness, maintenance, rides, and tire pressure — all in one place."
-          action={
-            <Button href="/bike?openAddBike=1#bike-manager" variant="primary">
-              Add your first bike
-            </Button>
-          }
-          className="mt-6"
-        />
+        <OnboardingChecklist steps={onboardingSteps} />
       )}
     </AppShell>
   );
