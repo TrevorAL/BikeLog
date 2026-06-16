@@ -220,7 +220,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
     : 0;
   const healthScore = Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8);
   const healthTone =
-    overdueCount > 0 ? "red" : dueNowCount > 0 ? "orange" : dueSoonCount > 0 ? "amber" : "emerald";
+    healthScore >= 90 ? "emerald" : healthScore >= 70 ? "amber" : healthScore >= 50 ? "orange" : "red";
   const healthSublabel =
     healthScore >= 90 ? "Great" : healthScore >= 70 ? "Good" : healthScore >= 50 ? "Fair" : "Poor";
   const healthStats = [
