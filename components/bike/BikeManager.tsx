@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { ShareHistoryPanel } from "@/components/bike/ShareHistoryPanel";
 
 type BikeManagerBike = {
   id: string;
@@ -710,6 +711,8 @@ export function BikeManager({
                     </div>
                   </form>
                 ) : null}
+
+                <ShareHistoryPanel bikeId={bike.id} />
               </article>
             ))
           )}

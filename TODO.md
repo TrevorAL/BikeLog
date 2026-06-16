@@ -1,6 +1,6 @@
 # BikeLog TODO
 
-Last updated: 2026-05-05
+Last updated: 2026-06-15
 
 ## Priority Key
 
@@ -29,11 +29,12 @@ Last updated: 2026-05-05
 - [x] Require checks for PRs and protected branch merges.
 - [x] Keep migration workflows active for staging and production.
 - [x] Keep push/PR checks for `lint`, `typecheck`, `build`, and integration tests.
-- [ ] Background jobs (cron + sync)
-- [ ] Keep daily maintenance notification cron enabled and monitored.
-- [ ] Add scheduled Strava sync cron (hourly or every few hours).
-- [ ] Add retry cron for failed Strava sync/import attempts.
-- [ ] Add token health checks and stale-connection handling.
+- [x] Background jobs (cron + sync)
+- [x] Keep daily maintenance notification cron enabled and monitored.
+- [x] Add scheduled Strava sync cron (every 3 hours via GH Actions strava-sync.yml).
+- [x] Add retry cron for failed Strava sync/import attempts (hourly via strava-retry.yml with retryOnly=1).
+- [x] Token health detection (isConnectionTokenStale, staleTokenConnections tracked in sync summary).
+- [ ] User-facing stale/revoked Strava connection handling (in-app reconnect prompt when sync fails repeatedly).
 - [x] Add sync metadata in UI (last sync, imported count, error state).
 - [x] Notification timing + dedupe fixes
 - [x] Make notifications timezone-aware at send time.
@@ -54,14 +55,24 @@ Last updated: 2026-05-05
 - [ ] Add tests for Strava sync conflict/retry paths.
 - [ ] Add a small end-to-end smoke path for login -> bike -> rides -> maintenance.
 - [ ] Observability and operability
-- [ ] Add error monitoring (Sentry or equivalent) for frontend/API/cron paths.
-- [ ] Add alerting for cron failures and repeated sync failures.
+- [x] Add error monitoring (Sentry or equivalent) for frontend/API/cron paths.
+- [x] Add alerting for cron failures (GH Actions job fails + emails on non-2xx; Sentry captures cron exceptions).
+- [ ] Configure Sentry alert rules in dashboard (new-issue alerts, spike alerts for cron/sync errors).
 - [ ] Add structured logging for background job outcomes.
 - [ ] Add backup/restore runbook and perform one restore drill.
+- [ ] Auth hardening
+- [ ] Password reset flow for email/password accounts (forgot-password path).
+- [ ] Email verification for email/password signups.
 - [ ] Launch basics
 - [ ] Add privacy policy and terms pages.
 - [ ] Add support/contact path in app footer/profile.
 - [ ] Add first-run onboarding for users with no bikes/components.
+
+## Product Ideas (Future)
+
+- [ ] Personalized maintenance predictions using Strava ride data (elevation, weather, intensity) to adjust component wear estimates beyond generic mileage thresholds.
+- [ ] Pre-ride check routine — 60-second tap-through checklist (tires, brakes, bolts) that auto-logs, surfaces overdue maintenance, and drives daily habit engagement.
+- [ ] Weekly bike health digest — email or push summary of miles ridden, component life percentages, and upcoming service intervals to drive passive re-engagement.
 
 ## P2 - After Domain and Scale-Up
 
