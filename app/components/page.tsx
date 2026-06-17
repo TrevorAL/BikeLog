@@ -210,9 +210,6 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
     : [];
-  const overdueCount = bike
-    ? data.maintenance.maintenanceSummary.dueItems.filter((i) => i.status === "OVERDUE").length
-    : 0;
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
   const goodCount = bike
