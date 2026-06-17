@@ -1,6 +1,6 @@
 # BikeLog TODO
 
-Last updated: 2026-06-16
+Last updated: 2026-06-17
 
 ## Priority Key
 
@@ -35,7 +35,7 @@ Last updated: 2026-06-16
 - [x] Add scheduled Strava sync cron (every 3 hours via GH Actions strava-sync.yml).
 - [x] Add retry cron for failed Strava sync/import attempts (hourly via strava-retry.yml with retryOnly=1).
 - [x] Token health detection (isConnectionTokenStale, staleTokenConnections tracked in sync summary).
-- [ ] User-facing stale/revoked Strava connection handling (in-app reconnect prompt when sync fails repeatedly).
+- [x] User-facing stale/revoked Strava connection handling (in-app reconnect prompt when sync fails repeatedly).
 - [x] Add sync metadata in UI (last sync, imported count, error state).
 - [x] Notification timing + dedupe fixes
 - [x] Make notifications timezone-aware at send time.
@@ -63,7 +63,8 @@ Last updated: 2026-06-16
 - [ ] Add backup/restore runbook and perform one restore drill.
 - [ ] Auth hardening
 - [x] Password reset flow for email/password accounts (forgot-password path).
-- [ ] Email verification for email/password signups.
+- [x] Email verification for email/password signups (soft — banner prompt only, no feature gate).
+  - [ ] Gate the forgot-password flow on email verification (refuse reset if emailVerified is null, prompt user to verify first).
 - [x] Launch basics
 - [x] Add privacy policy and terms pages.
 - [x] Add support/contact path in app footer/profile.
