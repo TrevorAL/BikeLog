@@ -2,6 +2,10 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
+import {
+  generateAndStoreVerificationToken,
+  sendVerificationEmail,
+} from "@/lib/email-verification";
 import { ensureUserBike } from "@/lib/ownership";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,6 +68,14 @@ export async function POST(request: Request) {
   });
 
   await ensureUserBike(user.id);
+
+  // Send verification email — fire-and-forget; failure doesn't block signup
+  try {
+    const token = await generateAndStoreVerificationToken(email);
+    await sendVerificationEmail({ email, name, token });
+  } catch {
+    // User can resend from the in-app banner
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
