@@ -16,7 +16,6 @@ type PillBarsProps = {
   maxValue?: number;
   minBarPercent?: number;
   scrollable?: boolean;
-  listMaxHeightClassName?: string;
   headerAction?: ReactNode;
   className?: string;
 };
@@ -36,7 +35,6 @@ export function PillBars({
   maxValue,
   minBarPercent = 8,
   scrollable = false,
-  listMaxHeightClassName = "max-h-44 overflow-y-auto pr-1",
   headerAction,
   className,
 }: PillBarsProps) {
@@ -86,7 +84,7 @@ export function PillBars({
       </div>
       {filtered.length > 0 ? (
         scrollable ? (
-          <div className={cn("mt-3 min-h-0 flex-1", listMaxHeightClassName)}>{list}</div>
+          <div className="mt-3 min-h-0 flex-1 overflow-y-auto pr-1">{list}</div>
         ) : (
           <div className="mt-3">{list}</div>
         )

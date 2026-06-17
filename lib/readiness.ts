@@ -28,12 +28,10 @@ export function calculateReadinessBreakdown(input: ReadinessInput): ReadinessBre
 
   let overdueCount = 0;
   let dueNowCount = 0;
-  let dueSoonCount = 0;
 
   for (const status of input.statuses) {
     if (status === "OVERDUE") overdueCount += 1;
     if (status === "DUE_NOW") dueNowCount += 1;
-    if (status === "DUE_SOON") dueSoonCount += 1;
   }
 
   if (overdueCount > 0) {
@@ -47,13 +45,6 @@ export function calculateReadinessBreakdown(input: ReadinessInput): ReadinessBre
     applyDeduction(
       dueNowCount * 15,
       `${dueNowCount} maintenance item${dueNowCount === 1 ? "" : "s"} due now`,
-    );
-  }
-
-  if (dueSoonCount > 0) {
-    applyDeduction(
-      dueSoonCount * 10,
-      `${dueSoonCount} maintenance item${dueSoonCount === 1 ? "" : "s"} due soon`,
     );
   }
 

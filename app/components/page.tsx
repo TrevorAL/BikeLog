@@ -210,8 +210,32 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
     : [];
+  const overdueCount = bike
+    ? data.maintenance.maintenanceSummary.dueItems.filter((i) => i.status === "OVERDUE").length
+    : 0;
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
+  const goodCount = bike
+    ? data.maintenance.maintenanceSummary.dueItems.filter((i) => i.status === "GOOD").length
+    : 0;
+  const healthScore = Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8);
+  const healthTone =
+    healthScore >= 90 ? "emerald" : healthScore >= 70 ? "amber" : healthScore >= 50 ? "orange" : "red";
+  const healthSublabel =
+    healthScore >= 90 ? "Great" : healthScore >= 70 ? "Good" : healthScore >= 50 ? "Fair" : "Poor";
+  const healthStats = [
+    { label: "Good", value: goodCount, tone: "emerald" as const },
+    {
+      label: "Due soon",
+      value: dueSoonCount,
+      tone: (dueSoonCount > 0 ? "amber" : "slate") as "amber" | "slate",
+    },
+    {
+      label: "Due now",
+      value: dueNowCount,
+      tone: (dueNowCount > 0 ? "orange" : "slate") as "orange" | "slate",
+    },
+  ];
 
   return (
     <AppShell title="Components" description="Track wear and mileage for every major part.">
@@ -227,36 +251,31 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
 
       {bike ? (
         <>
-          <section className="mb-6 grid gap-4 xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
+          <section className="mb-6 grid gap-4 xl:auto-rows-[260px] xl:grid-cols-[280px_minmax(0,_1fr)_minmax(0,_1fr)]">
             <OrbitDial
               label="Component Health"
-              value={Math.max(0, 100 - dueNowCount * 18 - dueSoonCount * 8)}
+              value={healthScore}
               suffix="%"
-              hint={`${dueNowCount} due now · ${dueSoonCount} due soon`}
-              tone={dueNowCount > 0 ? "orange" : "emerald"}
-              size={128}
+              sublabel={healthSublabel}
+              tone={healthTone}
+              stats={healthStats}
               className="h-full"
             />
             <PillBars
-              title="Top Mileage Components"
+              title="Mileage by Component"
               items={mileageBars}
               valueSuffix=" mi"
               tone="sky"
               scrollable
-              className="h-full"
-              listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
             />
             <PillBars
-              title="Component Mileage Load"
+              title="Service Intervals"
               items={componentMileageLoadBars}
               valueSuffix="%"
               tone="orange"
               maxValue={100}
               minBarPercent={0}
               scrollable
-              className="h-full"
-              listMaxHeightClassName="max-h-[260px] overflow-y-auto pr-1"
-              headerAction={<span className="text-xs font-medium text-slate-500">Miles Until Inspection</span>}
             />
           </section>
 

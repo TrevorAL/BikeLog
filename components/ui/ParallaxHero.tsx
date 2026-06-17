@@ -34,7 +34,6 @@ export function ParallaxHero({
 
   const roadY = useTransform(scrollYProgress, [0, 1], ["0%", "35%"]);
   const bikeY = useTransform(scrollYProgress, [0, 1], ["0%", "65%"]);
-  const bikeOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0.25]);
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "40%"]);
 
   return (
@@ -54,7 +53,7 @@ export function ParallaxHero({
       </motion.div>
 
       <motion.div
-        style={{ y: bikeY, opacity: bikeOpacity }}
+        style={{ y: bikeY }}
         className="pointer-events-none absolute -right-10 bottom-0 h-44 w-[26rem] text-brand-400/80 sm:h-56 sm:w-[34rem] lg:h-64 lg:w-[42rem]"
         aria-hidden="true"
       >

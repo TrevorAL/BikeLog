@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { BikeManager } from "@/components/bike/BikeManager";
 import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
 import { AppShell } from "@/components/layout/AppShell";
@@ -212,25 +214,35 @@ export default async function BikePage({ searchParams }: BikePageProps) {
           </BikeSummaryCard>
 
           <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard title="Total Logged Miles" value={`${data.maintenance.bikeMileage.toFixed(1)} mi`} />
-            <MetricCard title="Active Components" value={`${bike.components.length}`} />
-            <MetricCard
-              title="Maintenance Due"
-              value={`${data.maintenance.maintenanceSummary.dueNow.length}`}
-            />
-            <MetricCard
-              title="Last Ride"
-              value={lastRide ? lastRide.date.toLocaleDateString() : "No rides"}
-              subtitle={lastRide ? `${lastRide.distanceMiles.toFixed(1)} mi` : undefined}
-            />
+            <Link href="/rides" className="block rounded-2xl transition hover:opacity-80">
+              <MetricCard title="Total Logged Miles" value={`${data.maintenance.bikeMileage.toFixed(1)} mi`} />
+            </Link>
+            <Link href="/components" className="block rounded-2xl transition hover:opacity-80">
+              <MetricCard title="Active Components" value={`${bike.components.length}`} />
+            </Link>
+            <Link href="/maintenance" className="block rounded-2xl transition hover:opacity-80">
+              <MetricCard
+                title="Maintenance Due"
+                value={`${data.maintenance.maintenanceSummary.dueNow.length}`}
+              />
+            </Link>
+            <Link href="/rides" className="block rounded-2xl transition hover:opacity-80">
+              <MetricCard
+                title="Last Ride"
+                value={lastRide ? lastRide.date.toLocaleDateString() : "No rides"}
+                subtitle={lastRide ? `${lastRide.distanceMiles.toFixed(1)} mi` : undefined}
+              />
+            </Link>
           </section>
 
           <section className="mt-3 grid gap-3 sm:grid-cols-2">
-            <MetricCard
-              title="Last Service"
-              value={lastService ? lastService.date.toLocaleDateString() : "No service yet"}
-              subtitle={lastService ? lastService.type.replaceAll("_", " ") : undefined}
-            />
+            <Link href="/maintenance" className="block rounded-2xl transition hover:opacity-80">
+              <MetricCard
+                title="Last Service"
+                value={lastService ? lastService.date.toLocaleDateString() : "No service yet"}
+                subtitle={lastService ? lastService.type.replaceAll("_", " ") : undefined}
+              />
+            </Link>
             <MetricCard
               title="Ready to Ride"
               value={`${data.maintenance.readiness.score}%`}
