@@ -3,8 +3,13 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { AppHeader } from "@/components/layout/AppHeader";
+import { EmailVerificationBanner } from "@/components/layout/EmailVerificationBanner";
+import { StravaReconnectBanner } from "@/components/layout/StravaReconnectBanner";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { getOwnedBikes, getSelectedBikeIdForUser } from "@/lib/ownership";
+
+const STRAVA_FAILURE_THRESHOLD = 3;
 
 type AppShellProps = {
   title: string;
@@ -15,16 +20,24 @@ type AppShellProps = {
 
 export async function AppShell({ title, description, actions, children }: AppShellProps) {
   const user = await getCurrentUser();
-  const bikes = user
-    ? await getOwnedBikes({
-        userId: user.id,
-      })
-    : [];
-  const selectedBikeId = user
-    ? await getSelectedBikeIdForUser({
-        userId: user.id,
-      })
-    : null;
+
+  const [bikes, selectedBikeId, stravaConn, userDetails] = await Promise.all([
+    user ? getOwnedBikes({ userId: user.id }) : Promise.resolve([]),
+    user ? getSelectedBikeIdForUser({ userId: user.id }) : Promise.resolve(null),
+    user
+      ? prisma.stravaConnection
+          .findUnique({ where: { userId: user.id }, select: { consecutiveSyncFailures: true } })
+          .catch(() => null)
+      : Promise.resolve(null),
+    user
+      ? prisma.user
+          .findUnique({ where: { id: user.id }, select: { emailVerified: true, passwordHash: true } })
+          .catch(() => null)
+      : Promise.resolve(null),
+  ]);
+
+  const stravaFailures = stravaConn?.consecutiveSyncFailures ?? 0;
+  const needsEmailVerify = Boolean(userDetails?.passwordHash && !userDetails.emailVerified);
 
   return (
     <div className="app-shell-surface min-h-screen">
@@ -39,6 +52,12 @@ export async function AppShell({ title, description, actions, children }: AppShe
         selectedBikeId={selectedBikeId ?? undefined}
       />
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {stravaFailures >= STRAVA_FAILURE_THRESHOLD ? (
+          <StravaReconnectBanner failCount={stravaFailures} />
+        ) : null}
+        {needsEmailVerify && user?.email ? (
+          <EmailVerificationBanner email={user.email} />
+        ) : null}
         <main className="min-w-0">{children}</main>
       </div>
 
