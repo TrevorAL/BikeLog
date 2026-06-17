@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import Link from "next/link";
+
 import { AppHeader } from "@/components/layout/AppHeader";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnedBikes, getSelectedBikeIdForUser } from "@/lib/ownership";
@@ -39,6 +41,23 @@ export async function AppShell({ title, description, actions, children }: AppShe
       <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <main className="min-w-0">{children}</main>
       </div>
+
+      <footer className="border-t border-slate-200/60 bg-slate-50">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+          <p className="text-xs text-slate-400">© {new Date().getFullYear()} BikeLog</p>
+          <nav className="flex items-center gap-4" aria-label="App footer navigation">
+            <Link href="/privacy" className="text-xs text-slate-400 hover:text-slate-700">
+              Privacy
+            </Link>
+            <Link href="/terms" className="text-xs text-slate-400 hover:text-slate-700">
+              Terms
+            </Link>
+            <a href="mailto:tlachman4@gmail.com" className="text-xs text-slate-400 hover:text-slate-700">
+              Contact
+            </a>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -64,9 +64,10 @@ Last updated: 2026-06-16
 - [ ] Auth hardening
 - [x] Password reset flow for email/password accounts (forgot-password path).
 - [ ] Email verification for email/password signups.
-- [ ] Launch basics
-- [ ] Add privacy policy and terms pages.
-- [ ] Add support/contact path in app footer/profile.
+- [x] Launch basics
+- [x] Add privacy policy and terms pages.
+- [x] Add support/contact path in app footer/profile.
+- [ ] Create a dedicated company/support email address (currently using tlachman4@gmail.com — replace once you have one set up).
 - [x] Add first-run onboarding for users with no bikes/components.
 
 ## Product Ideas (Future)

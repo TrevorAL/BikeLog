@@ -16,13 +16,22 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-6" aria-label="Footer navigation">
+        <nav className="flex flex-wrap items-center gap-x-6 gap-y-2" aria-label="Footer navigation">
           <a href="#features" className="text-sm text-slate-400 transition hover:text-white">
             Features
           </a>
           <Link href="/login" className="text-sm text-slate-400 transition hover:text-white">
             Sign in
           </Link>
+          <Link href="/privacy" className="text-sm text-slate-400 transition hover:text-white">
+            Privacy
+          </Link>
+          <Link href="/terms" className="text-sm text-slate-400 transition hover:text-white">
+            Terms
+          </Link>
+          <a href="mailto:tlachman4@gmail.com" className="text-sm text-slate-400 transition hover:text-white">
+            Contact
+          </a>
         </nav>
 
         <p className="text-xs text-slate-500">© {new Date().getFullYear()} BikeLog. All rights reserved.</p>
