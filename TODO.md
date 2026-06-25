@@ -59,8 +59,10 @@ Last updated: 2026-06-17
 - [x] Add error monitoring (Sentry or equivalent) for frontend/API/cron paths.
 - [x] Add alerting for cron failures (GH Actions job fails + emails on non-2xx; Sentry captures cron exceptions).
 - [ ] Configure Sentry alert rules in dashboard (new-issue alerts, spike alerts for cron/sync errors).
+  - Runbook with exact rules to create: `docs/sentry-alerts.md`. Dashboard config is manual (rules live in Sentry UI).
 - [ ] Add structured logging for background job outcomes.
-- [ ] Add backup/restore runbook and perform one restore drill.
+- [x] Add backup/restore runbook (`docs/backup-restore.md`).
+  - [ ] Perform one restore drill (manual — run against staging/drill branch, never prod; log result in the runbook's drill log).
 - [ ] Auth hardening
 - [x] Password reset flow for email/password accounts (forgot-password path).
 - [x] Email verification for email/password signups (soft — banner prompt only, no feature gate).
