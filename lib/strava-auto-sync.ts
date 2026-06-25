@@ -191,7 +191,7 @@ function isConnectionTokenStale(connection: Pick<StravaConnection, "expiresAt">)
   return connection.expiresAt.getTime() <= Date.now() + TOKEN_STALE_BUFFER_MS;
 }
 
-async function recordSuccessfulSync(input: {
+export async function recordSuccessfulSync(input: {
   userId: string;
   importedCount: number;
   status: StravaSyncStatus;
@@ -214,7 +214,7 @@ async function recordSuccessfulSync(input: {
   });
 }
 
-async function recordFailedSync(input: {
+export async function recordFailedSync(input: {
   userId: string;
   importedCount: number;
   error: string;

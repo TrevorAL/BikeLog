@@ -12,7 +12,7 @@ Last updated: 2026-06-17
 
 - [ ] Security cleanup
 - [x] Rotate exposed Neon, Google, Strava, and notification provider secrets.
-- [ ] Confirm only environment-scoped secrets are used (no shared values across dev/staging/prod).
+- [x] Confirm only environment-scoped secrets are used (no shared values across dev/staging/prod).
 - [x] Dev / Stage / Prod separation
 - [x] Keep separate databases and env var sets for `development`, `staging`, and `production`.
 - [x] Ensure feature branches use preview/nonprod values only.
@@ -53,7 +53,7 @@ Last updated: 2026-06-17
 - [x] Add tests for maintenance/readiness calculations.
 - [x] Add tests for per-bike notification preferences.
 - [x] Add tests for notification timing + dedupe behavior.
-- [ ] Add tests for Strava sync conflict/retry paths.
+- [x] Add tests for Strava sync conflict/retry paths.
 - [ ] Add a small end-to-end smoke path for login -> bike -> rides -> maintenance.
 - [ ] Observability and operability
 - [x] Add error monitoring (Sentry or equivalent) for frontend/API/cron paths.
