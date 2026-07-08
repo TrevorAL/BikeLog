@@ -25,9 +25,6 @@ type AppHeaderBike = {
 };
 
 type AppHeaderProps = {
-  title: string;
-  description?: string;
-  actions?: ReactNode;
   userName?: string | null;
   userEmail?: string | null;
   userImage?: string | null;
@@ -111,9 +108,6 @@ function getCustomAvatarUrl(userImage?: string | null) {
 }
 
 export function AppHeader({
-  title,
-  description,
-  actions,
   userName,
   userEmail,
   userImage,
@@ -199,7 +193,7 @@ export function AppHeader({
       observer.disconnect();
       window.removeEventListener("resize", updateHeaderOffset);
     };
-  }, [title, description]);
+  }, []);
 
   async function handleSignOut() {
     if (isSigningOut) {
@@ -390,18 +384,6 @@ export function AppHeader({
             })}
           </nav>
         ) : null}
-
-        <div className="mt-3 border-t border-white/10 pt-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="font-display text-xl font-semibold tracking-tight text-white sm:text-2xl">
-                {title}
-              </h1>
-              {description ? <p className="text-sm text-slate-300">{description}</p> : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">{actions}</div>
-          </div>
-        </div>
       </div>
     </header>
   );

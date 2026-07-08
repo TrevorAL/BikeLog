@@ -19,15 +19,15 @@ export function PageSkeleton() {
             <div className="h-8 w-36 animate-pulse rounded-lg bg-white/10" />
             <div className="h-9 w-44 animate-pulse rounded-lg bg-white/10" />
           </div>
-          <div className="mt-4 border-t border-white/10 pt-3">
-            <div className="h-7 w-52 animate-pulse rounded-lg bg-white/10" />
-            <div className="mt-2 h-4 w-72 max-w-full animate-pulse rounded bg-white/5" />
-          </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <Block className="h-44 sm:h-56" />
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="mb-6">
+          <div className="h-8 w-52 animate-pulse rounded-lg bg-slate-100" />
+          <div className="mt-2 h-4 w-72 max-w-full animate-pulse rounded bg-slate-100" />
+        </div>
+        <Block className="h-24" />
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
           <Block className="h-28" />
           <Block className="h-28" />
