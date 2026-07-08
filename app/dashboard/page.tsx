@@ -360,7 +360,7 @@ export default async function DashboardPage() {
 
       {bike ? (
         <>
-          <section className={`grid gap-3 sm:grid-cols-3 ${showOnboarding ? "mt-6" : ""}`}>
+          <section className={`grid gap-4 sm:grid-cols-3 ${showOnboarding ? "mt-6" : ""}`}>
             <Link href="/rides" className="block">
               <MetricCard
                 title="Recent Miles"
