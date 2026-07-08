@@ -22,12 +22,26 @@ rhythm, hierarchy, designed states — optimized separately for desktop and mobi
 | 6 | Login: two competing filled-orange primaries (Google + email submit) | P2 | ✅ Google buttons neutral (convention); email submit is the single brand-filled primary. |
 | 7 | Spacing rhythm: mix of `gap-3`/`gap-4`/`p-5` across dashboard sections | P2 polish | ✅ Normalized on dashboard (4-unit rhythm). |
 
+## Wave 2 — structural professionalism (all shipped)
+
+| Item | Status |
+| --- | --- |
+| In-app ParallaxHero removed; compact status band (bike, due summary, small readiness ring, one CTA) | ✅ |
+| Page title/description/actions moved from sticky header into content; chrome is one slim row | ✅ |
+| Slim dismissible system banners (accent border, sessionStorage dismiss); max one shown, Strava first | ✅ |
+| PillBars threshold mode: semantic green/amber/red by % of service interval, 80% tick, honest widths | ✅ |
+| Rides: desktop table (right-aligned tabular numerals, Wet/Notes pills, row actions, details on row click); cards below `lg`; edit is a shared modal | ✅ |
+| Empty rides chart hidden until data exists | ✅ |
+| Recalc utilities behind a "Component tools" overflow menu; Add component is the sole primary | ✅ |
+| Copy: Total Miles + 7-day trend; duplicate Log Ride removed from quick actions | ✅ |
+
 ## Still open (future passes)
 
+- Maintenance history + components list desktop tables (same pattern as rides).
 - Purposeful motion pass (state-change transitions; replace decorative-only motion).
-- Rides & maintenance deep polish (information density, filters, mobile tables).
 - Dashboard Suspense streaming (section-level, beyond route-level skeletons).
-- Empty/loading/error state review for every remaining screen.
+- Empty/loading/error state unification on remaining screens (one EmptyState pattern).
+- RideCard date renders one day off for UTC-midnight dates (pre-existing `toLocaleDateString` timezone shift) — small correctness fix worth taking.
 
 ## Verification method
 
