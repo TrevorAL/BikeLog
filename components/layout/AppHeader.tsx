@@ -9,7 +9,7 @@ import { ChevronDown } from "lucide-react";
 import { BikeSwitcher } from "@/components/layout/BikeSwitcher";
 import {
   DesktopNavDropdown,
-  MobileNavDropdown,
+  isNavGroupActive,
   type NavMenuGroup,
 } from "@/components/layout/NavDropdown";
 import { NotificationBell } from "@/components/layout/NotificationBell";
@@ -131,6 +131,8 @@ export function AppHeader({
   const profileImageUrl = getCustomAvatarUrl(userImage);
   const hasCustomAvatar = Boolean(profileImageUrl);
   const profileSectionActive = pathname === "/profile" || pathname === "/settings";
+  const activeMobileGroup =
+    NAV_MENU_GROUPS.find((group) => isNavGroupActive(group, pathname)) ?? null;
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -223,10 +225,10 @@ export function AppHeader({
       <div className="h-1 w-full bg-gradient-to-r from-brand-500 via-brand-400 to-brand-600" />
       <div className="mx-auto w-full max-w-7xl px-4 py-3.5 sm:px-6 lg:px-8 lg:py-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
+          <div className="flex min-w-0 items-center gap-3 lg:gap-6">
+            <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
               <LogoMark className="h-8 w-8 text-brand-400" />
-              <span className="font-display text-lg font-bold text-white">
+              <span className="hidden font-display text-lg font-bold text-white min-[420px]:inline">
                 Bike<span className="text-brand-400">Log</span>
               </span>
             </Link>
@@ -361,11 +363,33 @@ export function AppHeader({
           </div>
         </div>
 
-        <nav className="mt-3 grid gap-2 lg:hidden" aria-label="Mobile navigation">
-          {NAV_MENU_GROUPS.map((group) => (
-            <MobileNavDropdown key={group.key} group={group} pathname={pathname} />
-          ))}
-        </nav>
+        {activeMobileGroup ? (
+          <nav
+            className="scrollbar-none -mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 lg:hidden"
+            aria-label="Section navigation"
+          >
+            {activeMobileGroup.items.map((item) => {
+              const itemPath = item.href.split(/[?#]/)[0];
+              const itemActive = pathname === itemPath;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={itemActive ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-[40px] shrink-0 items-center whitespace-nowrap rounded-full px-4 text-xs font-semibold transition-colors",
+                    itemActive
+                      ? "bg-brand-500/15 text-brand-300 ring-1 ring-inset ring-brand-400/40"
+                      : "text-slate-300 hover:bg-white/5 hover:text-white",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
 
         <div className="mt-3 border-t border-white/10 pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">

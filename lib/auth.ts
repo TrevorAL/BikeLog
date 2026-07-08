@@ -26,7 +26,17 @@ export type AuthenticatedUser = {
 };
 
 function allowLegacyTokenAuth() {
-  return process.env.NODE_ENV === "test";
+  if (process.env.NODE_ENV === "test") {
+    return true;
+  }
+
+  // Dev-only escape hatch so local tooling can authenticate with a signed
+  // session cookie (same HMAC verification the tests use). Never active in
+  // production builds regardless of env vars.
+  return (
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_LEGACY_TOKEN_AUTH === "1"
+  );
 }
 
 function getAuthSecret() {

@@ -163,6 +163,28 @@ textarea {
   line-height: 1.35rem;
 }
 
+/* Touch devices get 44px minimum targets (iOS HIG / WCAG 2.5.8). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select {
+    min-height: 2.75rem;
+  }
+}
+
+/* Keyboard-only focus indicator, consistent app-wide. */
+:focus-visible {
+  outline: 2px solid rgb(249 115 22 / 0.65);
+  outline-offset: 2px;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /*
  * Dark-mode utility remaps
  * ------------------------
