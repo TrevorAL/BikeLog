@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { SystemBanner } from "@/components/layout/SystemBanner";
+
 type EmailVerificationBannerProps = {
   email: string;
 };
@@ -22,30 +24,35 @@ export function EmailVerificationBanner({ email }: EmailVerificationBannerProps)
   }
 
   return (
-    <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-sky-900">Verify your email address</p>
-          <p className="mt-0.5 text-xs text-sky-800">
-            {status === "sent"
-              ? `Verification email sent to ${email}. Check your inbox (and spam folder).`
-              : `A verification link was sent to ${email} when you signed up.`}
-          </p>
-          {status === "error" ? (
-            <p className="mt-0.5 text-xs text-red-700">Something went wrong — please try again.</p>
-          ) : null}
-        </div>
-        {status !== "sent" ? (
+    <SystemBanner
+      dismissKey="verify-email"
+      accent="info"
+      action={
+        status !== "sent" ? (
           <button
             type="button"
             onClick={handleResend}
             disabled={status === "sending"}
-            className="shrink-0 rounded-md border border-sky-300 bg-white px-3 py-1.5 text-xs font-semibold text-sky-800 transition hover:bg-sky-100 disabled:opacity-60"
+            className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-60"
           >
             {status === "sending" ? "Sending..." : "Resend email"}
           </button>
-        ) : null}
-      </div>
-    </div>
+        ) : undefined
+      }
+    >
+      {status === "sent" ? (
+        <>
+          Verification email sent to <span className="font-semibold">{email}</span>. Check your
+          inbox and spam folder.
+        </>
+      ) : status === "error" ? (
+        <>Could not send the verification email — please try again.</>
+      ) : (
+        <>
+          <span className="font-semibold text-slate-900">Verify your email</span> — a link was
+          sent to {email} when you signed up.
+        </>
+      )}
+    </SystemBanner>
   );
 }

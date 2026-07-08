@@ -230,7 +230,8 @@ export default async function DashboardPage() {
   const attentionItems = attentionItemsAll.slice(0, 6);
   const remainingAttentionCount = attentionItemsAll.length - attentionItems.length;
   const recentRides = bike ? bike.rides.slice(0, 5) : [];
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
   const weekMiles = bike
     ? bike.rides
         .filter((ride) => ride.date >= weekAgo)
@@ -474,9 +475,8 @@ export default async function DashboardPage() {
             title="Component Health"
             items={componentMileageBars}
             valueSuffix="%"
-            tone="orange"
             maxValue={100}
-            minBarPercent={0}
+            thresholds
             className="mt-6"
             headerAction={
               <Link href="/components" className="text-xs font-semibold text-brand-600 hover:text-brand-700">

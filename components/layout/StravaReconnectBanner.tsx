@@ -1,26 +1,27 @@
 import Link from "next/link";
 
+import { SystemBanner } from "@/components/layout/SystemBanner";
+
 type StravaReconnectBannerProps = {
   failCount: number;
 };
 
 export function StravaReconnectBanner({ failCount }: StravaReconnectBannerProps) {
   return (
-    <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold text-amber-900">Strava sync is failing</p>
-          <p className="mt-0.5 text-xs text-amber-800">
-            {failCount} consecutive sync{failCount === 1 ? "" : "s"} failed — your ride data may be out of date.
-          </p>
-        </div>
+    <SystemBanner
+      dismissKey="strava-reconnect"
+      accent="warning"
+      action={
         <Link
           href="/api/strava/connect?redirectTo=/rides"
-          className="shrink-0 rounded-md bg-amber-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-amber-800"
+          className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-amber-700"
         >
-          Reconnect Strava →
+          Reconnect Strava
         </Link>
-      </div>
-    </div>
+      }
+    >
+      <span className="font-semibold text-slate-900">Strava sync is failing</span> —{" "}
+      {failCount} consecutive sync{failCount === 1 ? "" : "s"} failed; ride data may be stale.
+    </SystemBanner>
   );
 }

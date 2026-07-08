@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MoreHorizontal } from "lucide-react";
 
 import { ComponentCard } from "@/components/components/ComponentCard";
 import { Button } from "@/components/ui/Button";
@@ -1025,6 +1026,7 @@ export function ComponentManager({
   );
   const [isRecalcBusy, setIsRecalcBusy] = useState(false);
   const [showRecalcInfo, setShowRecalcInfo] = useState(false);
+  const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
 
   const driftItems = recalcResult?.items.filter((item) => item.willChange) ?? [];
 
@@ -1106,34 +1108,71 @@ export function ComponentManager({
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">Active components</h2>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="md"
-            disabled={disabled || isRecalcBusy}
-            onClick={() => {
-              runRecalculation(false);
-            }}
-          >
-            {isRecalcBusy ? "Working..." : "Preview recalc"}
-          </Button>
-          <button
-            type="button"
-            disabled={disabled || isRecalcBusy || !recalcResult || driftItems.length === 0}
-            onClick={() => {
-              const shouldApply = window.confirm(
-                "Apply mileage recalculation from rides? This will overwrite current mileage on drifted components.",
-              );
-              if (!shouldApply) {
-                return;
-              }
+          <div className="relative">
+            {isToolsMenuOpen ? (
+              <div
+                className="fixed inset-0 z-30"
+                aria-hidden
+                onClick={() => setIsToolsMenuOpen(false)}
+              />
+            ) : null}
+            <button
+              type="button"
+              disabled={disabled || isRecalcBusy}
+              onClick={() => setIsToolsMenuOpen((previous) => !previous)}
+              aria-haspopup="menu"
+              aria-expanded={isToolsMenuOpen}
+              aria-label="Component tools"
+              title="Component tools"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+            {isToolsMenuOpen ? (
+              <div
+                role="menu"
+                className="dropdown-surface absolute right-0 top-[calc(100%+6px)] z-40 w-64 rounded-lg border p-1 shadow-lg"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={disabled || isRecalcBusy}
+                  onClick={() => {
+                    setIsToolsMenuOpen(false);
+                    runRecalculation(false);
+                  }}
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isRecalcBusy ? "Working..." : "Preview mileage recalculation"}
+                  <span className="mt-0.5 block text-xs font-normal text-slate-500">
+                    Compare component mileage against logged rides.
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={disabled || isRecalcBusy || !recalcResult || driftItems.length === 0}
+                  onClick={() => {
+                    const shouldApply = window.confirm(
+                      "Apply mileage recalculation from rides? This will overwrite current mileage on drifted components.",
+                    );
+                    if (!shouldApply) {
+                      return;
+                    }
 
-              runRecalculation(true);
-            }}
-            className="rounded-md border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isRecalcBusy ? "Working..." : "Apply recalc"}
-          </button>
+                    setIsToolsMenuOpen(false);
+                    runRecalculation(true);
+                  }}
+                  className="block w-full rounded-md px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Apply recalculation
+                  <span className="mt-0.5 block text-xs font-normal text-slate-500">
+                    Requires a preview showing drift first.
+                  </span>
+                </button>
+              </div>
+            ) : null}
+          </div>
           <Button
             type="button"
             variant="primary"

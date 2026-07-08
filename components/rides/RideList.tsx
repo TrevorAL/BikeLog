@@ -927,7 +927,9 @@ function RideDetailsModal({
   );
 }
 
-function EditableRideCard({ ride }: { ride: RideListItem }) {
+type RideItemState = ReturnType<typeof useRideItemState>;
+
+function useRideItemState(ride: RideListItem) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -972,187 +974,418 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
     }
   }
 
-  return isEditing ? (
-    <form
-      className="surface-card p-4"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
+  async function handleEditSubmit(formData: FormData) {
+    setIsSubmitting(true);
+    setStatus({ type: "idle" });
 
-        setIsSubmitting(true);
-        setStatus({ type: "idle" });
+    try {
+      const distanceMiles = Number(formData.get("distanceMiles"));
+      const durationValue = formData.get("durationMinutes");
+      const durationMinutes =
+        typeof durationValue === "string" && durationValue.length > 0
+          ? Number(durationValue)
+          : undefined;
 
-        try {
-          const distanceMiles = Number(formData.get("distanceMiles"));
-          const durationValue = formData.get("durationMinutes");
-          const durationMinutes =
-            typeof durationValue === "string" && durationValue.length > 0
-              ? Number(durationValue)
-              : undefined;
+      const response = await fetch(`/api/rides/${ride.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: formData.get("date"),
+          distanceMiles,
+          durationMinutes,
+          rideType: formData.get("rideType"),
+          weather: parseOptionalText(formData.get("weather")),
+          roadCondition: parseOptionalText(formData.get("roadCondition")),
+          wasWet: formData.get("wasWet") === "on",
+          notes: parseOptionalText(formData.get("notes")),
+        }),
+      });
 
-          const response = await fetch(`/api/rides/${ride.id}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              date: formData.get("date"),
-              distanceMiles,
-              durationMinutes,
-              rideType: formData.get("rideType"),
-              weather: parseOptionalText(formData.get("weather")),
-              roadCondition: parseOptionalText(formData.get("roadCondition")),
-              wasWet: formData.get("wasWet") === "on",
-              notes: parseOptionalText(formData.get("notes")),
-            }),
-          });
+      const result = (await response.json()) as {
+        error?: string;
+        suggestions?: string[];
+      };
 
-          const result = (await response.json()) as {
-            error?: string;
-            suggestions?: string[];
-          };
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not update ride.");
+      }
 
-          if (!response.ok) {
-            throw new Error(result.error ?? "Could not update ride.");
-          }
+      setStatus({
+        type: "success",
+        message: "Ride updated. Mileage adjusted.",
+        suggestions: result.suggestions,
+      });
 
-          setStatus({
-            type: "success",
-            message: "Ride updated. Mileage adjusted.",
-            suggestions: result.suggestions,
-          });
+      setDetails(null);
+      setIsEditing(false);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not update ride right now.";
 
-          setDetails(null);
-          setIsEditing(false);
-          router.refresh();
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Could not update ride right now.";
+      setStatus({
+        type: "error",
+        message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-          setStatus({
-            type: "error",
-            message,
-          });
-        } finally {
-          setIsSubmitting(false);
-        }
-      }}
+  async function handleDelete() {
+    const shouldDelete = window.confirm(
+      "Delete this ride? This will also decrement component mileage.",
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus({ type: "idle" });
+
+    try {
+      const response = await fetch(`/api/rides/${ride.id}`, {
+        method: "DELETE",
+      });
+
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "Could not delete ride.");
+      }
+
+      setStatus({
+        type: "success",
+        message: "Ride deleted. Mileage adjusted.",
+      });
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not delete ride right now.";
+
+      setStatus({
+        type: "error",
+        message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return {
+    isEditing,
+    setIsEditing,
+    isBusy,
+    status,
+    setStatus,
+    isDetailsOpen,
+    setIsDetailsOpen,
+    detailsLoading,
+    detailsError,
+    details,
+    openRideDetails,
+    handleEditSubmit,
+    handleDelete,
+  };
+}
+
+function RideEditDialog({ ride, state }: { ride: RideListItem; state: RideItemState }) {
+  if (!state.isEditing) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 p-4"
+      onClick={() => state.setIsEditing(false)}
     >
-      <div className="flex items-center justify-between gap-2">
-        <h3 className="font-display text-lg font-semibold text-slate-900">Edit ride</h3>
-        <Button
-          type="button"
-          onClick={() => {
-            setIsEditing(false);
-            setStatus({ type: "idle" });
-          }}
-          variant="secondary"
-          size="sm"
-        >
-          Cancel
+      <form
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit ride"
+        className="surface-card max-h-[90vh] w-full max-w-2xl overflow-y-auto p-4 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={async (event) => {
+          event.preventDefault();
+          await state.handleEditSubmit(new FormData(event.currentTarget));
+        }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-display text-lg font-semibold text-slate-900">Edit ride</h3>
+          <Button
+            type="button"
+            onClick={() => {
+              state.setIsEditing(false);
+              state.setStatus({ type: "idle" });
+            }}
+            variant="secondary"
+            size="sm"
+          >
+            Cancel
+          </Button>
+        </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <label className="text-sm text-slate-700">
+            Date
+            <input
+              name="date"
+              type="date"
+              defaultValue={toDateInputValue(ride.date)}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              required
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Distance (mi)
+            <input
+              name="distanceMiles"
+              type="number"
+              min="0.1"
+              step="0.1"
+              defaultValue={ride.distanceMiles}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+              required
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Duration (minutes)
+            <input
+              name="durationMinutes"
+              type="number"
+              min="0"
+              defaultValue={ride.durationMinutes ?? ""}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Ride type
+            <select
+              name="rideType"
+              defaultValue={ride.rideType}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            >
+              {RIDE_TYPES.map((rideType) => (
+                <option key={rideType} value={rideType}>
+                  {rideType.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm text-slate-700">
+            Weather
+            <input
+              name="weather"
+              type="text"
+              defaultValue={ride.weather ?? ""}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
+          <label className="text-sm text-slate-700">
+            Road condition
+            <select
+              name="roadCondition"
+              defaultValue={ride.roadCondition ?? "Normal"}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            >
+              {ROAD_CONDITIONS.map((condition) => (
+                <option key={condition} value={condition}>
+                  {condition}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex items-center gap-2 pt-6 text-sm text-slate-700">
+            <input
+              name="wasWet"
+              type="checkbox"
+              defaultChecked={ride.wasWet}
+              className="h-4 w-4 rounded border-slate-300 text-slate-600"
+            />
+            Ride was wet
+          </label>
+        </div>
+
+        <label className="mt-3 block text-sm text-slate-700">
+          Notes
+          <textarea
+            name="notes"
+            defaultValue={ride.notes ?? ""}
+            className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
+          />
+        </label>
+
+        <Button type="submit" disabled={state.isBusy} variant="primary" size="md" className="mt-4">
+          {state.isBusy ? "Saving..." : "Save changes"}
         </Button>
-      </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <label className="text-sm text-slate-700">
-          Date
-          <input
-            name="date"
-            type="date"
-            defaultValue={toDateInputValue(ride.date)}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-            required
-          />
-        </label>
-        <label className="text-sm text-slate-700">
-          Distance (mi)
-          <input
-            name="distanceMiles"
-            type="number"
-            min="0.1"
-            step="0.1"
-            defaultValue={ride.distanceMiles}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-            required
-          />
-        </label>
-        <label className="text-sm text-slate-700">
-          Duration (minutes)
-          <input
-            name="durationMinutes"
-            type="number"
-            min="0"
-            defaultValue={ride.durationMinutes ?? ""}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm text-slate-700">
-          Ride type
-          <select
-            name="rideType"
-            defaultValue={ride.rideType}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-          >
-            {RIDE_TYPES.map((rideType) => (
-              <option key={rideType} value={rideType}>
-                {rideType.replaceAll("_", " ")}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm text-slate-700">
-          Weather
-          <input
-            name="weather"
-            type="text"
-            defaultValue={ride.weather ?? ""}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-          />
-        </label>
-        <label className="text-sm text-slate-700">
-          Road condition
-          <select
-            name="roadCondition"
-            defaultValue={ride.roadCondition ?? "Normal"}
-            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-          >
-            {ROAD_CONDITIONS.map((condition) => (
-              <option key={condition} value={condition}>
-                {condition}
-              </option>
-            ))}
-          </select>
-        </label>
+        {state.status.type === "error" && state.status.message ? (
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+            {state.status.message}
+          </p>
+        ) : null}
+      </form>
+    </div>
+  );
+}
 
-        <label className="flex items-center gap-2 pt-6 text-sm text-slate-700">
-          <input
-            name="wasWet"
-            type="checkbox"
-            defaultChecked={ride.wasWet}
-            className="h-4 w-4 rounded border-slate-300 text-slate-600"
-          />
-          Ride was wet
-        </label>
-      </div>
-
-      <label className="mt-3 block text-sm text-slate-700">
-        Notes
-        <textarea
-          name="notes"
-          defaultValue={ride.notes ?? ""}
-          className="mt-1 h-20 w-full rounded-xl border border-slate-200 px-3 py-2"
-        />
-      </label>
-
-      <Button type="submit" disabled={isBusy} variant="primary" size="md" className="mt-4">
-        {isBusy ? "Saving..." : "Save changes"}
-      </Button>
-
-      {status.type === "error" && status.message ? (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
+function RideStatusNotes({ state }: { state: RideItemState }) {
+  return (
+    <>
+      {state.status.type === "error" && state.status.message ? (
+        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+          {state.status.message}
+        </p>
       ) : null}
-    </form>
-  ) : (
+
+      {state.status.type === "success" && state.status.message ? (
+        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          {state.status.message}
+        </p>
+      ) : null}
+
+      {state.status.type === "success" && state.status.suggestions && state.status.suggestions.length > 0 ? (
+        <ul className="mt-2 space-y-2">
+          {state.status.suggestions.map((suggestion) => (
+            <li
+              key={suggestion}
+              className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+            >
+              {suggestion}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </>
+  );
+}
+
+function RideOverlays({ ride, state }: { ride: RideListItem; state: RideItemState }) {
+  return (
+    <>
+      <RideEditDialog ride={ride} state={state} />
+      <RideDetailsModal
+        ride={ride}
+        open={state.isDetailsOpen}
+        loading={state.detailsLoading}
+        error={state.detailsError}
+        details={state.details}
+        onClose={() => {
+          state.setIsDetailsOpen(false);
+        }}
+      />
+    </>
+  );
+}
+
+function formatTableDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function RideTableRow({ ride }: { ride: RideListItem }) {
+  const state = useRideItemState(ride);
+  const hasNotes = Boolean(ride.notes && ride.notes.trim().length > 0);
+
+  return (
+    <>
+      <tr
+        className="cursor-pointer transition-colors hover:bg-slate-50"
+        onClick={() => {
+          void state.openRideDetails();
+        }}
+      >
+        <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-900">
+          {formatTableDate(ride.date)}
+        </td>
+        <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-slate-900">
+          {ride.distanceMiles.toFixed(1)} mi
+        </td>
+        <td className="whitespace-nowrap px-4 py-3 text-right tabular-nums text-slate-700">
+          {formatDurationFromMinutes(ride.durationMinutes)}
+        </td>
+        <td className="whitespace-nowrap px-4 py-3 text-slate-700">
+          {formatRideType(ride.rideType)}
+        </td>
+        <td className="px-4 py-3 text-slate-700">
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            {ride.roadCondition ?? "—"}
+            {ride.wasWet ? (
+              <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
+                Wet
+              </span>
+            ) : null}
+            {hasNotes ? (
+              <span
+                className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600"
+                title={ride.notes ?? undefined}
+              >
+                Notes
+              </span>
+            ) : null}
+          </span>
+        </td>
+        <td className="whitespace-nowrap px-4 py-3 text-right">
+          <span
+            className="inline-flex gap-1.5"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <Button
+              type="button"
+              onClick={() => {
+                state.setIsEditing(true);
+                state.setStatus({ type: "idle" });
+              }}
+              disabled={state.isBusy}
+              variant="secondary"
+              size="sm"
+            >
+              Edit
+            </Button>
+            <button
+              type="button"
+              onClick={() => {
+                void state.handleDelete();
+              }}
+              disabled={state.isBusy}
+              className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {state.isBusy ? "Working..." : "Delete"}
+            </button>
+          </span>
+          <div onClick={(event) => event.stopPropagation()}>
+            <RideOverlays ride={ride} state={state} />
+          </div>
+        </td>
+      </tr>
+      {(state.status.type !== "idle" && state.status.message) ||
+      (state.status.suggestions && state.status.suggestions.length > 0) ? (
+        <tr>
+          <td colSpan={6} className="px-4 pb-3">
+            <RideStatusNotes state={state} />
+          </td>
+        </tr>
+      ) : null}
+    </>
+  );
+}
+
+function RideCardItem({ ride }: { ride: RideListItem }) {
+  const state = useRideItemState(ride);
+
+  return (
     <div>
       <RideCard
         date={ride.date}
@@ -1164,17 +1397,17 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
         wasWet={ride.wasWet}
         notes={ride.notes}
         onClick={() => {
-          void openRideDetails();
+          void state.openRideDetails();
         }}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
               onClick={() => {
-                setIsEditing(true);
-                setStatus({ type: "idle" });
+                state.setIsEditing(true);
+                state.setStatus({ type: "idle" });
               }}
-              disabled={isBusy}
+              disabled={state.isBusy}
               variant="secondary"
               size="sm"
             >
@@ -1182,88 +1415,20 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
             </Button>
             <button
               type="button"
-              onClick={async () => {
-                const shouldDelete = window.confirm(
-                  "Delete this ride? This will also decrement component mileage.",
-                );
-
-                if (!shouldDelete) {
-                  return;
-                }
-
-                setIsSubmitting(true);
-                setStatus({ type: "idle" });
-
-                try {
-                  const response = await fetch(`/api/rides/${ride.id}`, {
-                    method: "DELETE",
-                  });
-
-                  const result = (await response.json()) as { error?: string };
-
-                  if (!response.ok) {
-                    throw new Error(result.error ?? "Could not delete ride.");
-                  }
-
-                  setStatus({
-                    type: "success",
-                    message: "Ride deleted. Mileage adjusted.",
-                  });
-                  router.refresh();
-                } catch (error) {
-                  const message =
-                    error instanceof Error ? error.message : "Could not delete ride right now.";
-
-                  setStatus({
-                    type: "error",
-                    message,
-                  });
-                } finally {
-                  setIsSubmitting(false);
-                }
+              onClick={() => {
+                void state.handleDelete();
               }}
-              disabled={isBusy}
+              disabled={state.isBusy}
               className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isBusy ? "Working..." : "Delete"}
+              {state.isBusy ? "Working..." : "Delete"}
             </button>
           </div>
         }
       />
 
-      <RideDetailsModal
-        ride={ride}
-        open={isDetailsOpen}
-        loading={detailsLoading}
-        error={detailsError}
-        details={details}
-        onClose={() => {
-          setIsDetailsOpen(false);
-        }}
-      />
-
-      {status.type === "error" && status.message ? (
-        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{status.message}</p>
-      ) : null}
-
-      {status.type === "success" && status.message ? (
-        <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
-          {status.message}
-        </p>
-      ) : null}
-
-      {status.type === "success" && status.suggestions && status.suggestions.length > 0 ? (
-        <ul className="mt-2 space-y-2">
-          {status.suggestions.map((suggestion) => (
-            <li
-              key={suggestion}
-              className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600"
-            >
-              {suggestion}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <RideOverlays ride={ride} state={state} />
+      <RideStatusNotes state={state} />
     </div>
   );
 }
@@ -1271,10 +1436,36 @@ function EditableRideCard({ ride }: { ride: RideListItem }) {
 export function RideList({ rides }: RideListProps) {
   return (
     <div>
-      <p className="mb-3 text-xs font-medium text-slate-600">Click any ride card to view full details.</p>
-      <div className="grid gap-3 xl:grid-cols-2">
+      {/* Desktop: dense sortable-ready table */}
+      <div className="surface-card hidden overflow-hidden lg:block">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th scope="col" className="px-4 py-3">Date</th>
+              <th scope="col" className="px-4 py-3 text-right">Distance</th>
+              <th scope="col" className="px-4 py-3 text-right">Duration</th>
+              <th scope="col" className="px-4 py-3">Type</th>
+              <th scope="col" className="px-4 py-3">Conditions</th>
+              <th scope="col" className="px-4 py-3 text-right">
+                <span className="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rides.map((ride) => (
+              <RideTableRow key={ride.id} ride={ride} />
+            ))}
+          </tbody>
+        </table>
+        <p className="border-t border-slate-100 px-4 py-2 text-xs text-slate-500">
+          Click a row for full ride details.
+        </p>
+      </div>
+
+      {/* Mobile / tablet: card list */}
+      <div className="grid gap-3 lg:hidden">
         {rides.map((ride) => (
-          <EditableRideCard key={ride.id} ride={ride} />
+          <RideCardItem key={ride.id} ride={ride} />
         ))}
       </div>
     </div>

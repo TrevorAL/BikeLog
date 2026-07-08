@@ -61,8 +61,7 @@ export async function AppShell({ title, description, actions, children }: AppShe
         </div>
         {stravaFailures >= STRAVA_FAILURE_THRESHOLD ? (
           <StravaReconnectBanner failCount={stravaFailures} />
-        ) : null}
-        {needsEmailVerify && user?.email ? (
+        ) : needsEmailVerify && user?.email ? (
           <EmailVerificationBanner email={user.email} />
         ) : null}
         <main className="min-w-0">{children}</main>
