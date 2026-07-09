@@ -1047,6 +1047,10 @@ export function ProfileSettingsForm({
                 <Send className="h-4 w-4 text-slate-500" />
                 <p className="text-sm font-semibold text-slate-900">Account delivery methods</p>
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Where reminders go and which channels are allowed, for all bikes. Turn a channel off
+                here and no bike can use it.
+              </p>
 
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <label
@@ -1350,19 +1354,14 @@ export function ProfileSettingsForm({
               <Bike className="h-4 w-4 text-slate-500" />
               <p className="text-sm font-semibold text-slate-900">Bike reminder rules</p>
             </div>
+            <p className="mt-1 text-xs text-slate-500">
+              Turn reminders on or off per bike. Enabled bikes use the account channels above — mute
+              a bike you&apos;re not riding without changing anything else.
+            </p>
 
             <div className="mt-3 space-y-2">
               {notificationForm.bikes.map((bike, index) => {
-                const mode =
-                  !bike.enabled
-                    ? "off"
-                    : bike.emailEnabled && bike.smsEnabled
-                      ? "both"
-                      : bike.emailEnabled
-                        ? "email"
-                        : bike.smsEnabled
-                          ? "sms"
-                          : "off";
+                const mode = bike.enabled ? "on" : "off";
 
                 return (
                   <div
@@ -1374,44 +1373,26 @@ export function ProfileSettingsForm({
                         {bike.bikeLabel}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500">
-                        {mode === "off"
-                          ? "Muted"
-                          : mode === "both"
-                            ? "Email + text"
-                            : mode === "sms"
-                              ? "Text"
-                              : "Email"}
+                        {mode === "on" ? "Reminders on" : "Muted"}
                       </p>
                     </div>
                     <label className="text-xs text-slate-700">
-                      Delivery
+                      Reminders
                       <select
                         value={mode}
                         onChange={(event) => {
-                          const value = event.target.value;
+                          const enabled = event.target.value === "on";
                           setNotificationForm((current) => {
                             const nextBikes = [...current.bikes];
-                            const nextBike = { ...nextBikes[index] };
-
-                            if (value === "off") {
-                              nextBike.enabled = false;
-                              nextBike.emailEnabled = false;
-                              nextBike.smsEnabled = false;
-                            } else if (value === "email") {
-                              nextBike.enabled = true;
-                              nextBike.emailEnabled = true;
-                              nextBike.smsEnabled = false;
-                            } else if (value === "sms") {
-                              nextBike.enabled = true;
-                              nextBike.emailEnabled = false;
-                              nextBike.smsEnabled = true;
-                            } else {
-                              nextBike.enabled = true;
-                              nextBike.emailEnabled = true;
-                              nextBike.smsEnabled = true;
-                            }
-
-                            nextBikes[index] = nextBike;
+                            // Per-bike is a simple mute switch: when on, allow all
+                            // account channels through (the account section is the
+                            // ceiling); when off, no reminders for this bike.
+                            nextBikes[index] = {
+                              ...nextBikes[index],
+                              enabled,
+                              emailEnabled: enabled,
+                              smsEnabled: enabled,
+                            };
                             return {
                               ...current,
                               bikes: nextBikes,
@@ -1420,9 +1401,7 @@ export function ProfileSettingsForm({
                         }}
                         className="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-900"
                       >
-                        <option value="email">Email</option>
-                        <option value="sms">Text</option>
-                        <option value="both">Email + Text</option>
+                        <option value="on">On</option>
                         <option value="off">Off</option>
                       </select>
                     </label>
