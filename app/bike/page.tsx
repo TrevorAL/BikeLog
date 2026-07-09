@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { BikeManager } from "@/components/bike/BikeManager";
 import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
-import { ShareHistoryPanel } from "@/components/bike/ShareHistoryPanel";
+import { ShareHistorySection } from "@/components/bike/ShareHistorySection";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
@@ -272,7 +272,7 @@ export default async function BikePage({ searchParams }: BikePageProps) {
             components, prices, and maintenance log — or open it and use Download / Print to save a
             PDF for a buyer.
           </p>
-          <ShareHistoryPanel bikeId={bike.id} />
+          <ShareHistorySection bikes={data.bikes} defaultBikeId={bike.id} />
         </section>
       ) : null}
 
