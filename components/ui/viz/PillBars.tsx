@@ -15,10 +15,26 @@ type PillBarsProps = {
   tone?: "sky" | "orange" | "emerald" | "slate";
   maxValue?: number;
   minBarPercent?: number;
+  /**
+   * Semantic service-interval mode: values are % consumed toward a service
+   * threshold. Bars are colored green (<80), amber (80–99), red (>=100) with a
+   * tick at the 80% warning mark, and widths are never inflated.
+   */
+  thresholds?: boolean;
   scrollable?: boolean;
   headerAction?: ReactNode;
   className?: string;
 };
+
+function thresholdBarClass(value: number) {
+  if (value >= 100) {
+    return "bg-red-500";
+  }
+  if (value >= 80) {
+    return "bg-amber-500";
+  }
+  return "bg-emerald-500";
+}
 
 const toneClasses: Record<PillBarsProps["tone"] extends infer T ? Exclude<T, undefined> : never, string> = {
   sky: "from-sky-500 to-cyan-400",
@@ -34,6 +50,7 @@ export function PillBars({
   tone = "sky",
   maxValue,
   minBarPercent = 8,
+  thresholds = false,
   scrollable = false,
   headerAction,
   className,
@@ -45,24 +62,33 @@ export function PillBars({
   const list = (
     <ul className="space-y-2.5">
       {filtered.map((item) => {
-        const widthPercent = Math.min(
-          100,
-          Math.max(minBarPercent, (item.value / maxValueForBars) * 100),
-        );
+        const widthPercent = thresholds
+          ? Math.min(100, (item.value / maxValueForBars) * 100)
+          : Math.min(100, Math.max(minBarPercent, (item.value / maxValueForBars) * 100));
         return (
           <li key={`${item.label}-${item.value}`} className="space-y-1">
             <div className="flex items-center justify-between gap-3 text-xs">
               <p className="truncate font-medium text-slate-700">{item.label}</p>
-              <p className="font-semibold text-slate-800">
+              <p className="font-semibold tabular-nums text-slate-800">
                 {Number.isInteger(item.value) ? item.value : item.value.toFixed(1)}
                 {valueSuffix}
               </p>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+            <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-100">
               <div
-                className={`h-full rounded-full bg-gradient-to-r ${barClass}`}
+                className={
+                  thresholds
+                    ? `h-full rounded-full ${thresholdBarClass(item.value)}`
+                    : `h-full rounded-full bg-gradient-to-r ${barClass}`
+                }
                 style={{ width: `${widthPercent}%` }}
               />
+              {thresholds ? (
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0 left-[80%] w-px bg-slate-300"
+                />
+              ) : null}
             </div>
             {item.hint ? <p className="text-[11px] text-slate-500">{item.hint}</p> : null}
           </li>

@@ -2,17 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theming model
+ * -------------
+ * Colors are defined once as semantic CSS variables and reassigned per theme
+ * via the `data-theme` attribute on <html> (set in app/layout.tsx). Component
+ * styles and the dark-mode utility remaps below all read these variables, so a
+ * color change happens in exactly one place.
+ *
+ * The dark-mode utility remaps (e.g. `.bg-white`, `.text-slate-900`) are
+ * intentionally unlayered: unlayered rules win over Tailwind's `@layer
+ * utilities` in the cascade, so they take effect WITHOUT `!important`.
+ */
+
 :root {
   color-scheme: light;
-}
 
-html {
-  background-color: #f8fafc;
+  /* Surfaces */
+  --bg-base: #f8fafc;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --surface-raised: #f1f5f9;
+
+  /* Borders */
+  --border-subtle: rgb(226 232 240);
+
+  /* Text */
+  --text-body: #0f172a;
+  --text-primary: #0f172a;
+  --text-strong: #1e293b;
+  --text-secondary: #334155;
+  --text-muted: #475569;
 }
 
 html[data-theme="dark"] {
   color-scheme: dark;
-  background-color: #020617;
+
+  /* Surfaces */
+  --bg-base: #020617;
+  --surface: rgb(15 23 42);
+  --surface-muted: rgb(30 41 59);
+  --surface-raised: rgb(51 65 85);
+
+  /* Borders */
+  --border-subtle: rgb(51 65 85);
+
+  /* Text */
+  --text-body: #e2e8f0;
+  --text-primary: rgb(241 245 249);
+  --text-strong: rgb(226 232 240);
+  --text-secondary: rgb(203 213 225);
+  --text-muted: rgb(148 163 184);
+}
+
+html {
+  background-color: var(--bg-base);
 }
 
 * {
@@ -25,18 +69,25 @@ body {
   background:
     radial-gradient(60rem 30rem at -5% -10%, rgba(14, 165, 233, 0.1), transparent 55%),
     radial-gradient(56rem 28rem at 105% -8%, rgba(249, 115, 22, 0.1), transparent 52%),
-    #f8fafc;
-  color: #0f172a;
+    var(--bg-base);
+  color: var(--text-body);
   font-family: var(--font-body), "Avenir Next", "Segoe UI", sans-serif;
 }
 
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(60rem 30rem at -5% -10%, rgba(14, 165, 233, 0.14), transparent 55%),
+    radial-gradient(56rem 28rem at 105% -8%, rgba(249, 115, 22, 0.12), transparent 52%),
+    var(--bg-base);
+}
+
 .app-shell-surface {
-  background-color: #f8fafc;
+  background-color: var(--bg-base);
 }
 
 .surface-card {
-  background-color: #ffffff;
-  border: 1px solid rgb(226 232 240);
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
   border-radius: 1rem;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
@@ -44,8 +95,8 @@ body {
 }
 
 .surface-card-muted {
-  background-color: #f8fafc;
-  border: 1px solid rgb(226 232 240);
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.75rem;
 }
 
@@ -56,6 +107,7 @@ body {
     linear-gradient(135deg, #0b1120 0%, #0f172a 55%, #1e293b 100%);
 }
 
+/* App header is always "ink" chrome — intentionally not themed. */
 .app-header-surface {
   background-color: rgba(11, 17, 32, 0.94);
   backdrop-filter: blur(12px);
@@ -63,8 +115,8 @@ body {
 }
 
 .dropdown-surface {
-  background-color: #ffffff;
-  border-color: rgb(226 232 240);
+  background-color: var(--surface);
+  border-color: var(--border-subtle);
 }
 
 .dropdown-item-active {
@@ -72,46 +124,14 @@ body {
   color: rgb(154 52 18);
 }
 
-.dropdown-notch {
-  background-color: #ffffff;
-  border-color: rgb(226 232 240);
-}
-
-html[data-theme="dark"] body {
-  background:
-    radial-gradient(60rem 30rem at -5% -10%, rgba(14, 165, 233, 0.14), transparent 55%),
-    radial-gradient(56rem 28rem at 105% -8%, rgba(249, 115, 22, 0.12), transparent 52%),
-    #020617;
-  color: #e2e8f0;
-}
-
-html[data-theme="dark"] .app-shell-surface {
-  background-color: #020617;
-}
-
-html[data-theme="dark"] .surface-card {
-  background-color: rgb(15 23 42);
-  border-color: rgb(51 65 85);
-}
-
-html[data-theme="dark"] .surface-card-muted {
-  background-color: rgb(30 41 59);
-  border-color: rgb(51 65 85);
-}
-
-html[data-theme="dark"] .dropdown-surface {
-  background-color: rgb(15 23 42);
-  border-color: rgb(51 65 85);
-}
-
 html[data-theme="dark"] .dropdown-item-active {
   background-color: rgb(124 45 18);
   color: rgb(254 215 170);
 }
 
-html[data-theme="dark"] .dropdown-notch {
-  background-color: rgb(15 23 42);
-  border-color: rgb(51 65 85);
+.dropdown-notch {
+  background-color: var(--surface);
+  border-color: var(--border-subtle);
 }
 
 h1,
@@ -143,79 +163,108 @@ textarea {
   line-height: 1.35rem;
 }
 
+/* Touch devices get 44px minimum targets (iOS HIG / WCAG 2.5.8). */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select {
+    min-height: 2.75rem;
+  }
+}
+
+/* Keyboard-only focus indicator, consistent app-wide. */
+:focus-visible {
+  outline: 2px solid rgb(249 115 22 / 0.65);
+  outline-offset: 2px;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * Dark-mode utility remaps
+ * ------------------------
+ * Components author in light-mode Tailwind utilities (e.g. `bg-white`,
+ * `text-slate-900`); these rules remap those utilities for dark mode. They are
+ * unlayered and therefore override `@layer utilities` without `!important`.
+ */
 html[data-theme="dark"] .bg-white {
-  background-color: rgb(15 23 42) !important;
+  background-color: var(--surface);
 }
 
 html[data-theme="dark"] .bg-white\/95 {
-  background-color: rgb(2 6 23 / 0.95) !important;
+  background-color: rgb(2 6 23 / 0.95);
 }
 
 html[data-theme="dark"] .bg-slate-50 {
-  background-color: rgb(30 41 59) !important;
+  background-color: var(--surface-muted);
 }
 
 html[data-theme="dark"] .bg-slate-100 {
-  background-color: rgb(51 65 85) !important;
+  background-color: var(--surface-raised);
 }
 
 html[data-theme="dark"] .text-slate-900 {
-  color: rgb(241 245 249) !important;
+  color: var(--text-primary);
 }
 
 html[data-theme="dark"] .text-slate-800 {
-  color: rgb(226 232 240) !important;
+  color: var(--text-strong);
 }
 
 html[data-theme="dark"] .text-slate-700 {
-  color: rgb(203 213 225) !important;
+  color: var(--text-secondary);
 }
 
 html[data-theme="dark"] .text-slate-600,
 html[data-theme="dark"] .text-slate-500 {
-  color: rgb(148 163 184) !important;
+  color: var(--text-muted);
 }
 
 html[data-theme="dark"] .border-slate-200,
 html[data-theme="dark"] .border-slate-100,
 html[data-theme="dark"] .border-slate-300 {
-  border-color: rgb(51 65 85) !important;
+  border-color: var(--border-subtle);
 }
 
 html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea {
-  background-color: rgb(30 41 59) !important;
-  color: rgb(226 232 240) !important;
+  background-color: var(--surface-muted);
+  color: var(--text-strong);
 }
 
 html[data-theme="dark"] select option,
 html[data-theme="dark"] select optgroup {
-  background-color: rgb(15 23 42);
-  color: rgb(226 232 240);
+  background-color: var(--surface);
+  color: var(--text-strong);
 }
 
 html[data-theme="dark"] .hover\:bg-slate-50:hover {
-  background-color: rgb(30 41 59) !important;
+  background-color: var(--surface-muted);
 }
 
 html[data-theme="dark"] .hover\:bg-slate-100:hover {
-  background-color: rgb(51 65 85) !important;
+  background-color: var(--surface-raised);
 }
 
 html[data-theme="dark"] .hover\:bg-sky-100:hover {
-  background-color: rgb(12 74 110) !important;
+  background-color: rgb(12 74 110);
 }
 
 html[data-theme="dark"] .hover\:bg-emerald-50:hover {
-  background-color: rgb(6 78 59) !important;
+  background-color: rgb(6 78 59);
 }
 
 html[data-theme="dark"] .hover\:bg-red-50:hover {
-  background-color: rgb(127 29 29) !important;
+  background-color: rgb(127 29 29);
 }
 
 html[data-theme="dark"] .hover\:text-slate-900:hover,
 html[data-theme="dark"] .hover\:text-slate-800:hover {
-  color: rgb(241 245 249) !important;
+  color: var(--text-primary);
 }

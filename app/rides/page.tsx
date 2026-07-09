@@ -128,24 +128,26 @@ export default async function RidesPage({ searchParams }: RidesPageProps) {
         </section>
       ) : null}
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2">
         <MetricCard title="Total miles" value={`${totalMiles.toFixed(1)} mi`} />
-        <MetricCard title="Monthly miles" value={`${monthlyMiles.toFixed(1)} mi`} />
+        <MetricCard title="Miles this month" value={`${monthlyMiles.toFixed(1)} mi`} />
       </section>
 
-      <section className="mt-6">
-        <RideDistanceStreamChart
-          rides={rides.map((ride) => ({
-            id: ride.id,
-            date: ride.date.toISOString(),
-            distanceMiles: ride.distanceMiles,
-            durationMinutes: ride.durationMinutes,
-            rideType: ride.rideType,
-            roadCondition: ride.roadCondition,
-            wasWet: ride.wasWet,
-          }))}
-        />
-      </section>
+      {rides.length > 0 ? (
+        <section className="mt-6">
+          <RideDistanceStreamChart
+            rides={rides.map((ride) => ({
+              id: ride.id,
+              date: ride.date.toISOString(),
+              distanceMiles: ride.distanceMiles,
+              durationMinutes: ride.durationMinutes,
+              rideType: ride.rideType,
+              roadCondition: ride.roadCondition,
+              wasWet: ride.wasWet,
+            }))}
+          />
+        </section>
+      ) : null}
 
       <section id="ride-log-form" className="mt-6 scroll-mt-40">
         <RideForm

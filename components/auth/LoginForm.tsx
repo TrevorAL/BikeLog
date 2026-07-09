@@ -124,9 +124,9 @@ export function LoginForm() {
           type="button"
           disabled={submitting}
           onClick={() => handleGoogleAuth("login")}
-          variant="primary"
+          variant="secondary"
           icon={<GoogleIcon />}
-          className="w-full py-2.5 text-sm"
+          className="w-full border-transparent bg-[#ffffff] py-2.5 text-sm text-[#0f172a] hover:bg-[#e2e8f0]"
         >
           {submitting && mode === "login" ? "Logging in..." : "Log in with Google"}
         </Button>

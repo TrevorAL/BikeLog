@@ -269,9 +269,8 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
               title="Service Intervals"
               items={componentMileageLoadBars}
               valueSuffix="%"
-              tone="orange"
               maxValue={100}
-              minBarPercent={0}
+              thresholds
               scrollable
             />
           </section>

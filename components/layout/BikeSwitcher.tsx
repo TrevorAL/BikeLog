@@ -115,7 +115,7 @@ export function BikeSwitcher({ bikes, selectedBikeId }: BikeSwitcherProps) {
         onClick={() => setIsOpen((previous) => !previous)}
         disabled={isSaving || bikes.length <= 1}
         className={cn(
-          "inline-flex h-9 max-w-[220px] items-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60",
+          "inline-flex h-9 max-w-[150px] items-center gap-2 min-[420px]:max-w-[220px] rounded-md border border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60",
           isOpen ? "border-brand-500 ring-2 ring-brand-200" : "",
         )}
         aria-haspopup="menu"

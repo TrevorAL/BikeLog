@@ -7,7 +7,6 @@ import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist"
 import { ReadinessGauge } from "@/components/dashboard/ReadinessGauge";
 import { Button } from "@/components/ui/Button";
 import { MetricCard } from "@/components/ui/MetricCard";
-import { ParallaxHero } from "@/components/ui/ParallaxHero";
 import { QuickActionsDropdown } from "@/components/ui/QuickActionsDropdown";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PillBars } from "@/components/ui/viz/PillBars";
@@ -231,6 +230,13 @@ export default async function DashboardPage() {
   const attentionItems = attentionItemsAll.slice(0, 6);
   const remainingAttentionCount = attentionItemsAll.length - attentionItems.length;
   const recentRides = bike ? bike.rides.slice(0, 5) : [];
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekMiles = bike
+    ? bike.rides
+        .filter((ride) => ride.date >= weekAgo)
+        .reduce((sum, ride) => sum + ride.distanceMiles, 0)
+    : 0;
   const dueItemMap = new Map(
     bike ? data.maintenance.maintenanceSummary.dueItems.map((item) => [item.key, item] as const) : [],
   );
@@ -290,7 +296,6 @@ export default async function DashboardPage() {
   const showOnboarding = onboardingSteps.some((s) => !s.done);
 
   const quickActions = [
-    { href: "/rides?open=log#ride-log-form", label: "Log Ride" },
     { href: "/maintenance?open=log#maintenance-log-form", label: "Log Maintenance" },
     { href: "/maintenance?open=log&due=chain-lube#maintenance-log-form", label: "Lube Chain" },
     { href: "/maintenance?open=log&due=di2-charge#maintenance-log-form", label: "Charge Di2" },
@@ -314,45 +319,37 @@ export default async function DashboardPage() {
         </section>
       ) : null}
 
-      <ParallaxHero
-        eyebrow="Dashboard"
-        title={bike ? bike.name : "Welcome to BikeLog"}
-        subtitle={
-          bike
-            ? "Your at-a-glance status — readiness, maintenance, and recent rides in one place."
-            : "Add your first bike to start tracking maintenance, rides, tire pressure, and readiness."
-        }
-        preview={
-          bike ? (
-            <ReadinessGauge
-              score={data.maintenance.readiness.score}
-              label={data.maintenance.readiness.label}
-              tone={readinessTone}
-              className="mx-auto"
-            />
-          ) : undefined
-        }
-        className="mb-6"
-      >
-        {bike ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <Button href="/rides?open=log#ride-log-form" variant="primary">
-              Log a ride
-            </Button>
-            <Button
-              href="/maintenance"
-              variant="secondary"
-              className="border-white/20 bg-transparent text-white hover:bg-white/10"
-            >
-              View maintenance
-            </Button>
+      {bike ? (
+        <section className="hero-gradient mb-6 overflow-hidden rounded-2xl px-5 py-5 shadow-card sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-bold tracking-tight text-white sm:text-2xl">
+                {bike.name}
+              </h2>
+              <p className="mt-0.5 text-sm text-slate-300">
+                {dueNowCount > 0
+                  ? `${dueNowCount} item${dueNowCount === 1 ? "" : "s"} due now`
+                  : dueSoonCount > 0
+                    ? `${dueSoonCount} item${dueSoonCount === 1 ? "" : "s"} due soon`
+                    : "All maintenance up to date"}
+                {" · "}
+                {bikeMileage.toFixed(0)} mi logged
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <ReadinessGauge
+                compact
+                score={data.maintenance.readiness.score}
+                label={data.maintenance.readiness.label}
+                tone={readinessTone}
+              />
+              <Button href="/rides?open=log#ride-log-form" variant="primary">
+                Log a ride
+              </Button>
+            </div>
           </div>
-        ) : (
-          <Button href="/bike?openAddBike=1#bike-manager" variant="primary">
-            Add your first bike
-          </Button>
-        )}
-      </ParallaxHero>
+        </section>
+      ) : null}
 
       {bike && showOnboarding && (
         <OnboardingChecklist steps={onboardingSteps} />
@@ -360,12 +357,16 @@ export default async function DashboardPage() {
 
       {bike ? (
         <>
-          <section className={`grid gap-3 sm:grid-cols-3 ${showOnboarding ? "mt-6" : ""}`}>
+          <section className={`grid gap-4 sm:grid-cols-3 ${showOnboarding ? "mt-6" : ""}`}>
             <Link href="/rides" className="block">
               <MetricCard
-                title="Recent Miles"
+                title="Total Miles"
                 value={`${bikeMileage.toFixed(1)} mi`}
-                subtitle="Total logged on this bike"
+                subtitle={
+                  weekMiles > 0
+                    ? `+${weekMiles.toFixed(1)} mi in the last 7 days`
+                    : "No rides in the last 7 days"
+                }
                 icon={<Activity className="h-5 w-5" />}
                 className="h-full"
               />
@@ -474,9 +475,8 @@ export default async function DashboardPage() {
             title="Component Health"
             items={componentMileageBars}
             valueSuffix="%"
-            tone="orange"
             maxValue={100}
-            minBarPercent={0}
+            thresholds
             className="mt-6"
             headerAction={
               <Link href="/components" className="text-xs font-semibold text-brand-600 hover:text-brand-700">

@@ -78,6 +78,7 @@ Last updated: 2026-06-17
 - [ ] Personalized maintenance predictions using Strava ride data (elevation, weather, intensity) to adjust component wear estimates beyond generic mileage thresholds.
 - [ ] Pre-ride check routine — 60-second tap-through checklist (tires, brakes, bolts) that auto-logs, surfaces overdue maintenance, and drives daily habit engagement.
 - [ ] Weekly bike health digest — email or push summary of miles ridden, component life percentages, and upcoming service intervals to drive passive re-engagement.
+- [ ] Price of components added and total bike for resale
 
 ## P2 - After Domain and Scale-Up
 
