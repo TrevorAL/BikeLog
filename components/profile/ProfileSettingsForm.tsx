@@ -1218,6 +1218,7 @@ export function ProfileSettingsForm({
                 timezone.
               </p>
 
+              {notificationForm.sendPolicy === "INSTANT" ? (
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
@@ -1340,6 +1341,7 @@ export function ProfileSettingsForm({
                   </div>
                 </div>
               </div>
+              ) : null}
             </div>
           </div>
 
