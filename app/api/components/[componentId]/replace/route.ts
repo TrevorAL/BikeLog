@@ -34,6 +34,19 @@ function parseOptionalPositiveNumber(
   return { value: parsed };
 }
 
+function parseOptionalPrice(value: unknown): { value: number | undefined; error?: string } {
+  if (value === "" || value === undefined || value === null) {
+    return { value: undefined };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return { value: undefined, error: "Price must be zero or greater." };
+  }
+
+  return { value: Math.round(parsed * 100) / 100 };
+}
+
 export async function POST(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiUser(request);
@@ -70,12 +83,18 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: replacementIntervalMilesResult.error }, { status: 400 });
     }
 
+    const priceResult = parseOptionalPrice(body.price);
+    if (priceResult.error) {
+      return NextResponse.json({ error: priceResult.error }, { status: 400 });
+    }
+
     const result = await replaceComponent(componentId, {
       name: optionalString(body.name),
       brand: optionalString(body.brand),
       model: optionalString(body.model),
       installDate,
       replacementIntervalMiles: replacementIntervalMilesResult.value,
+      price: priceResult.value,
       notes: optionalString(body.notes),
     });
 

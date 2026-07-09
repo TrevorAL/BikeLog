@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { OrbitDial } from "@/components/ui/viz/OrbitDial";
 import { PillBars } from "@/components/ui/viz/PillBars";
 import { requireServerUser } from "@/lib/auth";
+import { formatCurrency } from "@/lib/utils";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { formatComponentType } from "@/lib/component-options";
 import { MAINTENANCE_INTERVALS, type MaintenanceStatus } from "@/lib/constants";
@@ -97,6 +98,7 @@ async function getComponentsPageData(userId: string) {
       },
       select: {
         id: true,
+        purchasePrice: true,
         components: {
           where: {
             isActive: true,
@@ -210,6 +212,16 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
         .sort((a, b) => b.value - a.value)
         .slice(0, 8)
     : [];
+  const componentsPriceTotal = bike
+    ? bike.components.reduce((sum, component) => sum + (component.price ?? 0), 0)
+    : 0;
+  const bikeBasePrice = bike?.purchasePrice ?? 0;
+  const estimatedValue = bikeBasePrice + componentsPriceTotal;
+  const hasAnyPricing = Boolean(
+    bike &&
+      (bike.purchasePrice != null ||
+        bike.components.some((component) => component.price != null)),
+  );
   const dueNowCount = bike ? data.maintenance.maintenanceSummary.dueNow.length : 0;
   const dueSoonCount = bike ? data.maintenance.maintenanceSummary.dueSoon.length : 0;
   const goodCount = bike
@@ -275,6 +287,28 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
             />
           </section>
 
+          <section className="surface-card mb-6 flex flex-wrap items-center justify-between gap-4 p-5">
+            <div>
+              <p className="text-sm font-medium text-slate-600">Estimated bike value</p>
+              <p className="font-display mt-1 text-2xl font-bold text-slate-900">
+                {hasAnyPricing ? formatCurrency(estimatedValue) : "Add prices to estimate"}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {hasAnyPricing
+                  ? `Bike ${formatCurrency(bikeBasePrice) ?? "$0"} + components ${
+                      formatCurrency(componentsPriceTotal) ?? "$0"
+                    }`
+                  : "Enter what you paid for the bike and components to see a rough resale total."}
+              </p>
+            </div>
+            <a
+              href="/bike#share-history"
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              Share / download history
+            </a>
+          </section>
+
           <ComponentManager
             bikeId={bike.id}
             disabled={!data.dbConnected}
@@ -297,6 +331,7 @@ export default async function ComponentsPage({ searchParams }: ComponentsPagePro
                 initialMileage: component.initialMileage,
                 currentMileage: component.currentMileage,
                 replacementIntervalMiles: component.replacementIntervalMiles,
+                price: component.price,
                 notes: component.notes,
                 conditionStatus,
                 nextMaintenance,

@@ -40,6 +40,26 @@ function optionalBoolean(value: unknown) {
   return value;
 }
 
+// value: undefined = field absent (don't touch), null = clear, number = set.
+function parsePriceUpdate(value: unknown): {
+  value: number | null | undefined;
+  error?: string;
+} {
+  if (value === undefined) {
+    return { value: undefined };
+  }
+  if (value === null || value === "") {
+    return { value: null };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return { value: undefined, error: "Purchase price must be zero or greater." };
+  }
+
+  return { value: Math.round(parsed * 100) / 100 };
+}
+
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiUser(request);
@@ -80,6 +100,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     const isArchived = optionalBoolean(body.isArchived);
 
+    const purchasePriceResult = parsePriceUpdate(body.purchasePrice);
+    if (purchasePriceResult.error) {
+      return NextResponse.json({ error: purchasePriceResult.error }, { status: 400 });
+    }
+
     const data = {
       name,
       brand: body.brand === undefined ? undefined : optionalString(body.brand),
@@ -94,6 +119,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       wheelset: body.wheelset === undefined ? undefined : optionalString(body.wheelset),
       tireSetup: body.tireSetup === undefined ? undefined : optionalString(body.tireSetup),
       notes: body.notes === undefined ? undefined : optionalString(body.notes),
+      purchasePrice: purchasePriceResult.value,
       isArchived,
     };
 

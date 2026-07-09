@@ -34,6 +34,19 @@ function parseOptionalPositiveNumberOrNull(
   return { value: parsed };
 }
 
+function parseOptionalPriceOrNull(value: unknown): { value: number | null; error?: string } {
+  if (value === "" || value === undefined || value === null) {
+    return { value: null };
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return { value: null, error: "Price must be zero or greater." };
+  }
+
+  return { value: Math.round(parsed * 100) / 100 };
+}
+
 export async function PATCH(request: Request, context: RouteContext) {
   try {
     const auth = await requireApiUser(request);
@@ -105,6 +118,11 @@ export async function PATCH(request: Request, context: RouteContext) {
       return NextResponse.json({ error: "Install date is invalid." }, { status: 400 });
     }
 
+    const priceResult = parseOptionalPriceOrNull(body.price);
+    if (priceResult.error) {
+      return NextResponse.json({ error: priceResult.error }, { status: 400 });
+    }
+
     const component = await updateComponent(componentId, {
       name,
       brand: optionalString(body.brand),
@@ -113,6 +131,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       initialMileage,
       currentMileage,
       replacementIntervalMiles: replacementIntervalMilesResult.value,
+      price: priceResult.value,
       notes: optionalString(body.notes),
     });
 

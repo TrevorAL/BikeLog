@@ -22,6 +22,7 @@ type ComponentListItem = {
   initialMileage: number;
   currentMileage: number;
   replacementIntervalMiles: number | null;
+  price: number | null;
   notes: string | null;
   conditionStatus: MaintenanceStatus;
   nextMaintenance: string;
@@ -385,6 +386,7 @@ function AddComponentForm({
               initialMileage,
               currentMileage,
               replacementIntervalMiles,
+              price: parseOptionalText(formData.get("price")),
               notes: parseOptionalText(formData.get("notes")),
             }),
           });
@@ -487,6 +489,18 @@ function AddComponentForm({
             min="1"
             step="1"
             placeholder={`${DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[selectedType]} (default)`}
+            className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+          />
+        </label>
+
+        <label className="text-sm text-slate-700">
+          Price paid (optional)
+          <input
+            name="price"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="e.g. 89.99"
             className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
           />
         </label>
@@ -593,6 +607,7 @@ function EditableComponentCard({
                 initialMileage,
                 currentMileage,
                 replacementIntervalMiles,
+                price: parseOptionalText(formData.get("price")),
                 notes: parseOptionalText(formData.get("notes")),
               }),
             });
@@ -719,6 +734,19 @@ function EditableComponentCard({
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
+
+          <label className="text-sm text-slate-700">
+            Price paid (optional)
+            <input
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={component.price ?? ""}
+              placeholder="e.g. 89.99"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
         </div>
 
         <label className="mt-3 block text-sm text-slate-700">
@@ -770,6 +798,7 @@ function EditableComponentCard({
                 model: parseOptionalText(formData.get("model")),
                 installDate: parseOptionalText(formData.get("installDate")),
                 replacementIntervalMiles,
+                price: parseOptionalText(formData.get("price")),
                 notes: parseOptionalText(formData.get("notes")),
               }),
             });
@@ -857,6 +886,19 @@ function EditableComponentCard({
               step="1"
               defaultValue={component.replacementIntervalMiles ?? ""}
               placeholder={`${DEFAULT_COMPONENT_REPLACEMENT_INTERVAL_MILES[component.type]} (default)`}
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
+
+          <label className="text-sm text-slate-700">
+            Price paid (optional)
+            <input
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              defaultValue={component.price ?? ""}
+              placeholder="e.g. 89.99"
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>

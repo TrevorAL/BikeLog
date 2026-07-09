@@ -9,6 +9,7 @@ type BaseComponentInput = {
   installDate?: Date;
   initialMileage?: number;
   replacementIntervalMiles?: number | null;
+  price?: number | null;
   notes?: string;
 };
 
@@ -41,6 +42,7 @@ export async function createComponent(input: CreateComponentInput): Promise<Comp
       initialMileage,
       currentMileage,
       replacementIntervalMiles: input.replacementIntervalMiles,
+      price: input.price,
       notes: input.notes,
       status: ComponentStatus.ACTIVE,
       isActive: true,
@@ -70,6 +72,7 @@ export async function updateComponent(
       initialMileage: input.initialMileage,
       currentMileage: input.currentMileage,
       replacementIntervalMiles: input.replacementIntervalMiles,
+      price: input.price,
       notes: input.notes,
     },
   });
@@ -108,6 +111,7 @@ export async function replaceComponent(
         currentMileage: 0,
         replacementIntervalMiles:
           input.replacementIntervalMiles ?? existing.replacementIntervalMiles ?? undefined,
+        price: input.price ?? existing.price ?? undefined,
         status: ComponentStatus.ACTIVE,
         isActive: true,
         notes: input.notes ?? existing.notes ?? undefined,

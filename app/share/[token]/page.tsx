@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PrintHistoryButton } from "@/components/bike/PrintHistoryButton";
 import { LogoMark } from "@/components/ui/illustrations/LogoMark";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { prisma } from "@/lib/db";
+import { formatCurrency } from "@/lib/utils";
 
 function formatEnumLabel(value: string) {
   return value
@@ -37,6 +39,7 @@ export default async function SharePage({ params }: PageProps) {
       wheelset: true,
       tireSetup: true,
       notes: true,
+      purchasePrice: true,
       createdAt: true,
       components: {
         orderBy: { installDate: "desc" },
@@ -48,6 +51,7 @@ export default async function SharePage({ params }: PageProps) {
           installDate: true,
           currentMileage: true,
           initialMileage: true,
+          price: true,
           status: true,
           isActive: true,
           notes: true,
@@ -76,6 +80,14 @@ export default async function SharePage({ params }: PageProps) {
   const activeComponents = bike.components.filter((c) => c.isActive);
   const retiredComponents = bike.components.filter((c) => !c.isActive);
 
+  const componentsPriceTotal = activeComponents.reduce(
+    (sum, c) => sum + (c.price ?? 0),
+    0,
+  );
+  const estimatedValue = (bike.purchasePrice ?? 0) + componentsPriceTotal;
+  const hasAnyPricing =
+    bike.purchasePrice != null || activeComponents.some((c) => c.price != null);
+
   const specs: { label: string; value: string }[] = [
     bike.frameMaterial ? { label: "Frame material", value: bike.frameMaterial } : null,
     bike.frameSize ? { label: "Frame size", value: bike.frameSize } : null,
@@ -98,9 +110,12 @@ export default async function SharePage({ params }: PageProps) {
               BikeLog
             </span>
           </Link>
-          <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
-            Service History
-          </span>
+          <div className="flex items-center gap-3">
+            <PrintHistoryButton />
+            <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700">
+              Service History
+            </span>
+          </div>
         </div>
       </header>
 
@@ -127,6 +142,25 @@ export default async function SharePage({ params }: PageProps) {
               <p className="text-xs text-slate-500">on the road since</p>
             </div>
           </div>
+
+          {hasAnyPricing && (
+            <div className="mt-5 flex flex-wrap items-end justify-between gap-3 rounded-xl border border-brand-100 bg-brand-50/60 px-5 py-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">
+                  Estimated value
+                </p>
+                <p className="font-display mt-0.5 text-3xl font-bold text-slate-900">
+                  {formatCurrency(estimatedValue)}
+                </p>
+              </div>
+              <p className="text-xs text-slate-500">
+                Bike {formatCurrency(bike.purchasePrice ?? 0)} + components{" "}
+                {formatCurrency(componentsPriceTotal)}
+                <br />
+                Based on owner-entered prices. Actual resale value may vary.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Specs */}
@@ -164,6 +198,11 @@ export default async function SharePage({ params }: PageProps) {
                     <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500">
                       Miles on it
                     </th>
+                    {hasAnyPricing && (
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500">
+                        Price
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -182,6 +221,11 @@ export default async function SharePage({ params }: PageProps) {
                         <td className="px-4 py-3 text-right font-medium text-slate-900">
                           {milesOn > 0 ? milesOn.toLocaleString() : "—"}
                         </td>
+                        {hasAnyPricing && (
+                          <td className="px-4 py-3 text-right font-medium tabular-nums text-slate-900">
+                            {formatCurrency(c.price, { showCents: true }) ?? "—"}
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
