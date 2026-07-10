@@ -186,6 +186,32 @@ textarea {
 }
 
 /*
+ * Print: force a clean light document regardless of the viewer's theme, so a
+ * shared service-history page downloads/prints legibly (used for bike resale).
+ */
+@media print {
+  html,
+  html[data-theme="dark"] {
+    --bg-base: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #f8fafc;
+    --surface-raised: #f1f5f9;
+    --border-subtle: rgb(226 232 240);
+    --text-body: #0f172a;
+    --text-primary: #0f172a;
+    --text-strong: #1e293b;
+    --text-secondary: #334155;
+    --text-muted: #475569;
+  }
+
+  html[data-theme="dark"] body,
+  body {
+    background: #ffffff !important;
+    color: #0f172a;
+  }
+}
+
+/*
  * Dark-mode utility remaps
  * ------------------------
  * Components author in light-mode Tailwind utilities (e.g. `bg-white`,

@@ -48,6 +48,7 @@ model Bike {
   wheelset        String?
   tireSetup       String?
   notes           String?
+  purchasePrice   Float?
   isArchived      Boolean  @default(false)
   shareToken      String?  @unique
   isShared        Boolean  @default(false)
@@ -78,6 +79,7 @@ model Component {
   initialMileage Float           @default(0)
   currentMileage Float           @default(0)
   replacementIntervalMiles Float?
+  price          Float?
   status         ComponentStatus @default(ACTIVE)
   notes          String?
   isActive       Boolean         @default(true)

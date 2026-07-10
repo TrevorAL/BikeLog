@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
-import { ShareHistoryPanel } from "@/components/bike/ShareHistoryPanel";
 
 type BikeManagerBike = {
   id: string;
@@ -20,6 +19,7 @@ type BikeManagerBike = {
   wheelset: string | null;
   tireSetup: string | null;
   notes: string | null;
+  purchasePrice: number | null;
   isArchived: boolean;
 };
 
@@ -43,6 +43,7 @@ type BikeFormState = {
   wheelset: string;
   tireSetup: string;
   notes: string;
+  purchasePrice: string;
 };
 
 type FormStatus = {
@@ -74,6 +75,7 @@ function blankBikeForm(): BikeFormState {
     wheelset: "",
     tireSetup: "",
     notes: "",
+    purchasePrice: "",
   };
 }
 
@@ -91,6 +93,7 @@ function bikeToFormState(bike: BikeManagerBike): BikeFormState {
     wheelset: bike.wheelset ?? "",
     tireSetup: bike.tireSetup ?? "",
     notes: bike.notes ?? "",
+    purchasePrice: bike.purchasePrice != null ? String(bike.purchasePrice) : "",
   };
 }
 
@@ -108,6 +111,7 @@ function normalizePayload(form: BikeFormState) {
     wheelset: form.wheelset.trim(),
     tireSetup: form.tireSetup.trim(),
     notes: form.notes.trim(),
+    purchasePrice: form.purchasePrice.trim(),
   };
 }
 
@@ -422,6 +426,21 @@ export function BikeManager({
               className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
             />
           </label>
+          <label className="text-sm text-slate-700">
+            Bike price paid (optional)
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="e.g. 2499"
+              value={createForm.purchasePrice}
+              onChange={(event) =>
+                setCreateForm((previous) => ({ ...previous, purchasePrice: event.target.value }))
+              }
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+            />
+          </label>
         </div>
         <label className="mt-3 block text-sm text-slate-700">
           Notes
@@ -682,6 +701,24 @@ export function BikeManager({
                         className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
                       />
                     </label>
+                    <label className="text-sm text-slate-700">
+                      Bike price paid (optional)
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="e.g. 2499"
+                        value={editForm.purchasePrice}
+                        onChange={(event) =>
+                          setEditForm((previous) => ({
+                            ...previous,
+                            purchasePrice: event.target.value,
+                          }))
+                        }
+                        className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                      />
+                    </label>
                     <label className="sm:col-span-2 text-sm text-slate-700">
                       Notes
                       <textarea
@@ -711,8 +748,6 @@ export function BikeManager({
                     </div>
                   </form>
                 ) : null}
-
-                <ShareHistoryPanel bikeId={bike.id} />
               </article>
             ))
           )}

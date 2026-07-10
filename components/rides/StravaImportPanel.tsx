@@ -569,6 +569,24 @@ export function StravaImportPanel({
             ))}
           </select>
 
+          <Button
+            type="button"
+            onClick={() => {
+              void loadPreview();
+            }}
+            disabled={isPreviewLoading || isImporting || isAutoSyncing}
+            variant="secondary"
+            size="md"
+          >
+            {isAutoSyncing
+              ? "Auto-syncing..."
+              : isPreviewLoading
+                ? "Loading..."
+                : isPreviewOpen
+                  ? "Refresh preview"
+                  : "Preview recent rides"}
+          </Button>
+
           {isPreviewOpen ? (
             <Button
               type="button"
@@ -579,23 +597,7 @@ export function StravaImportPanel({
             >
               Close preview
             </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={() => {
-                void loadPreview();
-              }}
-              disabled={isPreviewLoading || isImporting || isAutoSyncing}
-              variant="secondary"
-              size="md"
-            >
-              {isAutoSyncing
-                ? "Auto-syncing..."
-                : isPreviewLoading
-                  ? "Loading..."
-                  : "Preview recent rides"}
-            </Button>
-          )}
+          ) : null}
         </div>
       </div>
 

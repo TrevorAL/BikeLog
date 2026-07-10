@@ -26,6 +26,20 @@ function optionalYear(value: unknown) {
   return parsed;
 }
 
+// Returns undefined for empty, null for invalid, or the rounded price.
+function optionalPrice(value: unknown): number | null | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return Math.round(parsed * 100) / 100;
+}
+
 export async function POST(request: Request) {
   try {
     const auth = await requireApiUser(request);
@@ -48,6 +62,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const purchasePrice = optionalPrice(body.purchasePrice);
+    if (purchasePrice === null) {
+      return NextResponse.json(
+        { error: "Purchase price must be zero or greater." },
+        { status: 400 },
+      );
+    }
+
     const bike = await prisma.bike.create({
       data: {
         userId: auth.user.id,
@@ -63,6 +85,7 @@ export async function POST(request: Request) {
         wheelset: optionalString(body.wheelset),
         tireSetup: optionalString(body.tireSetup),
         notes: optionalString(body.notes),
+        purchasePrice,
       },
       select: {
         id: true,

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { BikeManager } from "@/components/bike/BikeManager";
 import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
+import { ShareHistorySection } from "@/components/bike/ShareHistorySection";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MetricCard } from "@/components/ui/MetricCard";
@@ -108,6 +109,7 @@ async function getBikePageData(userId: string) {
         wheelset: true,
         tireSetup: true,
         notes: true,
+        purchasePrice: true,
         isArchived: true,
       },
     });
@@ -256,6 +258,23 @@ export default async function BikePage({ searchParams }: BikePageProps) {
           description="Create a new bike or restore an archived bike below."
         />
       )}
+
+      {bike ? (
+        <section
+          id="share-history"
+          className="surface-card mt-6 scroll-mt-40 p-5"
+        >
+          <h2 className="font-display text-lg font-semibold tracking-tight text-slate-900">
+            Service history &amp; resale
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Share a public, no-login link to this bike&apos;s full service history — specs,
+            components, prices, and maintenance log — or open it and use Download / Print to save a
+            PDF for a buyer.
+          </p>
+          <ShareHistorySection bikes={data.bikes} defaultBikeId={bike.id} />
+        </section>
+      ) : null}
 
       <section id="bike-manager" className="mt-6 scroll-mt-40">
         <BikeManager
