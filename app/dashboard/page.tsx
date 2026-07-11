@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ComponentType } from "@prisma/client";
-import { Activity, Gauge, Wrench } from "lucide-react";
+import { Activity, ChevronRight, Gauge, Wrench } from "lucide-react";
 
 import { AppShell } from "@/components/layout/AppShell";
 import { OnboardingChecklist } from "@/components/dashboard/OnboardingChecklist";
@@ -323,8 +323,17 @@ export default async function DashboardPage() {
         <section className="hero-gradient mb-6 overflow-hidden rounded-2xl px-5 py-5 shadow-card sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4">
             <div className="min-w-0">
-              <h2 className="font-display text-xl font-bold tracking-tight text-white sm:text-2xl">
-                {bike.name}
+              <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">
+                <Link
+                  href="/bike"
+                  title="Open bike profile"
+                  className="group inline-flex max-w-full items-center gap-1.5 text-white transition-colors hover:text-brand-300"
+                >
+                  <span className="truncate underline-offset-4 group-hover:underline">
+                    {bike.name}
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition-colors group-hover:text-brand-300" />
+                </Link>
               </h2>
               <p className="mt-0.5 text-sm text-slate-300">
                 {dueNowCount > 0
