@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { BikeManager } from "@/components/bike/BikeManager";
-import { BikeSummaryCard } from "@/components/bike/BikeSummaryCard";
+import { BikePhotoUploader } from "@/components/bike/BikePhotoUploader";
 import { ShareHistorySection } from "@/components/bike/ShareHistorySection";
 import { AppShell } from "@/components/layout/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,6 +11,13 @@ import { requireServerUser } from "@/lib/auth";
 import { computeBikeMaintenance } from "@/lib/bike-maintenance";
 import { prisma } from "@/lib/db";
 import { getOwnedBikeId } from "@/lib/ownership";
+import { getReadinessTone, type ReadinessTone } from "@/lib/readiness";
+
+const READINESS_CHIP_CLASSES: Record<ReadinessTone, string> = {
+  good: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  warning: "bg-amber-50 text-amber-800 ring-amber-600/20",
+  attention: "bg-red-50 text-red-700 ring-red-600/20",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +57,7 @@ async function getBikePageData(userId: string) {
         wheelset: true,
         tireSetup: true,
         notes: true,
+        imageUrl: true,
         components: {
           where: {
             isActive: true,
@@ -160,6 +168,8 @@ export default async function BikePage({ searchParams }: BikePageProps) {
 
   const lastRide = bike?.rides[0];
   const lastService = bike?.maintenanceEvents[0];
+  const headline = bike ? [bike.year, bike.brand, bike.model].filter(Boolean).join(" ") : "";
+  const readinessTone = getReadinessTone(bike ? data.maintenance.readiness.score : 0);
   const editBikeHref = bike
     ? `/bike?editBikeId=${encodeURIComponent(bike.id)}#bike-manager`
     : "/bike#bike-manager";
@@ -190,66 +200,111 @@ export default async function BikePage({ searchParams }: BikePageProps) {
 
       {bike ? (
         <>
-          <BikeSummaryCard
-            name={`${bike.year ? `${bike.year} ` : ""}${bike.brand ?? ""} ${bike.model ?? bike.name}`.trim()}
-            subtitle={`${bike.drivetrain ?? "Drivetrain not set"} · ${bike.brakeType ?? "Brake type not set"}`}
-          >
-            <div className="surface-card-muted p-4">
-              <p className="text-xs text-slate-600">Frame</p>
-              <p className="text-sm font-semibold text-slate-900">
-                {bike.frameMaterial ?? "Not set"}
-                {bike.frameSize ? ` · ${bike.frameSize}` : ""}
-              </p>
-            </div>
-            <div className="surface-card-muted p-4">
-              <p className="text-xs text-slate-600">Wheelset</p>
-              <p className="text-sm font-semibold text-slate-900">{bike.wheelset ?? "Not set"}</p>
-            </div>
-            <div className="surface-card-muted p-4">
-              <p className="text-xs text-slate-600">Tires</p>
-              <p className="text-sm font-semibold text-slate-900">{bike.tireSetup ?? "Not set"}</p>
-            </div>
-            <div className="surface-card-muted p-4">
-              <p className="text-xs text-slate-600">Notes</p>
-              <p className="text-sm font-semibold text-slate-900">{bike.notes ?? "No notes yet"}</p>
-            </div>
-          </BikeSummaryCard>
+          <section className="surface-card overflow-hidden">
+            <div className="grid lg:grid-cols-[minmax(0,_2fr)_minmax(0,_3fr)]">
+              <BikePhotoUploader
+                bikeId={bike.id}
+                imageUrl={bike.imageUrl}
+                bikeName={bike.name}
+                className="lg:h-full"
+              />
 
-          <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Primary bike{bike.type ? ` · ${bike.type}` : ""}
+                    </p>
+                    <h2 className="font-display mt-1.5 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+                      {headline || bike.name}
+                    </h2>
+                    {headline && headline !== bike.name ? (
+                      <p className="mt-0.5 text-sm text-slate-500">{bike.name}</p>
+                    ) : null}
+                  </div>
+                  <span
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${READINESS_CHIP_CLASSES[readinessTone]}`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden />
+                    {data.maintenance.readiness.score}% · {data.maintenance.readiness.label}
+                  </span>
+                </div>
+
+                <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                  {[
+                    { label: "Frame", value: bike.frameMaterial },
+                    { label: "Size", value: bike.frameSize },
+                    { label: "Drivetrain", value: bike.drivetrain },
+                    { label: "Brakes", value: bike.brakeType },
+                    { label: "Wheelset", value: bike.wheelset },
+                    { label: "Tires", value: bike.tireSetup },
+                  ].map((spec) => (
+                    <div key={spec.label} className="min-w-0">
+                      <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                        {spec.label}
+                      </dt>
+                      <dd
+                        className={`mt-0.5 truncate text-sm font-semibold ${
+                          spec.value ? "text-slate-900" : "font-normal text-slate-400"
+                        }`}
+                        title={spec.value ?? undefined}
+                      >
+                        {spec.value ?? "Not set"}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {bike.notes ? (
+                  <p className="mt-5 border-t border-slate-100 pt-4 text-sm text-slate-600">
+                    {bike.notes}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </section>
+
+          <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Link href="/rides" className="block rounded-2xl transition hover:opacity-80">
-              <MetricCard title="Total Logged Miles" value={`${data.maintenance.bikeMileage.toFixed(1)} mi`} />
+              <MetricCard
+                title="Total Miles"
+                value={`${data.maintenance.bikeMileage.toFixed(1)} mi`}
+                subtitle={
+                  lastRide
+                    ? `Last ride ${lastRide.date.toLocaleDateString()} · ${lastRide.distanceMiles.toFixed(1)} mi`
+                    : "No rides logged yet"
+                }
+                className="h-full"
+              />
             </Link>
             <Link href="/components" className="block rounded-2xl transition hover:opacity-80">
-              <MetricCard title="Active Components" value={`${bike.components.length}`} />
+              <MetricCard
+                title="Active Components"
+                value={`${bike.components.length}`}
+                subtitle="Tracked for wear"
+                className="h-full"
+              />
             </Link>
             <Link href="/maintenance" className="block rounded-2xl transition hover:opacity-80">
               <MetricCard
                 title="Maintenance Due"
                 value={`${data.maintenance.maintenanceSummary.dueNow.length}`}
+                subtitle={`${data.maintenance.maintenanceSummary.dueSoon.length} due soon`}
+                className="h-full"
               />
             </Link>
-            <Link href="/rides" className="block rounded-2xl transition hover:opacity-80">
-              <MetricCard
-                title="Last Ride"
-                value={lastRide ? lastRide.date.toLocaleDateString() : "No rides"}
-                subtitle={lastRide ? `${lastRide.distanceMiles.toFixed(1)} mi` : undefined}
-              />
-            </Link>
-          </section>
-
-          <section className="mt-3 grid gap-3 sm:grid-cols-2">
             <Link href="/maintenance" className="block rounded-2xl transition hover:opacity-80">
               <MetricCard
                 title="Last Service"
-                value={lastService ? lastService.date.toLocaleDateString() : "No service yet"}
-                subtitle={lastService ? lastService.type.replaceAll("_", " ") : undefined}
+                value={lastService ? lastService.date.toLocaleDateString() : "None yet"}
+                subtitle={
+                  lastService
+                    ? lastService.type.replaceAll("_", " ").toLowerCase()
+                    : "Log maintenance to start history"
+                }
+                className="h-full"
               />
             </Link>
-            <MetricCard
-              title="Ready to Ride"
-              value={`${data.maintenance.readiness.score}%`}
-              subtitle={data.maintenance.readiness.label}
-            />
           </section>
         </>
       ) : (

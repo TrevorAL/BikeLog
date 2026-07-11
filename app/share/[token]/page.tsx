@@ -40,6 +40,7 @@ export default async function SharePage({ params }: PageProps) {
       tireSetup: true,
       notes: true,
       purchasePrice: true,
+      imageUrl: true,
       createdAt: true,
       components: {
         orderBy: { installDate: "desc" },
@@ -121,7 +122,16 @@ export default async function SharePage({ params }: PageProps) {
 
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
         {/* Bike headline */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {bike.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={bike.imageUrl}
+              alt={`${bike.name} photo`}
+              className="max-h-80 w-full object-cover"
+            />
+          ) : null}
+          <div className="p-6">
           <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900">
             {headline || bike.name}
           </h1>
@@ -144,7 +154,7 @@ export default async function SharePage({ params }: PageProps) {
           </div>
 
           {hasAnyPricing && (
-            <div className="mt-5 flex flex-wrap items-end justify-between gap-3 rounded-xl border border-brand-100 bg-brand-50/60 px-5 py-4">
+            <div className="mt-5 flex flex-wrap items-end justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">
                   Estimated value
@@ -161,6 +171,7 @@ export default async function SharePage({ params }: PageProps) {
               </p>
             </div>
           )}
+          </div>
         </div>
 
         {/* Specs */}
