@@ -49,6 +49,7 @@ model Bike {
   tireSetup       String?
   notes           String?
   purchasePrice   Float?
+  imageUrl        String?
   isArchived      Boolean  @default(false)
   shareToken      String?  @unique
   isShared        Boolean  @default(false)
