@@ -73,6 +73,12 @@ Last updated: 2026-06-17
 - [ ] Create a dedicated company/support email address (currently using tlachman4@gmail.com — replace once you have one set up).
 - [x] Add first-run onboarding for users with no bikes/components.
 
+## Housekeeping / cleanup (non-urgent)
+
+- [ ] Prune stale `build-*` git tags that never produced a prod release (no matching `v1.0.0-N.1`): `build-v1.0.0-9.1`, `-12.1`, `-22.1`, `-52.1`, `-54.1`, `-56.1`, `-59.1`, `-61.1`, `-63.1`. These are auto-created deploy-trigger artifacts; deleting them is safe (`git push origin --delete <tag>` + `git tag -d <tag>`). Keep every tag with a matching `v*` release.
+  - Note: the deploy workflow keeps minting extra `build-*` tags on non-release commits — worth fixing at the source so they stop accumulating.
+- [ ] Delete dev/test fixtures on the `test-claude-auth@example.com` account in the **development** Neon DB (created while verifying pricing/share features; dev-only, never in prod): bike "2024 Canyon Grizl" (+ its share token), 3 priced components on the Giant TCR Pro (Ultegra chain/cassette, GP5000 tire) + that bike's test `purchasePrice`, and 3 test rides on the Giant.
+
 ## Product Ideas (Future)
 
 - [ ] Personalized maintenance predictions using Strava ride data (elevation, weather, intensity) to adjust component wear estimates beyond generic mileage thresholds.
